@@ -37,6 +37,6 @@ Forest: Bug finder, cross-distro compatibility expert, ports code from other pro
 
 contact david.vorick@gmail.com with questions
 or trimble.forest@gmail.com   
-
+or luke.champine@gmail.com
 
 an RCOS Project
