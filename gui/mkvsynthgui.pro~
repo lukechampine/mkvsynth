@@ -1,0 +1,10 @@
+QT += core gui
+
+TARGET = mkvsynthGUI
+
+TEMPLATE = app
+
+SOURCES += main.cpp \
+           mainwindow.cpp
+
+HEADERS += mainwindow.h
