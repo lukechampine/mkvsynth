@@ -1,11 +1,20 @@
-QT += core gui 
-QT += phonon
+QT += core gui network
 
 TARGET = mkvsynthGUI
 
 TEMPLATE = app
 
-SOURCES += main.cpp \
-           mainwindow.cpp
+MOC_DIR = buildfiles
+OBJECTS_DIR = buildfiles
 
-HEADERS += mainwindow.h
+SOURCES += main.cpp \
+           mainwindow.cpp \
+           qmpwidget/qmpwidget.cpp \
+           videowidget.cpp \
+           videobar.cpp
+
+HEADERS += mainwindow.h \
+           qmpwidget/qmpwidget.h \
+           qmpwidget/qmpyuvreader.h \
+           videowidget.h \
+           videobar.h 

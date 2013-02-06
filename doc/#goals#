@@ -1,0 +1,41 @@
+GUI:
+
+Text editing / scripting language
+
+tabs for multiple videos
+
+video
+
+frame # / frameseeker
+
+use ffinfo to find frameseek.
+
+tabs have same # of frames -> frameseek works on all tabs
+
+zoom possibility - default fill
+
+tabs have same resolution -> location on 
+
+switch between tabs
+
+
+
+Scripting Language:
+
+Crop
+Resize (spline)
+Interlacing
+Trim |        frame accurate
+Loop |
+encode ( x264 )
+
+------------------------
+
+crop(left,top,bottom,right)
+resize(resolution)
+trime(frames,location)
+encode(args)
+
+
+procedure:
+

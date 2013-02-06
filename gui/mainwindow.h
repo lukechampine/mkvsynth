@@ -2,20 +2,38 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <VideoPlayer>
+#include <QFileInfo>
 #include <QTextEdit>
+#include <QDockWidget>
+#include <QMenuBar>
+#include <QString>
+
+#include "videowidget.h"
 
 class MainWindow: public QMainWindow
 {
   Q_OBJECT
 
- public:
+public:
   MainWindow(QWidget *parent = 0);
   ~MainWindow();
- private:
+
+private:
+  void setupWidgets();
+  void setupMenus();
+
+public slots:
+  void stateChanged(int);
+  void openFile();
+
+private:
+  void processCommands(QString commands);
+
+private:
   QDockWidget *commandDock;
   QTextEdit *commandWidget;
-  VideoPlayer *videoViewer;
+  VideoWidget *videoBox;
+  QMenuBar *menus;
   
   
 };
