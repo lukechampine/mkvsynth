@@ -26,12 +26,13 @@ int initializeDecoder(struct DecodeContext *decodeContext, char *filename) {
     
 	//register codecs and verify valid input
   av_register_all();
-  if(avformat_open_input(&decodeContext->formatContext, *filename, NULL, NULL) != 0)
+  if(avformat_open_input(&decodeContext->formatContext, filename, NULL, NULL) != 0)
       return -1;
   if(avformat_find_stream_info(decodeContext->formatContext, NULL) < 0)
       return -1;
 		
 	//decode the first videostream
+	int i=0;
 	for(i=0; i<decodeContext->formatContext->nb_streams; i++) {
 			if(decodeContext->formatContext->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO) {
 					decodeContext->videoStream = -1;
@@ -63,7 +64,7 @@ int main(int argc, char *argv[]) {
 	initializeDecoder(&decodeContext, argv[1]);
 
 	AVFrame *pFrameRGB = NULL;
-
+	
 	while(av_read_frame(decodeContext->formatContext, decodeContext->packet) >= 0) {
 		if(decodeContext->packet->stream_index == decodeContext->videoStream) {
 			av_codec_decode_video2(decodeContext->codecContext, decodeContext->frame, &decodeContext->frameFinished, decodeContext->packet);
