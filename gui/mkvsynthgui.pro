@@ -11,10 +11,12 @@ SOURCES += main.cpp \
            mainwindow.cpp \
            qmpwidget/qmpwidget.cpp \
            videowidget.cpp \
-           videobar.cpp
+           videobar.cpp \
+           tabbutton.cpp
 
 HEADERS += mainwindow.h \
            qmpwidget/qmpwidget.h \
            qmpwidget/qmpyuvreader.h \
            videowidget.h \
-           videobar.h 
+           videobar.h \
+           tabbutton.h

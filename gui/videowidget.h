@@ -1,8 +1,13 @@
 #include <QVBoxLayout>
 #include <QFileDialog>
+#include <QStackedWidget>
+#include <QSignalMapper>
+#include <QVector>
+#include <QPair>
 
 #include "qmpwidget/qmpwidget.h"
 #include "videobar.h"
+#include "tabbutton.h"
 
 class VideoWidget : public QWidget {
   Q_OBJECT
@@ -14,12 +19,18 @@ public:
 signals:
   void qmpState(int);
 
-public:
-  void openFile(const QString &fileName);
+public slots:
+  void openFile(const QString &);
+  void newTab();
+  void destroy(int);
 
 private:
   QVBoxLayout *vBox;
-  QMPwidget *videoViewer;
+  QHBoxLayout *tabs;
+  QSignalMapper *tabsToStack, *tabsToVec;
+  QPushButton *addTab;
+  QStackedWidget *videos;
+  QVector<QPair<QMPwidget*,TabButton*> > videoViewers;
   VideoBar *actionBar;
 
 };
