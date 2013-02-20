@@ -1,4 +1,7 @@
-#include "libavformat/avformat.h"
+#include <libavformat/avformat.h>
+#include <x264.h>
+#include "resize.c"
+
 #define INBUF_SIZE 4096
 
 int FindStream (AVFormatContext *pFormatCtx) {
@@ -41,12 +44,18 @@ static int GetPacketFromFile (const char *filename, int timestamp, AVPacket avpa
 }
 
 static int filterStream (const char *filename) {
-    AVFormatContext *formatContext = NULL;
+    //these variables are needed to decode the video
+		AVFormatContext *formatContext = NULL;
     AVCodecContext *codecContext = NULL;
     AVCodec *codec = NULL;
     AVFrame *frame = NULL;
 		AVDictionary *optionsDict = NULL;
 		AVPacket packet;
+
+		//these variables are needed to encode the video
+		x264_param_t param;
+		param.rc.i_rc_method = X264_RC_CRF;
+		param.rc.f_rf_constant = 0;
 		
     int videoStream = -1;
 		int frameFinished;
@@ -83,9 +92,13 @@ static int filterStream (const char *filename) {
 				if(packet.stream_index == videoStream) {
 						avcodec_decode_video2(codecContext, frame, &frameFinished, &packet);
 						
-				//magic happens here!
-				if(frameFinished) {
-						resizeFrame(250, 250, codecContext, frame);
+						//magic happens here!
+						if(frameFinished) {
+								resizeFrame(250, 250, codecContext, frame);
+								//send frame to its own place, perhaps a new video stream.
+								//
+
+						}
 				}
 		}
 }
