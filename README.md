@@ -14,7 +14,7 @@ Avxsynth, FFmpeg, Avidemux, OpenShot:
 
 delbrot
 -------
-delbrot is the working name of the Mkvsynth scripting language. AviSynth is controlled solely through scripts, and we hope to provide users with the power and portability of script-based video editing in MkvSynth. However, we will also be providing a GUI to allow for visual editing and frame comparisons. At present, it is unknown how delbrot will interface with the GUI; one approach is to directly translate UI actions into delbrot commands. This would facilitate easy sharing of scripts without requiring an understanding of delbrot itself.
+delbrot is the working name of the Mkvsynth scripting language. AviSynth is controlled solely through scripts, and we hope to provide users with the power and portability of script-based video editing in MkvSynth. However, we will also be providing a GUI to allow for visual editing and frame comparisons. At present, it is unknown how delbrot will interface with the GUI; one approach is to directly translate UI actions into delbrot commands. This would facilitate easy sharing of scripts without requiring the user to manually write any code.
 
 Roles
 -----
@@ -28,7 +28,7 @@ Questions?
 ----------
 Contact david.vorick@gmail.com for general project questions.
 
-Contact luke.champine@gmail.com for questions related to the Mkvsynth scripting language.
+Contact luke.champine@gmail.com for questions related to the delbrot.
 
 Contact trimble.forest@gmail.com for questions related to the GUI.
 
