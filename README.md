@@ -1,48 +1,35 @@
-Mkvsynth
-also documented as 'Linux Video Processing' and 'Linux Video Processing Program'
+# MkvSynth #
 
-Linux Video Processing Program
+### Project Goal:
+We aim to develop a frame-accurate linear video editing program with minimum functionality, including crop and spline resize, using as much code from existing projects as is efficient.
 
-Goal: We aim to develop a frame-accurate linear video editing program with minimum functionality, including crop and spline resize, using as much code from existing projects as is efficient (that will mean importing lots of code)
+### Immediate Goal:
+A GUI that accepts video input, a frame number, and produces a frame accurate screenshot
 
-Immediate Goal: GUI that accepts video input, a frame number, and produces a frame accurate screenshot
+### Long Term Goal:
+A Linux compatible program that is better than AviSynth
 
-Long Term Goal: A Linux compatible program that is better than avisynth
+### Similar Projects:
+Avxsynth, ffmpeg, avidemux, openshot:
 
-Similar Projects: Avxsynth, ffmpeg, avidemux, openshot:
+delbrot
+-------
+delbrot is the working name of the Mkvsynth scripting language. AviSynth is controlled solely through scripts, and we hope to provide users with the power and portability of script-based video editing in MkvSynth. However, we will also be providing a GUI to allow for visual editing and frame comparisons. At present, it is unknown how delbrot will interface with the GUI; one approach is to directly translate UI actions into delbrot commands. This would facilitate easy sharing of scripts without requiring an understanding of delbrot itself.
 
-Avxsynth is not unix friendly, it's just an attempt to reproduce avisynth on linux, a somewhat silly idea. Nonetheless, they have lots of good filters written in easily stolen/ported C code and we will be piggybacking off of parts of this project.
+Roles
+-----
+- David: project lead, x264 integration
+- Forest: GUI wizard, delbrot design/implementation
+- Luke: delbrot lead, unit testing
+- Sean: FFmpeg filter implementation, general programming
+- Wyler: GUI design/implementation, general programming
 
-Ffmpeg is a command line tool that does lots of what we need, but the screenshots are not frame-accurate, and the video editing capabilities are limited.
+Questions?
+----------
+Contact david.vorick@gmail.com for general project questions.
 
-Avidemux is a lot like Windows Movie Maker, it's confusing and overall not streamlined in the same efficient way that avisynth is.
+Contact luke.champine@gmail.com for questions related to the Mkvsynth scripting language.
 
-We don't know much about OpenShot, we will look into it
+Contact trimble.forest@gmail.com for questions related to the GUI.
 
-Week 1: explore avidemux, and figure out how they get frame-accurate screenshots
-Week 2: port that functionality to our program
-Week 3: write GUI
-Week 4: add crop function and resize function
-Week 5: start pulling functions over from avxsynth
-Week 6-9: debugging
-Week 10-12: adding program to linux repositories (ubuntu, fedora, arch, gentoo, debian)
-Week 13-15: Adapting to Problems
-
-Group member roles:
-David: leader/visionary, gui writer, programmer
-Sean: research/search engine expert/graphic designer
-Luke: writes unit tests/general programming
-Forest: Bug finder, cross-distro compatibility expert, ports code from other projects
-
-
-contact david.vorick@gmail.com with questions
-or trimble.forest@gmail.com   
-or luke.champine@gmail.com
-
-an RCOS Project
-
-The purpose of mkvsynth is to have a video processor that takes as input any 
-video and then takes a series of scripting functions that modifies the video
-in a linear format and produces compressed video as output while also helping 
-the user do high-fidelity compression.
-
+*an RCOS Project*
