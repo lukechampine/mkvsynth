@@ -10,7 +10,7 @@ A GUI that accepts video input, a frame number, and produces a frame accurate sc
 A Linux compatible program that is better than AviSynth
 
 ### Similar Projects:
-Avxsynth, ffmpeg, avidemux, openshot:
+Avxsynth, FFmpeg, Avidemux, OpenShot:
 
 delbrot
 -------
