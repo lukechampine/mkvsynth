@@ -6,7 +6,7 @@ use Text::ParseWords;
 use feature "switch";
 
 # open files for reading/writing
-open(INFILE, 'script.txt');
+open(INFILE, 'script.del');
 open(OUTFILE, '>output.c');
 
 # add necessary headers and other structural elements 
@@ -57,15 +57,17 @@ sub parse {
     # chop off the declarative part of the line for easier parsing
     $inputline =~ s/[^=]*=\s*//;
 
-    # remaining parsing varies by command type
+    # parse by command type
     given ($command) {
         when (/^string/) {  # argument is a string
             # check that argument is surrounded by quotes
-
+            if (substr($inputline, 0, 1) ne "\"" || substr($inputline, -1) ne "\"") {
+                error("argument to string must be surrounded by quotation marks");
+            }
 
             print OUTFILE "\tchar $varname [1024] = $inputline;\n";
 
-            # register variable as a string in the hash
+            # register variable as a string
             $varcoms{$varname} = $command;
         }
         when (/^filter/) { # argument is one or more filters, each with their own parameters
@@ -96,23 +98,29 @@ sub parsefilter {
     $filterline = @_[0];
 
     # split line into an array of individual filter commands, delimited by '->'
-    @filters = quotewords('\s*->\s*', 0, $inputline);
+    @filters = quotewords('\s*->\s*', 1, $inputline);
 
-    # get filter type
-    ($filter) = split('\(', $inputline, 2);
+    # iterate through list of filters, applying them in order
+    foreach (@filters) {
+        # get argument
+        $filterstr = $_;
+
+        # get filter type
+        ($filter) = split('\(', $filterstr, 2);
             
-    # chop off leading edge, leaving arguments
-    $inputline =~ s/^[^(]+\(//;
+        # chop off leading edge, leaving arguments
+        $filterstr =~ s/^[^(]+\(//;
 
-    # remaining parsing varies by filter type
-    given ($filter) {
-        when (/^append/) { # argument is a string
-            # remove trailing paren
-            $inputline =~ s/\)$//;
-            print OUTFILE "\tstrcpy ($varname + strlen($varname),$inputline);\n";                   
-        }
-        default {
-            error("unrecognized filter \"$filter\"");
+        # parse by filter type
+        given ($filter) {
+            when (/^append/) { # argument is a string
+                # remove trailing paren
+                $filterstr =~ s/\)$//;
+                print OUTFILE "\tstrcpy ($varname + strlen($varname), $filterstr);\n";                   
+            }
+            default {
+                error("unrecognized filter \"$filter\"");
+            }
         }
     }
 }
