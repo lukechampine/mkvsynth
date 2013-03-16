@@ -28,7 +28,7 @@ Questions?
 ----------
 Contact david.vorick@gmail.com for general project questions.
 
-Contact luke.champine@gmail.com for questions related to the delbrot.
+Contact luke.champine@gmail.com for questions related to delbrot.
 
 Contact trimble.forest@gmail.com for questions related to the GUI.
 
