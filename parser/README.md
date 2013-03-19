@@ -14,6 +14,9 @@ So yes, pretty limited at the moment, but it demonstrates the core concepts of t
 
 Function chaining is working, at least for append operations. You can chain as many appends as you want.
 
+## Syntax ##
+The syntax of delbrot is still a point of contention. This directory contains a parser for the "old" syntax, which I support, andthe revisedsyntax subdirectory contains a parser for the "new" syntax, which David and Forest support. Both directories contain an example file which gives a basic outline of the syntax. Official documentation is forthcoming.
+
 ## Implementation ##
 Scripts are parsed using Perl and translated into C code, which is then compiled and executed. This is somewhat ugly, but doing the parsing natively in C wouldn't be a walk in the park either.
 
