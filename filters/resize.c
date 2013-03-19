@@ -13,20 +13,22 @@ int resizeFrame(int width, int height, AVCodecContext *codecContext, AVFrame *fr
 			codecContext->pix_fmt,
 			width,
 			height,
-			PIX_FMT_RGB24,
+			PIX_FMT_YUV420P,
 			SWS_SPLINE,
 			NULL,
 			NULL,
-			NULL );
+			NULL
+		);
 
 	sws_scale(
 		resizeContext,
-		(uint8_t const * const *)frame->data,
-		frame->linesize,
-		0,
-		codecContext->height,
-		picIn->img.plane,
-		picIn->img.i_stride);
+			(uint8_t const * const *)frame->data,
+			frame->linesize,
+			0,
+			codecContext->height,
+			picIn->img.plane,
+			picIn->img.i_stride
+		);
 
 	return 1;
 }

@@ -115,15 +115,16 @@ int main(int argc, char *argv[]) {
   numBytes=avpicture_get_size(PIX_FMT_RGB24, pCodecCtx->width,
 			      pCodecCtx->height);
   buffer=(uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
-  int asdf = 100;
+  int newWidth = 100;
+	int newHeight = 250;
   sws_ctx =
     sws_getContext
     (
         pCodecCtx->width,
         pCodecCtx->height,
         pCodecCtx->pix_fmt,
-        asdf,
-        pCodecCtx->height,
+        newWidth,
+        newHeight,
         PIX_FMT_RGB24,
         SWS_SPLINE,
         NULL,
@@ -163,8 +164,7 @@ int main(int argc, char *argv[]) {
 	
 	// Save the frame to disk
 	if(++i<=100)
-	  SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, 
-		    i);
+	  SaveFrame(pFrameRGB, newWidth, newHeight, i);
       }
     }
     
