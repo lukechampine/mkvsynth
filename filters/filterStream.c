@@ -7,7 +7,7 @@
 #include "resize.c"
 
 // -Hopefully- all information needed to decode a video stream
-struct DecodeContext {
+typedef struct DecodeContext {
 	AVFormatContext *formatContext;
   AVCodecContext *codecContext;
   AVCodec *codec;
@@ -20,7 +20,7 @@ struct DecodeContext {
 };
 
 // -Hopefully- all information needed to encode a video stream
-struct EncodeContext {
+typedef struct EncodeContext {
 	x264_param_t param;
 	x264_t *encoder;
 	x264_picture_t picIn;
@@ -100,7 +100,7 @@ int initializeEncoder(struct EncodeContext *encodeContext, struct DecodeContext 
 	encodeContext->encoder = x264_encoder_open(&encodeContext->param);
 	x264_encoder_parameters(encodeContext->encoder, &encodeContext->param);
 
-	x264_picture_alloc(&encodeContext->picIn, X264_CSP_YV12, decodeContext->codecContext->width, decodeContext->codecContext->height);
+	x264_picture_alloc(&encodeContext->picIn, X264_CSP_I420, decodeContext->codecContext->width, decodeContext->codecContext->height);
 	return 1;
 }
 
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
 		if(decodeContext.packet.stream_index == decodeContext.videoStream) {
 			avcodec_decode_video2(decodeContext.codecContext, decodeContext.frame, &decodeContext.frameFinished, &decodeContext.packet);
 			if(decodeContext.frameFinished) {
-				resizeFrame(decodeContext.codecContext->width, decodeContext.codecContext->height, decodeContext.codecContext, decodeContext.frame, &encodeContext.picIn);
+				resizeFrameO(decodeContext.codecContext->width, decodeContext.codecContext->height, decodeContext.codecContext, decodeContext.frame, &encodeContext.picIn);
 				encodeContext.frameSize = x264_encoder_encode(encodeContext.encoder, &encodeContext.nals, &encodeContext.i_nals, &encodeContext.picIn, &encodeContext.picOut);
 				if(encodeContext.frameSize >= 0) {
 					int j;
