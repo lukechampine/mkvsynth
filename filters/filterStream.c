@@ -1,5 +1,6 @@
 // To start things off, the focus will be on RGB video from x264. Eventually, we will expand to most major colorspaces
 
+#include "datatypes.h"
 #include "decode.c"
 #include "encode.c"
 #include "resize.c"
@@ -11,15 +12,15 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-	struct DecodeContext decodeContext;
-	struct EncodeContext encodeContext;
+	DecodeContext decodeContext;
+	EncodeContext encodeContext;
 
-	if(initializeDecoder(&decodeContext, argv[1]) != 1) {
+	if(initializeDecoder(argv[1], &decodeContext) != 1) {
 		printf("failed to initialize the decoder!\n");
 		return -1;
 	}
   
-	if(initializeEncoder(&encodeContext, &decodeContext) != 1) {
+	if(initializeEncoder(&decodeContext, &encodeContext) != 1) {
 		printf("failed to initialize the encoder!\n");
 		return -1;
 	}
@@ -30,29 +31,26 @@ int main(int argc, char *argv[]) {
 		printf("Could not find output file!\n");
 		return 0;
 	}
-	
-	while(av_read_frame(decodeContext.formatContext, &decodeContext.packet) >= 0) {
-		if(decodeContext.packet.stream_index == decodeContext.videoStream) {
-			avcodec_decode_video2(decodeContext.codecContext, decodeContext.frame, &decodeContext.frameFinished, &decodeContext.packet);
-			if(decodeContext.frameFinished)
-				break;
-		}
-	}
 
+	int counter = 1;
+	while(nextFrame(&decodeContext) != -1) {
+		printf("found frame %i\n", counter);
+		//resizeFrame(200, 200, decodeContext.codecContext->pix_fmt, &decodeContext);
+		encodeFrame(&decodeContext, &encodeContext);
+		
+		if(encodeContext.frameSize >= 0) {
+			int j;
+			for(j=0; j<encodeContext.i_nals; j++) {
+				int whaaa = fwrite(encodeContext.nals[j].p_payload, encodeContext.nals[j].i_payload, 1, output);
+				if(whaaa < 0)
+					printf("whaa?\n");
+			}
+		}
+
+		counter++;
+	}
+	
 	closeDecoder(&decodeContext);
-	fclose(output);
+	//fclose(output);
 	return 1;
 }
-
-
-				resizeFrame(decodeContext.codecContext->width, decodeContext.codecContext->height, decodeContext.codecContext, decodeContext.frame, &encodeContext.picIn);
-				encodeContext.frameSize = x264_encoder_encode(encodeContext.encoder, &encodeContext.nals, &encodeContext.i_nals, &encodeContext.picIn, &encodeContext.picOut);
-				if(encodeContext.frameSize >= 0) {
-					int j;
-					for(j=0; j<encodeContext.i_nals; j++) {
-						fwrite(encodeContext.nals[j].p_payload, encodeContext.nals[j].i_payload, 1, output);
-					}
-				}
-
-				counter++;
-				printf("Processing Frame %i\n", counter);
