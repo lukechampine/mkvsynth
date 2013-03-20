@@ -12,7 +12,8 @@ CFLAGS := $(shell pkg-config --cflags $(FFMPEG_LIBS)) $(CFLAGS)
 LDLIBS := $(shell pkg-config --libs $(FFMPEG_LIBS)) $(LDLIBS)
 
 EXAMPLES=       tutorial01			   \
-								filterStream
+								testEncode				 \
+								filterStream			 \
 
 OBJS=$(addsuffix .o,$(EXAMPLES))
 
