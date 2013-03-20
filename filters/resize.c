@@ -2,7 +2,7 @@
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 
-int resizeFrame(int width, int height, DecodeContext *decodeContext) {
+int resizeFrame(int width, int height, enum AVPixelFormat outputFormat, struct DecodeContext *decodeContext) {
 	struct SwsContext *resizeContext = NULL;
 	resizeContext = sws_getContext (
 		decodeContext->codecContext->width,
@@ -10,7 +10,7 @@ int resizeFrame(int width, int height, DecodeContext *decodeContext) {
 		decodeContext->codecContext->pix_fmt,
 		width,
 		height,
-		PIX_FMT_YUV420P,
+		outputFormat,
 		SWS_SPLINE,
 		NULL,
 		NULL,
@@ -23,9 +23,9 @@ int resizeFrame(int width, int height, DecodeContext *decodeContext) {
 		decodeContext->frame->linesize,
 		0,
 		decodeContext->codecContext->height,
-		picIn->img.place,
-		picIn->img.i_stride
+		decodeContext->activeFrame->data,
+		decodeContext->activeFrame->linesize
 	);
 
-	return 1;
+	return 1;	
 }
