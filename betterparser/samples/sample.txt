@@ -1,0 +1,3 @@
+c.init(string,"hello").append(" world").output()
+b.init(string,"yo").append("whatup")
+b.output()

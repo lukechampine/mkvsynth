@@ -1,6 +1,14 @@
 /* This header describes how we do variable lookup in the parser */
 
-enum typeVals { INT, STR, DBL };
+#ifndef VARS_H
+#define VARS_H
+
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define NUMTYPES 3
+typedef enum { INT, STR, DBL } typeVals;
 
 /* dataStruct and dataType define how variables *
  * are actually stored: we have storage that    *
@@ -8,38 +16,15 @@ enum typeVals { INT, STR, DBL };
  * type of variable it is, and holds a pointer  *
  * to the actual memory that it uses.           */
 
-/* pointer to the correct data type */
-union dataType {
-  int *isInt;
-  char *isStr;
-  double *isDbl;
-  /* other possibilities?!!? */
-};
-
 /* holds info about the variable */
-struct dataStruct {
-  char varName[32];
-  enum typeVals typeInt;
-  union dataType typePtr;
-};
-struct dataStruct *makeVar(struct dataStruct **fillThis, 
-			   char *type, char *name);
-struct dataStruct *varCpy(struct dataStruct *left, struct dataStruct *right);
-void printVar(struct dataStruct *printThis);
+typedef struct {
+  char *varName;
+  typeVals typeInt;
+  void * data;
+} dataStruct;
 
+dataStruct *makeVar(dataStruct *fillThis, char *type, char *name);
+dataStruct *varCpy(dataStruct *left, dataStruct *right);
+void printVar(dataStruct *printThis);
 
-/* stores a lot of variable with easy lookup by name */
-struct varStorage {
-  struct dataStruct *varTable;
-
-  int size, tableSize;
-};
-struct varStorage makeVarStorage();
-void deleteVarStorage(struct varStorage *deleteThis);
-void resizeTable(struct varStorage *resizeThis);
-struct dataStruct *insertData(struct dataStruct *insertThis,
-			      struct varStorage *inThis);
-struct dataStruct *findData(char *findThis, struct varStorage *inThis);
-
-int hash(char *hashThis);
-
+#endif
