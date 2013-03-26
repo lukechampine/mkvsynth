@@ -16,7 +16,7 @@ hashTable * makeHashTable(int dataSize, hashTable *makeThis);
 void deleteHashTable(hashTable *deleteThis);
 void resizeTable(hashTable *resizeThis);
 void *insertData(void *insertThis, hashTable *inThis);
-void *findData(char *findThis, hashTable *inThis);
+void *findData(char *findThis, hashTable *inThis, int insert);
 
 int hash(char *hashThis);
 

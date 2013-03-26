@@ -77,7 +77,7 @@ void *insertData(void *insertThis, hashTable *inThis) {
   return ret;
 }
 
-void *findData(char *findThis, hashTable *inThis) {
+void *findData(char *findThis, hashTable *inThis, int insert) {
   // hashes the string and points res to the correct location
   int loc = hash(findThis) % inThis->tableSize;
   void *res = inThis->table + loc*inThis->dataSize;
@@ -85,13 +85,20 @@ void *findData(char *findThis, hashTable *inThis) {
   /* requires that the first thing in our *
    * entries is a pointer to the name.    */
   while ( *(char **)res != NULL && 
-	  strcmp(*(char **)res,findThis) != 0 &&
-	  strlen(*(char **)res) > 0 )
+	  strcmp(*(char **)res,findThis) != 0 )
     res = 
       inThis->table + (loc = ( loc + 1 ) % inThis->tableSize)*inThis->dataSize;
   
-  // returns our result if it was in the table or NULL otherwise
-  if ( *(char **)res == NULL || 
-       strcmp(*(char **)res,findThis) != 0 ) return NULL;
-  else return res;
+  // inserts an empty value with the proper name into the table.
+  if ( *(char **)res == NULL ) {
+    if ( insert ) {
+      memset(res,0,inThis->dataSize);
+      *(char **) res = (char *)calloc(strlen(findThis)+1,sizeof(char));
+      strcpy(*(char **)res,findThis);
+    }
+    else return NULL;
+  }
+  
+  // returns our result.
+  return res;
 }

@@ -23,8 +23,9 @@ typedef struct {
   void * data;
 } dataStruct;
 
-dataStruct *makeVar(dataStruct *fillThis, char *type, char *name);
-dataStruct *varCpy(dataStruct *left, dataStruct *right);
+dataStruct * makeVar(dataStruct *fillThis, char *type);
+dataStruct * varCpy(dataStruct *left, dataStruct *right);
+void deleteVar(dataStruct *deleteThis);
 void printVar(dataStruct *printThis);
 
 #endif

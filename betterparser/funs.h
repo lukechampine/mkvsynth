@@ -1,9 +1,11 @@
 #ifndef FUNS_H
 #define FUNS_H
 
-/* This header describes how we do function lookup in the parser */
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "vars.h"
+/* This header describes how we do function lookup in the parser */
 
 /* Each function has a name, and a function pointer, *
  * which takes a dataStruct and its arguments.       */
@@ -14,6 +16,6 @@ typedef struct {
 
 function *makeFun(function *fillThis, char *name, 
 		  void * (*fun)(void *,char *));
-function *funCpy(function *left, function *right);
+void deleteFun(function *deleteThis);
 
-#endif
+#endif // FUNS_H

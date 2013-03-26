@@ -4,41 +4,24 @@
 #include "hash.h"
 #include "vars.h"
 #include "funs.h"
+#include "lib.h"
 
 hashTable vars;
+hashTable funs;
 
 int parseline( char *lineBuff) {
-  char *fun, *var, *args;
+  char *var, *funName, *args, **strtokPtr = &lineBuff;
+  function *fun;
 
-  var = strtok(lineBuff,".");
-  while ( ( fun = strtok(NULL,").(") ) != NULL ) {
-    
-    if( strcmp(fun,"init") == 0 ) {
-      dataStruct makeThis;
-      memset(&makeThis,0,sizeof(dataStruct));
-
-      args = strtok(NULL,",");
-
-      // creates a string with name var
-      makeVar(&makeThis,args,var);
-    
-      // need to get second arg
-      args = strtok(NULL,"\"");
-      sprintf((char *)makeThis.data,args); // sets the value to the argument
-
-      insertData(&makeThis,&vars);
+  var = strtok_r(lineBuff,".",strtokPtr);
+  dataStruct *found = (dataStruct *)findData(var,&vars,1);
+  while ( ( funName = strtok_r(NULL," \t\n.(",strtokPtr) ) != NULL ) {
+    fun = findData(funName,&funs,0);
+    if ( fun != NULL ) {
+      args = strtok_r(NULL,")",strtokPtr);
+      fun->function(found,args);
     }
-
-    else {
-      dataStruct *found = (dataStruct *)findData(var,&vars);
-    
-      /* have to apply the correct filter */
-      if ( strcmp(fun,"append") == 0 ) {
-	args = strtok(NULL,"\"");
-	strcat((char *)(found->data),args);
-      }
-      else if ( strcmp(fun,"output") == 0 ) printVar(found);
-    }
+    else printf("No function %s found.",funName);
   }
 
   return 0;
@@ -48,6 +31,8 @@ int parseline( char *lineBuff) {
 int main() {
   char lineBuff[1024];
   makeHashTable(sizeof(dataStruct),&vars);
+  makeHashTable(sizeof(function),&funs);
+  addFunctions(&funs);
 
   while ( fgets(lineBuff,1024,stdin) != NULL ) 
     parseline(lineBuff);

@@ -6,16 +6,13 @@
 /*******************************************************************************/
 /*******************************************************************************/
 
-dataStruct *makeVar(dataStruct *fillThis, char *type, char *name) {
+dataStruct *makeVar(dataStruct *fillThis, char *type) {
   typeVals ofType;
-  int len = strlen(name) + 1;
   if ( strcmp(type,"string") == 0 ) ofType = STR;
   else if ( strcmp(type,"int") == 0 ) ofType = INT;
   else ofType = DBL;
   
   fillThis->typeInt = ofType;
-  fillThis->varName = (char *)calloc(len,sizeof(char));
-  strcpy(fillThis->varName,name);
 
   switch ( ofType ) {
   case STR: fillThis->data = calloc(1024,sizeof(char));
@@ -34,6 +31,12 @@ dataStruct *varCpy(dataStruct *left, dataStruct *right) {
   left->typeInt = right->typeInt;
   left->data = right->data;
   return left;
+}
+
+void deleteVar(dataStruct *deleteThis) {
+  if ( deleteThis->varName != NULL ) free(deleteThis->varName);
+  if ( deleteThis->data != NULL ) free(deleteThis->data);
+  memset(&deleteThis,0,sizeof(dataStruct));
 }
 
 void printVar(dataStruct *printThis) {
