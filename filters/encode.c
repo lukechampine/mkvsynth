@@ -1,10 +1,10 @@
 #include "datatypes.h"
 
 // Need something (struct? string?) that will help establish settings
-int initializeEncoder(DecodeContext *decodeContext, EncodeContext *encodeContext) {
-	x264_param_default_preset(&encodeContext->param, "slow", "");
-	encodeContext->param.i_width = decodeContext->codecContext->width;
-	encodeContext->param.i_height = decodeContext->codecContext->height;
+int initializeEncoder(DecodeContext *decodeContext, EncodeContext *encodeContext, int finalWidth, int finalHeight) {
+	x264_param_default_preset(&encodeContext->param, "fast", "");
+	encodeContext->param.i_width = finalWidth;
+	encodeContext->param.i_height = finalHeight;
 	encodeContext->param.rc.i_rc_method = X264_RC_CRF;
 	encodeContext->param.rc.f_rf_constant = 0;
 	x264_param_apply_profile(&encodeContext->param, "high444");
@@ -16,18 +16,12 @@ int initializeEncoder(DecodeContext *decodeContext, EncodeContext *encodeContext
 	return 1;
 }
 
-// Encode current frame
 int encodeFrame(DecodeContext *decodeContext, EncodeContext *encodeContext) {
-	encodeContext->param.i_width = decodeContext->codecContext->width;
-	encodeContext->param.i_height = decodeContext->codecContext->width;
-
-	struct SwsContext *asdf = NULL;
-	asdf = sws_getContext (
+	struct SwsContext *finalResize = NULL;
+	finalResize = sws_getContext (
 		decodeContext->codecContext->width,
 		decodeContext->codecContext->height,
 		decodeContext->codecContext->pix_fmt,
-		//decodeContext->codecContext->width,
-		//decodeContext->codecContext->height,
 		encodeContext->param.i_width,
 		encodeContext->param.i_height,
 		PIX_FMT_YUV420P,
@@ -38,7 +32,7 @@ int encodeFrame(DecodeContext *decodeContext, EncodeContext *encodeContext) {
 	);
 
 	sws_scale (
-		asdf,
+		finalResize,
 		(uint8_t const * const *)decodeContext->frame->data,
 		decodeContext->frame->linesize,
 		0,
