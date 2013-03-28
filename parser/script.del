@@ -1,7 +1,3 @@
-# this is a comment, it will be ignored
-string a = "Hello, World!"
-# demonstrating some simple function chaining
-filter a = append("\nThat string was missing") -> append(" a newline!") -> append("\n")
-string b = "Here's another string.\n"
-output a = NULL
-output b = NULL
+lol.init(string, "hello world!")
+lol.append("\n")
+lol.output()
