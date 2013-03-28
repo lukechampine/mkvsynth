@@ -16,7 +16,7 @@ So yes, pretty limited at the moment, but it demonstrates the core concepts of t
 The syntax of delbrot is still a point of contention among team members, so it is unknown at this point what the final syntax of the language will look like. The current model is pseudo-class based, with video objects implementing filter methods. You should be able to grok the basic structure of the language from the example script file.
 
 ## Implementation ##
-Script files are scanned, lexed, and parsed using Perl, then translated into C code, and finally compiled and executed. Recently, the entirely implementation has be rewritten to use the standard scanner -> lexer -> parser -> compiler approach, instead of a single Perl program doing all of the work. Forest is working on a native C implementation that will not have to be compiled. There are advantages to both strategies:
+Script files are scanned, lexed, and parsed using Perl, then translated into C code, and finally compiled and executed. Recently, the entirely implementation has be rewritten to use the standard lexer -> parser -> generator approach, instead of a single Perl program doing all of the work. Forest is working on a native C implementation that will not have to be compiled. There are advantages to both strategies:
 
 ### Perl ###
 - + Great parsing capabilities
