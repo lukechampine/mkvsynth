@@ -44,7 +44,7 @@ int initializeDecoder(char *filename, DecodeContext *decodeContext) {
 		avcodec_find_decoder(decodeContext->codecContext->codec_id);
 	
 	if(decodeContext->codec == NULL)
-		return -1; // Coudn't figure out codec?
+		return -1; // Coudn't figure out codec
 	
 	int openCodec = avcodec_open2(
 		decodeContext->codecContext,
@@ -53,7 +53,7 @@ int initializeDecoder(char *filename, DecodeContext *decodeContext) {
 	);
 
 	if(openCodec < 0)
-		return -1; // Codec unavailable?
+		return -1; // failed to open codec
 	
 	decodeContext->frame = avcodec_alloc_frame();
 
@@ -61,10 +61,9 @@ int initializeDecoder(char *filename, DecodeContext *decodeContext) {
 }
 
 int nextFrame(DecodeContext *decodeContext) {
-	if(av_read_frame(decodeContext->formatContext, &decodeContext->packet) < 0)
-		return -1; // We already decoded the final frame
-
+	int flag = 0;
 	while(av_read_frame(decodeContext->formatContext, &decodeContext->packet) >= 0) {
+		flag = 1;
 		if(decodeContext->packet.stream_index == decodeContext->videoStream) {
 			avcodec_decode_video2(
 				decodeContext->codecContext,
@@ -85,6 +84,9 @@ int nextFrame(DecodeContext *decodeContext) {
 			}
 		}
 	}
+
+	if(flag == 0)
+		return -1;
 	return 1;
 }
 

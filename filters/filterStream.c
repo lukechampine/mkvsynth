@@ -1,5 +1,3 @@
-// To start things off, the focus will be on RGB video from x264. Eventually, we will expand to most major colorspaces
-
 #include "datatypes.h"
 #include "decode.c"
 #include "encode.c"
@@ -20,7 +18,7 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
   
-	if(initializeEncoder(&decodeContext, &encodeContext) != 1) {
+	if(initializeEncoder(&decodeContext, &encodeContext, decodeContext.codecContext->width, decodeContext.codecContext->height) != 1) {
 		printf("failed to initialize the encoder!\n");
 		return -1;
 	}
@@ -34,19 +32,17 @@ int main(int argc, char *argv[]) {
 
 	int counter = 1;
 	while(nextFrame(&decodeContext) != -1) {
-		printf("found frame %i\n", counter);
-		//resizeFrame(200, 200, decodeContext.codecContext->pix_fmt, &decodeContext);
+		printf("%i \n", counter);
 		encodeFrame(&decodeContext, &encodeContext);
 		
 		if(encodeContext.frameSize >= 0) {
 			int j;
 			for(j=0; j<encodeContext.i_nals; j++) {
-				int whaaa = fwrite(encodeContext.nals[j].p_payload, encodeContext.nals[j].i_payload, 1, output);
-				if(whaaa < 0)
-					printf("whaa?\n");
+				int warningKiller = fwrite(encodeContext.nals[j].p_payload, encodeContext.nals[j].i_payload, 1, output);
+				if(warningKiller < 0)
+					printf("There was a strange error.\n");
 			}
 		}
-
 		counter++;
 	}
 	
