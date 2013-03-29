@@ -1,67 +1,10 @@
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
+// To start things off, the focus will be on RGB video from x264. Eventually, we will expand to most major colorspaces
+
+#include "datatypes.h"
+#include "decode.c"
+#include "encode.c"
+#include "resize.c"
 #include <stdio.h>
-
-struct DecodeContext {
-	AVFormatContext *formatContext;
-  AVCodecContext *codecContext;
-  AVCodec *codec;
-  AVFrame *frame;
-	AVPacket packet;
-	AVDictionary *optionsDictionary;
-
-	int videoStream;
-	int frameFinished;
-};
-
-int initializeDecoder(struct DecodeContext *decodeContext, char *filename) {
-	decodeContext->formatContext = NULL;
-	decodeContext->codecContext = NULL;
-	decodeContext->codec = NULL;
-	decodeContext->frame = NULL;
-	decodeContext->optionsDictionary = NULL;
-
-	decodeContext->videoStream = -1;
-    
-	int i=0;
-
-  av_register_all();
-
-  if(avformat_open_input(&decodeContext->formatContext, filename, NULL, NULL) != 0)
-      return -1;
-  if(avformat_find_stream_info(decodeContext->formatContext, NULL) < 0)
-      return -1;
-
-	for(i=0; i<decodeContext->formatContext->nb_streams; i++) {
-			if(decodeContext->formatContext->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO) {
-					decodeContext->videoStream = i;
-					break;
-			}
-	}
-
-	if(decodeContext->videoStream == -1)
-		return -1;
-
-	decodeContext->codecContext = decodeContext->formatContext->streams[decodeContext->videoStream]->codec;
-	decodeContext->codec = avcodec_find_decoder(decodeContext->codecContext->codec_id);
-	if(decodeContext->codec == NULL)
-		return -1; //unsupported codec
-	
-	if(avcodec_open2(decodeContext->codecContext, decodeContext->codec, &decodeContext->optionsDictionary) < 0)
-		return -1;
-
-	decodeContext->frame = avcodec_alloc_frame();
-
-	return 1;
-}
-
-int closeDecoder(struct DecodeContext *decodeContext) {
-	av_free(decodeContext->frame);
-	avcodec_close(decodeContext->codecContext);
-	avformat_close_input(&decodeContext->formatContext);
-	return 1;
-}
-	
 
 int main(int argc, char *argv[]) {
   if(argc < 2) {
@@ -69,23 +12,45 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-	struct DecodeContext decodeContext;
+	DecodeContext decodeContext;
+	EncodeContext encodeContext;
 
-	if(initializeDecoder(&decodeContext, argv[1]) != 1) {
+	if(initializeDecoder(argv[1], &decodeContext) != 1) {
 		printf("failed to initialize the decoder!\n");
 		return -1;
 	}
-
-	while(av_read_frame(decodeContext.formatContext, &decodeContext.packet) >= 0) {
-		if(decodeContext.packet.stream_index == decodeContext.videoStream) {
-			avcodec_decode_video2(decodeContext.codecContext, decodeContext.frame, &decodeContext.frameFinished, &decodeContext.packet);
-			if(decodeContext.frameFinished) {
-				printf("Decoded a Frame!\n");
-			}
-		}
+  
+	if(initializeEncoder(&decodeContext, &encodeContext) != 1) {
+		printf("failed to initialize the encoder!\n");
+		return -1;
 	}
 
-	closeDecoder(&decodeContext);
+	FILE *output; 
+	output = fopen("surprise.h264", "w");
+	if (output == NULL) {
+		printf("Could not find output file!\n");
+		return 0;
+	}
 
+	int counter = 1;
+	while(nextFrame(&decodeContext) != -1) {
+		printf("found frame %i\n", counter);
+		//resizeFrame(200, 200, decodeContext.codecContext->pix_fmt, &decodeContext);
+		encodeFrame(&decodeContext, &encodeContext);
+		
+		if(encodeContext.frameSize >= 0) {
+			int j;
+			for(j=0; j<encodeContext.i_nals; j++) {
+				int whaaa = fwrite(encodeContext.nals[j].p_payload, encodeContext.nals[j].i_payload, 1, output);
+				if(whaaa < 0)
+					printf("whaa?\n");
+			}
+		}
+
+		counter++;
+	}
+	
+	closeDecoder(&decodeContext);
+	//fclose(output);
 	return 1;
 }

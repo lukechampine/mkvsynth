@@ -1,0 +1,6 @@
+# this is a comment, it will be ignored
+a.init(string, "hello world!")
+a.append("\n")
+a.output()
+b.init(string, "I like the old version better...\n"
+b.output()
