@@ -12,13 +12,11 @@ And here are what filters are currently supported:
 
 So yes, pretty limited at the moment, but it demonstrates the core concepts of the language well.
 
-Function chaining is working, at least for append operations. You can chain as many appends as you want.
-
 ## Syntax ##
-The syntax of delbrot is still a point of contention. This directory contains a parser for the "old" syntax, which I support, and the revisedsyntax subdirectory contains a parser for the "new" syntax, which David and Forest support. Both directories contain an example file which gives a basic outline of the syntax. Official documentation is forthcoming.
+The syntax of delbrot is still a point of contention among team members, so it is unknown at this point what the final syntax of the language will look like. The current model is pseudo-class based, with video objects implementing filter methods. You should be able to grok the basic structure of the language from the example script file.
 
 ## Implementation ##
-Scripts are parsed using Perl and translated into C code, which is then compiled and executed. This is somewhat ugly, but doing the parsing natively in C wouldn't be a walk in the park either.
+Script files are scanned, lexed, and parsed using Perl, then translated into C code, and finally compiled and executed. Recently, the entirely implementation has be rewritten to use the standard lexer -> parser -> generator approach, instead of a single Perl program doing all of the work. Forest is working on a native C implementation that will not have to be compiled. There are advantages to both strategies:
 
 ### Perl ###
 - + Great parsing capabilities
@@ -34,4 +32,4 @@ Scripts are parsed using Perl and translated into C code, which is then compiled
 - - Parsing is ugly and more of a pain to extend
 - - Variable storage/lookup is ugly
 
-Note that there are ways of calling C functions from inside Perl; once some library functions are implemented, we will definitely be investigating this avenue. At present, Forest and I are pursuing the C and Perl implementations separately (and respectively).
+Note that there are ways of calling C functions from inside Perl; once some library functions are implemented, we will definitely be investigating this avenue.
