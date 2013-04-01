@@ -1,6 +1,7 @@
 #include "datatypes.h"
 #include "decode.c"
 #include "encode.c"
+#include "frame.c"
 #include "resize.c"
 #include <stdio.h>
 
@@ -10,15 +11,14 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-	DecodeContext decodeContext;
-	EncodeContext encodeContext;
-
-	if(initializeDecoder(argv[1], &decodeContext) != 1) {
+	DecodeContext *decodeContext = malloc(sizeof(DecodeContext));
+	if(initializeDecoder(argv[1], decodeContext) != 1) {
 		printf("failed to initialize the decoder!\n");
 		return -1;
 	}
-  
-	if(initializeEncoder(&decodeContext, &encodeContext, decodeContext.codecContext->width, decodeContext.codecContext->height) != 1) {
+
+	EncodeContext *encodeContext = malloc(sizeof(EncodeContext));
+	if(initializeEncoder(200, 10, encodeContext) != 1) {
 		printf("failed to initialize the encoder!\n");
 		return -1;
 	}
@@ -31,22 +31,23 @@ int main(int argc, char *argv[]) {
 	}
 
 	int counter = 1;
-	while(nextFrame(&decodeContext) != -1) {
+	while(nextFrame(decodeContext) != -1 && counter < 100) {
 		printf("%i \n", counter);
-		encodeFrame(&decodeContext, &encodeContext);
+		int resized = resizeFrame(PIX_FMT_RGB24, 320, 200, decodeContext->frame);
+		encodeFrame(decodeContext->frame, encodeContext);
 		
-		if(encodeContext.frameSize >= 0) {
+		if(encodeContext->frameSize >= 0) {
 			int j;
-			for(j=0; j<encodeContext.i_nals; j++) {
-				int warningKiller = fwrite(encodeContext.nals[j].p_payload, encodeContext.nals[j].i_payload, 1, output);
+			for(j=0; j<encodeContext->i_nals; j++) {
+				int warningKiller = fwrite(encodeContext->nals[j].p_payload, encodeContext->nals[j].i_payload, 1, output);
 				if(warningKiller < 0)
-					printf("There was a strange error.\n");
+					printf("Error writing to file.\n");
 			}
 		}
 		counter++;
 	}
 	
-	closeDecoder(&decodeContext);
+	closeDecoder(decodeContext);
 	//fclose(output);
 	return 1;
 }

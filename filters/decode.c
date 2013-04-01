@@ -72,16 +72,11 @@ int nextFrame(DecodeContext *decodeContext) {
 				&decodeContext->packet
 			);
 
-			if(decodeContext->frameFinished) {
-				resizeFrame(
-					decodeContext->codecContext->width,
-					decodeContext->codecContext->height,
-					PIX_FMT_RGB24,
-					decodeContext
-				);
+			decodeContext->frame->format = decodeContext->codecContext->pix_fmt;
 
+			if(decodeContext->frameFinished)
 				break;
-			}
+			
 		}
 	}
 
