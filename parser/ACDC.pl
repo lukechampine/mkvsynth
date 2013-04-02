@@ -11,7 +11,6 @@ system("perl parser.pl");
 if ($?) { unlink ("scannedsource", "lexedsource", "parsedsource"); exit(); }
 print "done!\nACDC: compiling...";
 system("gcc output.c -o compiledscript");
-if ($?) { unlink ("scannedsource", "lexedsource", "parsedsource", "output.c"); exit(); }
+if ($?) { unlink ("scannedsource", "lexedsource", "parsedsource"); exit(); }
 print "done!\n\n";
-unlink ("scannedsource", "lexedsource", "parsedsource", "output.c");
 system("./compiledscript");

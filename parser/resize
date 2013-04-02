@@ -1,0 +1,5 @@
+	int counter = 1;
+	while(nextFrame(decodeContext) != -1 && counter < 100) {
+		printf("%i \n", counter);
+	    --- CHANGELINE ---
+		encodeFrame(decodeContext->frame, encodeContext);

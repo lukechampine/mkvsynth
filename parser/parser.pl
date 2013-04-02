@@ -11,7 +11,7 @@ open(OUTFILE, '>output.c');
 @source = <INFILE>;
 
 # add necessary headers and other structural elements 
-print OUTFILE "#include <stdio.h>\n#include <string.h>\nint main() {\n";
+print OUTFILE "#include \"datatypes.h\"\n#include \"decode.c\"\n#include \"encode.c\"\n#include \"frame.c\"\n#include \"resize.c\"\n#include <stdio.h>\n#include <string.h>\nint main() {\n";
 
 # initial linenumber value, used for error messages
 $linenumber = 1;
@@ -110,6 +110,11 @@ sub expect {
                 return "string \"$name\" must be followed by a symbol";
             }
         }
+        when (/^NUMBER/) {
+            if ($next ne "SYMBOL") {
+                return "number \"$name\" must be followed by a symbol";
+            }
+        }
         when (/^TERMINATOR/) {
             if ($next ne "IDENTIFIER" || $next ne "TERMINATOR") {
                 $linenumber++;
@@ -165,6 +170,13 @@ sub parse {
             # register variable in hash
             $varhash{$varname} = shift(@arguments);
         }
+        when (/^resize/) { # arguments: height, width
+            # ensure that variable to be modified exists and is of the right type
+            checkvar($varname, "video");
+
+            # add resize code
+            addcode("resize", @arguments);
+        }
         when (/^append/) { # arguments: string
             # ensure that variable to be modifed exists and is of the right type
             checkvar($varname, "string");
@@ -179,12 +191,16 @@ sub parse {
 
             print OUTFILE "\tprintf(\"%s\",$varname);\n"
         }
+        when (/^encode/) {
+            addcode("encode");
+        }
         default {
             error("unrecognized command \"$method\"");
         }
     }
 }
 
+# initialization routines
 sub init {
     # get argument
     my $type = shift(@_);
@@ -192,6 +208,10 @@ sub init {
 
     # parse by command type
     given ($type) {
+        when (/^video/) {
+            # add video initialization code
+            addcode("initvideo", @arguments);
+        }
         when (/^string/) { # arguments: string
             print OUTFILE "\tchar $varname\[1024] = " . shift(@arguments) . ";\n";
         }
@@ -201,3 +221,51 @@ sub init {
     }
 }
 
+# stupidly large function for adding necessary code
+sub addcode {
+    # get arguments
+    my $method = shift(@_);
+    my @arguments = @_;
+
+    # add requested code
+    given ($method) {
+        when (/^initvideo/) {
+            open(INITVIDEO, "<initvideo");
+            my @code = <INITVIDEO>;
+            while (1) {
+                my $line = shift(@code);
+                if ($line =~ /--- CHANGELINE ---/) { last; }
+                else { print OUTFILE $line; }
+            }
+            my $filename = shift(@arguments);
+            print OUTFILE "\tif(initializeDecoder(\"$filename\", decodeContext) != 1) {\n";
+            while (@code) {
+                print OUTFILE shift(@code);
+            }
+        }
+        when (/^resize/) {
+            open(RESIZE, "<resize");
+            my @code = <RESIZE>;
+            while (1) {
+                my $line = shift(@code);
+                if ($line =~ /--- CHANGELINE ---/) { last; }
+                else { print OUTFILE $line; }
+            }
+            my $width  = shift(@arguments);
+            my $height = shift(@arguments);
+            print OUTFILE "\t\tint resized = resizeFRAME(PIX_FMT_RGB24, $width, $height, decodeContext->frame);\n";
+            while (@code) {
+                print OUTFILE shift(@code);
+            }
+        }
+        when (/^encode/) {
+            open(ENCODE, "<encode");
+            while (<ENCODE>) {
+                print OUTFILE $_;
+            }
+        }
+        default {
+            error("unrecognized method \"$method\" (this shouldn't happen...sorry)");
+        }
+    }
+}

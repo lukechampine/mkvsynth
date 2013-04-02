@@ -1,4 +1,3 @@
-# initialize a string, append to it, and output it
-lol.init(string, "hello world!")
-lol.append("\n")
-lol.output()
+demo.init(video, "drop.avi")
+demo.resize(320,200)
+demo.output("resized.avi")

@@ -1,0 +1,13 @@
+		if(encodeContext->frameSize >= 0) {
+			int j;
+			for(j=0; j<encodeContext->i_nals; j++) {
+				int warningKiller = fwrite(encodeContext->nals[j].p_payload, encodeContext->nals[j].i_payload, 1, output);
+				if(warningKiller < 0)
+					printf("Error writing to file.\n");
+			}
+		}
+		counter++;
+	}
+	
+	closeDecoder(decodeContext);
+}
