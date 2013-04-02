@@ -10,4 +10,3 @@
 	}
 	
 	closeDecoder(decodeContext);
-}

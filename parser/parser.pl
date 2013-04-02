@@ -11,7 +11,7 @@ open(OUTFILE, '>output.c');
 @source = <INFILE>;
 
 # add necessary headers and other structural elements 
-print OUTFILE "#include \"datatypes.h\"\n#include \"decode.c\"\n#include \"encode.c\"\n#include \"frame.c\"\n#include \"resize.c\"\n#include <stdio.h>\n#include <string.h>\nint main() {\n";
+print OUTFILE "#include \"../filters/datatypes.h\"\n#include \"../filters/decode.c\"\n#include \"../filters/encode.c\"\n#include \"../filters/frame.c\"\n#include \"../filters/resize.c\"\n#include <stdio.h>\n#include <string.h>\nint main() {\n";
 
 # initial linenumber value, used for error messages
 $linenumber = 1;
@@ -238,7 +238,7 @@ sub addcode {
                 else { print OUTFILE $line; }
             }
             my $filename = shift(@arguments);
-            print OUTFILE "\tif(initializeDecoder(\"$filename\", decodeContext) != 1) {\n";
+            print OUTFILE "\tif(initializeDecoder($filename, decodeContext) != 1) {\n";
             while (@code) {
                 print OUTFILE shift(@code);
             }
