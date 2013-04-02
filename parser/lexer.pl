@@ -7,18 +7,17 @@ use feature "switch";
 open(INFILE, 'scannedsource');
 open(OUTFILE, '>lexedsource');
 
-# read scannedsource into an array for easier parsing
+# read scannedsource into an array for easier lexing
 @source = <INFILE>;
 
 # main lexing loop
 while (1) {
- 
     # get a line
     $line = @source[$lineindex++];
     chomp($line);
 
     # split line into appropriate variables
-    (my $linenumber, my $charnumber, my $char) = split(' ', $line);
+    ($linenumber, $charnumber, my $char) = split(' ', $line);
         
     # break if terminating statement encountered
     if ($linenumber eq "END") {
@@ -29,10 +28,25 @@ while (1) {
     process($char);
 }
 
+# add EOF terminator
+print OUTFILE "END";
+
 # close files
 close(OUTFILE);
 close(INFILE);
 
+### END MAIN BODY ###
+
+# error handler
+sub error {
+    # get arguments
+    $errormsg = @_[0];
+
+    # printer error message and line number to STDERR
+    print STDERR "failed!\nACDC: error (line $linenumber): $errormsg\n";
+
+    exit(-1);
+}
 
 # process characters based on expected token
 sub process {
@@ -45,6 +59,11 @@ sub process {
         # newlines mark end of a statement
         when (/\n/) {
             print OUTFILE "TERMINATOR \\n\n";
+        }
+        # hashes indicate a comment
+        when (/\#/) {
+            $token = readwhile('[^\n]');
+            print OUTFILE "COMMENT $token\n";
         }
         # ignore other whitespace characters
         when (/\s/) {
@@ -71,8 +90,7 @@ sub process {
             print OUTFILE "NUMBER $token\n";
         }
         default {
-            $ord = ord($char);
-            print OUTFILE "unrecognized char \"$char\" ($ord)\n";
+            error("unrecognized symbol \"$char\" (missing quotation mark?)");
         }
     }
 }
@@ -86,8 +104,9 @@ sub readwhile {
     my $rest = ""; my $char;
     $char = chr((split(' ', @source[$lineindex++]))[2]);
     while ($char =~ /$goodchar/) {
+        if (ord($char) == "\n") { error("invalid string (missing quotation mark?)"); }
         $rest .= $char;
-        $char = chr((split(' ', @source[$lineindex++],))[2]);
+        $char = chr((split(' ', @source[$lineindex++]))[2]);
     }
     # move back lineindex since we're looking ahead one line
     # not for strings though!

@@ -1,3 +1,4 @@
+# initialize a string, append to it, and output it
 lol.init(string, "hello world!")
 lol.append("\n")
 lol.output()
