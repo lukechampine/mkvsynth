@@ -2,7 +2,10 @@
 #include "resize.c"
 
 // Open decoder, find video stream, allocate space for frames
-int initializeDecoder(char *filename, DecodeContext *decodeContext) {
+DecodeContext* initializeDecoder(char *filename) {
+	DecodeContext *decodeContext = malloc(sizeof(DecodeContext));
+
+	// Initialize struct to null/error values
 	decodeContext->formatContext = NULL;
 	decodeContext->codecContext = NULL;
 	decodeContext->codec = NULL;
@@ -19,11 +22,15 @@ int initializeDecoder(char *filename, DecodeContext *decodeContext) {
 		NULL
 	);
 
-  if(avOpen != 0)
-      return -1; // Input file could not be opened
+  if(avOpen != 0) {
+		printf("Mkvsynth Decoder: input file coule not be opened\n");
+		return NULL;
+	}
 	
-  if(avformat_find_stream_info(decodeContext->formatContext, NULL) < 0)
-      return -1; // Doesn't appear do be a file
+  if(avformat_find_stream_info(decodeContext->formatContext, NULL) < 0) {
+		printf("Mkvsynth Decoder: input file does not appear to be a video\n");
+		return NULL;
+	}
 
 	int i;
 	for(i=0; i<decodeContext->formatContext->nb_streams; i++) {
@@ -34,8 +41,10 @@ int initializeDecoder(char *filename, DecodeContext *decodeContext) {
 			}
 	}
 
-	if(decodeContext->videoStream == -1)
-		return -1; // Did not find video stream
+	if(decodeContext->videoStream == -1) {
+		printf("Mkvsynth Decoder: input file does not seem to have a video stream\n");
+		return NULL;
+	}
 
 	decodeContext->codecContext = 
 		decodeContext->formatContext->streams[decodeContext->videoStream]->codec;
@@ -43,8 +52,10 @@ int initializeDecoder(char *filename, DecodeContext *decodeContext) {
 	decodeContext->codec = 
 		avcodec_find_decoder(decodeContext->codecContext->codec_id);
 	
-	if(decodeContext->codec == NULL)
-		return -1; // Coudn't figure out codec
+	if(decodeContext->codec == NULL) {
+		printf("Mkvsynth Decoder: unknown video codec\n");
+		return NULL;
+	}
 	
 	int openCodec = avcodec_open2(
 		decodeContext->codecContext,
@@ -52,12 +63,14 @@ int initializeDecoder(char *filename, DecodeContext *decodeContext) {
 		&decodeContext->optionsDictionary
 	);
 
-	if(openCodec < 0)
-		return -1; // failed to open codec
+	if(openCodec < 0) {
+		printf("Mkvsynth Decoder: failed to open codec\n");
+		return NULL;
+	}
 	
 	decodeContext->frame = avcodec_alloc_frame();
 
-	return 1;
+	return decodeContext;
 }
 
 int nextFrame(DecodeContext *decodeContext) {

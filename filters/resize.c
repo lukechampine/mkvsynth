@@ -69,7 +69,6 @@ int resizeFrame(int colorspace, int width, int height, AVFrame *frame) {
 	);
 
 	printf("Lines Written: %i\n", linesWritten);
-
 	SaveFrame(newFrame, newFrame->width, newFrame->height, 5);
 
 	return 1;

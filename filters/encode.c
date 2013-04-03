@@ -1,7 +1,8 @@
 #include "datatypes.h"
 
 // Need something (struct? string?) that will help establish settings
-int initializeEncoder(int width, int height, EncodeContext *encodeContext) {
+EncodeContext* initializeEncoder(int width, int height) {
+	EncodeContext *encodeContext = malloc(sizeof(EncodeContext));
 	x264_param_default_preset(&encodeContext->param, "fast", "");
 	encodeContext->param.i_width = width;
 	encodeContext->param.i_height = height;
@@ -13,7 +14,7 @@ int initializeEncoder(int width, int height, EncodeContext *encodeContext) {
 	x264_encoder_parameters(encodeContext->encoder, &encodeContext->param);
 
 	x264_picture_alloc(&encodeContext->picIn, X264_CSP_I420, width, height);
-	return 1;
+	return encodeContext;
 }
 
 int encodeFrame(AVFrame *frame, EncodeContext *encodeContext) {
