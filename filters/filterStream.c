@@ -4,21 +4,16 @@
 #include "frame.c"
 #include "resize.c"
 #include <stdio.h>
-
-int main(int argc, char *argv[]) {
-  if(argc < 2) {
-    printf("Please provide a movie file\n");
-    return -1;
-  }
-
+#include <string.h>
+int main() {
 	DecodeContext *decodeContext = malloc(sizeof(DecodeContext));
-	if(initializeDecoder(argv[1], decodeContext) != 1) {
+	if(initializeDecoder("test.mp4", decodeContext) != 1) {
 		printf("failed to initialize the decoder!\n");
 		return -1;
 	}
 
 	EncodeContext *encodeContext = malloc(sizeof(EncodeContext));
-	if(initializeEncoder(200, 10, encodeContext) != 1) {
+	if(initializeEncoder(200, 200, encodeContext) != 1) {
 		printf("failed to initialize the encoder!\n");
 		return -1;
 	}
@@ -31,11 +26,10 @@ int main(int argc, char *argv[]) {
 	}
 
 	int counter = 1;
-	while(nextFrame(decodeContext) != -1 && counter < 100) {
+	while(nextFrame(decodeContext) != -1 && counter < 500) {
 		printf("%i \n", counter);
-		int resized = resizeFrame(PIX_FMT_RGB24, 320, 200, decodeContext->frame);
+		int resized = resizeFrame(PIX_FMT_RGB24, 320, 480, decodeContext->frame);
 		encodeFrame(decodeContext->frame, encodeContext);
-		
 		if(encodeContext->frameSize >= 0) {
 			int j;
 			for(j=0; j<encodeContext->i_nals; j++) {
@@ -48,6 +42,5 @@ int main(int argc, char *argv[]) {
 	}
 	
 	closeDecoder(decodeContext);
-	//fclose(output);
-	return 1;
+	return 0;
 }

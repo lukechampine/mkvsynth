@@ -11,7 +11,7 @@ CFLAGS += -Wall -O2 -g
 CFLAGS := $(shell pkg-config --cflags $(FFMPEG_LIBS)) $(CFLAGS)
 LDLIBS := $(shell pkg-config --libs $(FFMPEG_LIBS)) $(LDLIBS)
 
-EXAMPLES=       filterStream			 \
+EXAMPLES=       filterStream     \
 
 OBJS=$(addsuffix .o,$(EXAMPLES))
 
