@@ -32,8 +32,10 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
 int resizeFrame(int colorspace, int width, int height, AVFrame *frame) {
 	AVFrame *newFrame = NULL;
 	newFrame = avcodec_alloc_frame();
-	if(newFrame == NULL)
+	if(newFrame == NULL) {
+		printf("Mkvsynth Resize: Could not allocate frame!\n");
 		return -1;
+	}
 
 	int numBytes = avpicture_get_size(colorspace, width, height);
 	uint8_t *buffer = NULL;

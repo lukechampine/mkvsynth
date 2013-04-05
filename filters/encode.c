@@ -17,7 +17,7 @@ EncodeContext* initializeEncoder(int width, int height) {
 	return encodeContext;
 }
 
-int encodeFrame(AVFrame *frame, EncodeContext *encodeContext) {
+void encodeFrame(AVFrame *frame, EncodeContext *encodeContext) {
 	struct SwsContext *finalResize = NULL;
 	finalResize = sws_getContext (
 		frame->width,
@@ -49,5 +49,24 @@ int encodeFrame(AVFrame *frame, EncodeContext *encodeContext) {
 		&encodeContext->picIn,
 		&encodeContext->picOut
 	);
-	return 1;
+}
+
+int writeToFile(FILE *output, EncodeContext *encodeContext) {
+	int j;
+	int fwriteStatus = 0;
+
+	if(encodeContext->frameSize >= 0) {
+		for(j = 0; j < encodeContext->i_nals; j++) {
+			fwriteStatus =
+				fwrite(
+					encodeContext->nals[j].p_payload,
+					encodeContext->nals[j].i_payload,
+					1,
+					output
+				);
+			if(fwriteStatus < 0)
+				return fwriteStatus;
+		}
+	}
+	return fwriteStatus;
 }
