@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 
 
 	// Call each time you want to encode a video
-	EncodeContext *encodeContext = initializeEncoder(200, 200);
+	EncodeContext *encodeContext = openEncoder(200, 200);
 	if(encodeContext == NULL) {
 		printf("Mkvsynth Core: Unexpected problem initializing encoder\n");
 		return -1;
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	int counter = 0;
-	while(nextFrame(decodeContext) != -1 && counter < 10) {
+	while(nextFrame(decodeContext) != -1 && counter < 1000) {
 		// Resize the frame
 		int resizeCode = resizeFrame(PIX_FMT_RGB24, 320, 480, decodeContext->frame);
 		if(resizeCode == -1) {
@@ -58,14 +58,14 @@ int main(int argc, char* argv[]) {
 		printf("Printed frame %i\n", counter);
 	}
 
-	int tmp = gotoFrame(8, decodeContext);
+	int tmp = gotoFrame(500, decodeContext);
 	if(tmp == -1) {
 		printf("Mkvsynth Core: Error with gotoFrame\n");
 		return -1;
 	}
 
 	counter = 0;
-	while(nextFrame(decodeContext) != -1 && counter < 100) {
+	while(nextFrame(decodeContext) != -1 && counter < 1000) {
 		// Resize the frame
 		int resizeCode = resizeFrame(PIX_FMT_RGB24, 320, 480, decodeContext->frame);
 		if(resizeCode == -1) {
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		counter++;
-		printf("Printed frame %i\n", counter+50);
+		printf("Printed frame %i\n", counter+500);
 	}
 
 	closeDecoder(decodeContext);
