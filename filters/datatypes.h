@@ -6,6 +6,7 @@
 
 // Everything needed to decode/track a video stream
 typedef struct {
+	char *filename;
 	AVFormatContext *formatContext;
   AVCodecContext *codecContext;
   AVCodec *codec;

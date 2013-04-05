@@ -12,7 +12,7 @@
 // 	this will hopefully be simplified at some point
 int main(int argc, char* argv[]) {
 	// Call each time you want to decode a video
-	DecodeContext *decodeContext = initializeDecoder("test.mp4");
+	DecodeContext *decodeContext = openDecoder("test.mp4");
 	if(decodeContext == NULL) {
 		printf("Mkvsynth Core: Decoding Failed\n");
 		return -1;
@@ -33,7 +33,8 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-	while(nextFrame(decodeContext) != -1) {
+	int counter = 0;
+	while(nextFrame(decodeContext) != -1 && counter < 10) {
 		// Resize the frame
 		int resizeCode = resizeFrame(PIX_FMT_RGB24, 320, 480, decodeContext->frame);
 		if(resizeCode == -1) {
@@ -52,6 +53,40 @@ int main(int argc, char* argv[]) {
 			printf("Mkvsynth Core: error while writing to file\n");
 			return -1;
 		}
+
+		counter++;
+		printf("Printed frame %i\n", counter);
+	}
+
+	int tmp = gotoFrame(8, decodeContext);
+	if(tmp == -1) {
+		printf("Mkvsynth Core: Error with gotoFrame\n");
+		return -1;
+	}
+
+	counter = 0;
+	while(nextFrame(decodeContext) != -1 && counter < 100) {
+		// Resize the frame
+		int resizeCode = resizeFrame(PIX_FMT_RGB24, 320, 480, decodeContext->frame);
+		if(resizeCode == -1) {
+			printf("Mkvsynth Core: Frame Resize Failed!\n");
+			return -1;
+		}
+
+		// Encode the frame; compress the frame
+		encodeFrame(decodeContext->frame, encodeContext);
+		// No errors are expected, no error handling yet established
+		// This will change eventually
+
+		//Write the frame to disk
+		int fwriteStatus = writeEncodeToFile(output, encodeContext);
+		if(fwriteStatus < 0) {
+			printf("Mkvsynth Core: error while writing to file\n");
+			return -1;
+		}
+
+		counter++;
+		printf("Printed frame %i\n", counter+50);
 	}
 
 	closeDecoder(decodeContext);
