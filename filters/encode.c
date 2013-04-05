@@ -51,7 +51,7 @@ void encodeFrame(AVFrame *frame, EncodeContext *encodeContext) {
 	);
 }
 
-int writeToFile(FILE *output, EncodeContext *encodeContext) {
+int writeEncodeToFile(FILE *output, EncodeContext *encodeContext) {
 	int j;
 	int fwriteStatus = 0;
 
