@@ -8,13 +8,28 @@ VideoWidget::VideoWidget(QWidget *parent) : QWidget(parent)
   videos = new QStackedWidget;
   actionBar = new VideoBar;
   tabs = new QHBoxLayout;
+
+  // Starts ScrollArea container definition
+  // ScrollArea Heirarchy setup
+  all_tabs_widget = new QWidget;
+  all_tabs = new QHBoxLayout(all_tabs_widget);
+  all_tabs_container = new QScrollArea;
+  all_tabs_container->setWidget(all_tabs_widget);
+  
+  // Manipulation of size etc.
+  all_tabs->addStrut(550);
+  tabs->addStrut(50);
+  all_tabs_container->setFixedSize(550, 50);
+  all_tabs_widget->setFixedSize(550, 50);
+  // Ends ScrollArea container deinition
+  
   addTab = new QPushButton("+");
   tabsToStack = new QSignalMapper(this);
   tabsToVec = new QSignalMapper(this);
   addTab->setFixedSize(25,25);
 
+  tabs->addWidget(all_tabs_container);
   tabs->addWidget(addTab);
-
   tabs->setSpacing(0);
   connect(addTab,SIGNAL(clicked()),this,SLOT(newTab()));
   
@@ -59,8 +74,10 @@ VideoWidget::newTab()
   videos->addWidget(videoViewer);
   TabButton *newTab = new TabButton();
 
-  tabs->insertWidget(tabs->count()-1,newTab);
-  tabs->setMaximumWidth(tabs->count()*120);
+  //all_tabs_container->setFixedSize((all_tabs->count()+1)*80, 40);
+  newTab->setFixedSize(120,25);
+  all_tabs_widget->setFixedSize((all_tabs->count()+1)*90, 40);
+  all_tabs->insertWidget(all_tabs->count()-1,newTab);
   
   // connect the tabs up so that it switches properly.
   connect(newTab,SIGNAL(clicked()),tabsToStack,SLOT(map()));

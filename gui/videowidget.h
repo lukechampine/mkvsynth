@@ -4,6 +4,7 @@
 #include <QSignalMapper>
 #include <QVector>
 #include <QPair>
+#include <QScrollArea>
 
 #include "qmpwidget/qmpwidget.h"
 #include "videobar.h"
@@ -27,6 +28,9 @@ public slots:
 private:
   QVBoxLayout *vBox;
   QHBoxLayout *tabs;
+  QWidget *all_tabs_widget;
+  QHBoxLayout *all_tabs;
+  QScrollArea *all_tabs_container;
   QSignalMapper *tabsToStack, *tabsToVec;
   QPushButton *addTab;
   QStackedWidget *videos;
