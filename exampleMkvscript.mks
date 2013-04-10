@@ -1,0 +1,40 @@
+#This is an example script, we aim to support the whole script by summer
+#Using dots is just syntactic sugar. There isn't a full spec yet for dots
+
+#You have to decode a video before you can process it
+#A frameStream is a series of raw frames that you can seek through
+frameStream originalVideo = decode("filters/test.mp4")
+
+#Encoder settings must be declared all at once
+encoder hqEncoder = encoder("--width 1080 --height 1920 --crf 12")
+encoder lqEncoder = encoder("--width 480 --height 854 --crf 18")
+
+#we hope to support custom functions
+#right now they are limited, but maybe they will be expanded later
+function overscan {
+	crop(192, 108, 192, 108).resize(1920, 1080)
+}
+
+#We hope to support for loops, this loop does something particularly silly
+for(i = 0; i < 20; i++) {
+	#getFrameRange(X, Y) gets all frames between X and Y in a video (inclusive)
+	frameStream funkyChunk = originalVideo.getFrameRange(200*i, 250*i)
+
+	#a function we defined earlier
+	originalVideo.overscan
+
+	#add to a different video (all variables have global scope)
+	frameStream funkyVideo = funkyVideo.append(funkyChunk)
+}
+
+#encoded videos are just bundles of data
+rawData hqVideo = hqEncoder.encode(funkyVideo)
+rawData lqVideo = lqEncoder.encode(funkyVideo)
+
+#this allows us to view artifacts and stuff in the gui
+frameStream viewHQ = decode(hqVideo)
+frameStream viewLQ = decode(lqVideo)
+
+#this will save the videos to disk
+send(hqVideo, "/home/david/mkvsynth/hqTest.h264")
+send(lqVideo, "/home/david/mkvsynth/lqTest.h264")
