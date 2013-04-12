@@ -1,30 +1,5 @@
-# use pkg-config for getting CFLAGS and LDLIBS
-FFMPEG_LIBS=    libavdevice                        \
-                libavformat                        \
-                libavfilter                        \
-                libavcodec                         \
-                libswresample                      \
-                libswscale                         \
-                libavutil                          \
+all:
+	gcc filterStream.c -Wall -O2 -lx264 -lavformat -lswscale -o filterStream
 
-CFLAGS += -Wall -O2 -g
-CFLAGS := $(shell pkg-config --cflags $(FFMPEG_LIBS)) $(CFLAGS)
-LDLIBS := $(shell pkg-config --libs $(FFMPEG_LIBS)) $(LDLIBS)
-
-EXAMPLES=       filterStream     \
-
-OBJS=$(addsuffix .o,$(EXAMPLES))
-
-# the following examples make explicit use of the math library
-decoding_encoding: LDLIBS += -lm
-muxing:            LDLIBS += -lm
-
-.phony: all clean-test clean
-
-all: $(OBJS) $(EXAMPLES)
-
-clean-test:
-	$(RM) test*.pgm test.h264 test.mp2 test.sw test.mpg
-
-clean: clean-test
-	$(RM) $(EXAMPLES) $(OBJS)
+clean:
+	rm zframe5.ppm surprise.h264 filterStream
