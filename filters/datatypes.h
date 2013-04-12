@@ -20,6 +20,12 @@ typedef struct {
 	int frameFinished;
 } DecodeContext;
 
+typedef struct {
+	AVFrame *frame;
+	int current_frame;
+	int total_frames;
+} FrameStream;
+
 // All information needed to encode a stream
 typedef struct {
 	x264_param_t param;
