@@ -1,7 +1,6 @@
 #ifndef _resize_h_
 #define _resize_h_
 #include "datatypes.h"
-#include "frame.c"
 #include <libswscale/swscale.h>
 
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {

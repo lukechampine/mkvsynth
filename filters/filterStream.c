@@ -1,7 +1,6 @@
 #include "datatypes.h"
 #include "decode.c"
 #include "encode.c"
-#include "frame.c"
 #include "resize.c"
 #include <stdio.h>
 #include <string.h>
