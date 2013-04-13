@@ -3,37 +3,12 @@
 #include "datatypes.h"
 #include <libswscale/swscale.h>
 
-void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
-  FILE *pFile;
-  char szFilename[32];
-  int  y;
-  
-  // Open file
-	sprintf(szFilename, "zframe%d.ppm", iFrame);
-	pFile=fopen(szFilename, "wb");
-	if(pFile==NULL)
-	  return;
-	  
-	// Write header
-	fprintf(pFile, "P6\n%d %d\n255\n", width, height);
-	
- // Write pixel data
- int a = 0;
- for(y=0; y<height; y++)
- 	a = fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
- if(a < 0)
- 	printf("fwrite error!\n");
-   
-	// Close file
-	fclose(pFile);
-}
-
-int resizeFrame(int colorspace, int width, int height, AVFrame *frame) {
+AVFrame * resizeFrame(int colorspace, int width, int height, AVFrame *frame) {
 	AVFrame *newFrame = NULL;
 	newFrame = avcodec_alloc_frame();
 	if(newFrame == NULL) {
 		printf("Mkvsynth Resize: Could not allocate frame!\n");
-		return -1;
+		return NULL;
 	}
 
 	int numBytes = avpicture_get_size(colorspace, width, height);
@@ -64,15 +39,12 @@ int resizeFrame(int colorspace, int width, int height, AVFrame *frame) {
 		(uint8_t const * const *)frame->data,
 		frame->linesize,
 		0,
-		newFrame->height,
+		frame->height,
 		newFrame->data,
 		newFrame->linesize
 	);
 
-	printf("Lines Written: %i\n", linesWritten);
-	SaveFrame(newFrame, newFrame->width, newFrame->height, 5);
-
-	return 1;
+	return newFrame;
 }
 
 #endif
