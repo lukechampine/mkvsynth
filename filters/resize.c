@@ -34,7 +34,7 @@ AVFrame * resizeFrame(int colorspace, int width, int height, AVFrame *frame) {
 		NULL
 	);
 
-	int linesWritten = sws_scale (
+	sws_scale (
 		resizeContext,
 		(uint8_t const * const *)frame->data,
 		frame->linesize,

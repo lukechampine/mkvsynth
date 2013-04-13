@@ -32,16 +32,17 @@ int main(int argc, char* argv[]) {
 	}
 
 	int counter = 0;
-	while(nextFrame(decodeContext) != -1 && counter < 500) {
+	AVFrame *newFrame = NULL;
+	while((newFrame = nextFrame(decodeContext)) && newFrame != NULL && counter < 500) {
 		// Resize the frame
-		AVFrame *newFrame = resizeFrame(PIX_FMT_RGB24, 160, 120, decodeContext->frame);
-		if(newFrame == NULL) {
+		AVFrame *resizedFrame = resizeFrame(PIX_FMT_RGB24, 32, 32, newFrame);
+		if(resizedFrame == NULL) {
 			printf("Mkvsynth Core: Frame Resize Failed!\n");
 			return -1;
 		}
 
 		// Encode the frame; compress the frame
-		encodeFrame(newFrame, encodeContext);
+		encodeFrame(resizedFrame, encodeContext);
 		// The x264 encoder does all of it's own error handling
 
 		//Write the frame to disk
@@ -52,9 +53,10 @@ int main(int argc, char* argv[]) {
 		}
 
 		counter++;
+		av_free(newFrame);
+		av_free(resizedFrame);
 		printf("Printed frame %i\n", counter);
 	}
 
-	closeDecoder(decodeContext);
 	return 1;
 }

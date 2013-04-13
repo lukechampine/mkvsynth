@@ -6,18 +6,18 @@
 
 // Everything needed to decode/track a video stream
 typedef struct {
+	// filename is needed for the function gotoFrame
 	char *filename;
+
+	// directly used in decode()
 	AVFormatContext *formatContext;
   AVCodecContext *codecContext;
   AVCodec *codec;
-  AVFrame *frame;
-	AVFrame *activeFrame;
 	AVPacket packet;
 	AVDictionary *optionsDictionary;
-
-	int activeColorSpace;
 	int videoStream;
 	int frameFinished;
+
 } DecodeContext;
 
 // All information needed to encode a stream

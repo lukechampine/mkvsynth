@@ -3,7 +3,7 @@
 
 // Takes in a filename, returns a DecodeContext
 // 	DecodeContext structures are used to get specific frames from a video
-DecodeContext* openDecoder(char *filename) {
+DecodeContext * openDecoder(char *filename) {
 	// All memory management is done in-file
 	DecodeContext *decodeContext = malloc(sizeof(DecodeContext));
 
@@ -12,7 +12,6 @@ DecodeContext* openDecoder(char *filename) {
 	decodeContext->formatContext = NULL;
 	decodeContext->codecContext = NULL;
 	decodeContext->codec = NULL;
-	decodeContext->frame = NULL;
 	decodeContext->optionsDictionary = NULL;
 	decodeContext->videoStream = -1;
  
@@ -74,20 +73,20 @@ DecodeContext* openDecoder(char *filename) {
 		return NULL;
 	}
 	
-	// Dynamically allocate space for a frame
-	decodeContext->frame = avcodec_alloc_frame();
-
 	return decodeContext;
 }
 
-int nextFrame(DecodeContext *decodeContext) {
+AVFrame * nextFrame(DecodeContext *decodeContext) {
+	AVFrame *frame = NULL;
+	frame = avcodec_alloc_frame();
+
 	int flag = 0;
 	while(av_read_frame(decodeContext->formatContext, &decodeContext->packet) >= 0) {
 		flag = 1;
 		if(decodeContext->packet.stream_index == decodeContext->videoStream) {
 			avcodec_decode_video2(
 				decodeContext->codecContext,
-				decodeContext->frame,
+				frame,
 				&decodeContext->frameFinished,
 				&decodeContext->packet
 			);
@@ -98,11 +97,13 @@ int nextFrame(DecodeContext *decodeContext) {
 	}
 
 	if(flag == 0)
-		return -1;
-	return 1;
+		return NULL;
+	return frame;
 }
 
-int gotoFrame(int frame, DecodeContext *decodeContext) {
+AVFrame * gotoFrame(int frameNumber, DecodeContext *decodeContext) {
+	AVFrame *frame = NULL;
+
 	decodeContext->formatContext = NULL;
 	int avOpen = avformat_open_input(
 		&decodeContext->formatContext,
@@ -112,23 +113,31 @@ int gotoFrame(int frame, DecodeContext *decodeContext) {
 	);
   if(avOpen != 0) {
 		printf("Mkvsynth Decoder: input file coule not be opened\n");
-		return -1;
+		return NULL;
 	}
 
 	int i = 0;
-	while(nextFrame(decodeContext) != -1 && frame > i)
+	while((frame = nextFrame(decodeContext)) && frame != NULL && frameNumber > i) {
+		frame = nextFrame(decodeContext);
+		if(frame == NULL)
+			break;
+		
 		i++;
 
-	if(frame == i)
-		return 1;
+		// free the memory allocated by nextFrame
+		if(frameNumber != i)
+			av_free(frame);
+	}
+
+	if(frameNumber == i)
+		return frame;
 
 	printf("Mkvsynth Decoder: failed to goto frame\n");
-	return -1;
+	return NULL;
 }
 
 // We allocated a lot of memory; deallocate it all
 int closeDecoder(DecodeContext *decodeContext) {
-	av_free(decodeContext->frame);
 	avcodec_close(decodeContext->codecContext);
 	avformat_close_input(&decodeContext->formatContext);
 	free(decodeContext);
