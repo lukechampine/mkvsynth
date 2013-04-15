@@ -10,6 +10,7 @@
 // Rinse and repeat. Some things happen in a complex loop,
 // 	this will hopefully be simplified at some point
 int main(int argc, char* argv[]) {
+	printf("noseg0\n");
 	// Call each time you want to decode a video
 	DecodeContext *decodeContext = openDecoder("test.mp4");
 	if(decodeContext == NULL) {

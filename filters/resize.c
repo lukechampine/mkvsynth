@@ -4,6 +4,7 @@
 #include <libswscale/swscale.h>
 
 AVFrame * resizeFrame(int colorspace, int width, int height, AVFrame *frame) {
+	// Like all functions, start by allocating memory for a new frame
 	AVFrame *newFrame = NULL;
 	newFrame = avcodec_alloc_frame();
 	if(newFrame == NULL) {

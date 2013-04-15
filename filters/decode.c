@@ -1,8 +1,13 @@
 #include "datatypes.h"
 #include "resize.c"
 
+/*****
+ * used for decoding video and accessing frames within decoded video
+ ****/
+
 // Takes in a filename, returns a DecodeContext
 // 	DecodeContext structures are used to get specific frames from a video
+// Expansion is planned so that it can take in raw data as well as a filename
 DecodeContext * openDecoder(char *filename) {
 	// All memory management is done in-file
 	DecodeContext *decodeContext = malloc(sizeof(DecodeContext));
@@ -25,6 +30,7 @@ DecodeContext * openDecoder(char *filename) {
 		NULL,
 		NULL
 	);
+
   if(avOpen != 0) {
 		printf("Mkvsynth Decoder: input file coule not be opened\n");
 		return NULL;
@@ -45,6 +51,7 @@ DecodeContext * openDecoder(char *filename) {
 				break; // Found video stream
 			}
 	}
+
 	if(decodeContext->videoStream == -1) {
 		printf("Mkvsynth Decoder: input file does not seem to have a video stream\n");
 		return NULL;
@@ -62,12 +69,13 @@ DecodeContext * openDecoder(char *filename) {
 		return NULL;
 	}
 	
-	// ??, important, memory allocation?
+	// ??, important, I think it brings the correct decoder into memory
 	int openCodec = avcodec_open2(
 		decodeContext->codecContext,
 		decodeContext->codec,
 		&decodeContext->optionsDictionary
 	);
+	
 	if(openCodec < 0) {
 		printf("Mkvsynth Decoder: failed to open codec\n");
 		return NULL;
@@ -76,6 +84,8 @@ DecodeContext * openDecoder(char *filename) {
 	return decodeContext;
 }
 
+// Allocates memeory for a frame, and then fills it with
+// the next frame from decodeContext
 AVFrame * nextFrame(DecodeContext *decodeContext) {
 	AVFrame *frame = NULL;
 	frame = avcodec_alloc_frame();
@@ -101,16 +111,22 @@ AVFrame * nextFrame(DecodeContext *decodeContext) {
 	return frame;
 }
 
+// Uses nextFrame to start from a certain frame and go up to the given frame
+// Properly deallocates all frames that aren't returned
 AVFrame * gotoFrame(int frameNumber, DecodeContext *decodeContext) {
+	// All memory allocation included inside this file
 	AVFrame *frame = NULL;
+	// Destructor can be caaled with av_free(frame)
 
 	decodeContext->formatContext = NULL;
+
 	int avOpen = avformat_open_input(
 		&decodeContext->formatContext,
 		decodeContext->filename,
 		NULL,
 		NULL
 	);
+
   if(avOpen != 0) {
 		printf("Mkvsynth Decoder: input file coule not be opened\n");
 		return NULL;
@@ -121,7 +137,7 @@ AVFrame * gotoFrame(int frameNumber, DecodeContext *decodeContext) {
 		frame = nextFrame(decodeContext);
 		if(frame == NULL)
 			break;
-		
+
 		i++;
 
 		// free the memory allocated by nextFrame
