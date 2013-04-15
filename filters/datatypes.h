@@ -22,13 +22,20 @@ typedef struct {
 
 // All information needed to encode a stream
 typedef struct {
-	x264_param_t param;
+	// Directly encodes frames
 	x264_t *encoder;
+
+	// Not sure what these do, but you need them
 	x264_picture_t picIn;
 	x264_picture_t picOut;
-	x264_nal_t *nals;
 
+	// Used to retrieve raw data
+	x264_nal_t *nals;
 	int frameSize;
 	int i_nals;
+
+	// Used to resize incoming frames
+	int width;
+	int height;
 } EncodeContext;
 #endif

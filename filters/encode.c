@@ -2,16 +2,27 @@
 
 // Need something (struct? string?) that will help establish settings
 EncodeContext * openEncoder(int width, int height) {
+	// Allocate memory for the encoder object
 	EncodeContext *encodeContext = malloc(sizeof(EncodeContext));
-	x264_param_default_preset(&encodeContext->param, "fast", "");
-	encodeContext->param.i_width = width;
-	encodeContext->param.i_height = height;
-	encodeContext->param.rc.i_rc_method = X264_RC_CRF;
-	encodeContext->param.rc.f_rf_constant = 20;
-	x264_param_apply_profile(&encodeContext->param, "high444");
 
-	encodeContext->encoder = x264_encoder_open(&encodeContext->param);
-	x264_encoder_parameters(encodeContext->encoder, &encodeContext->param);
+	// For use in other funcitons (namely encodeFrame)
+	encodeContext->width = width;
+	encodeContext->height = height;
+
+	// A param object only needs to be temporary
+	// Originally, this was done dynamically but there is no reason for that
+	x264_param_t param;
+
+	// Set a few default settings, this will be replaced at some point
+	x264_param_default_preset(&param, "slow", "");
+	param.i_width = width;
+	param.i_height = height;
+	param.rc.i_rc_method = X264_RC_CRF;
+	param.rc.f_rf_constant = 20;
+	x264_param_apply_profile(&param, "high444");
+
+	encodeContext->encoder = x264_encoder_open(&param);
+	x264_encoder_parameters(encodeContext->encoder, &param);
 
 	x264_picture_alloc(&encodeContext->picIn, X264_CSP_I420, width, height);
 	return encodeContext;
@@ -23,8 +34,8 @@ void encodeFrame(AVFrame *frame, EncodeContext *encodeContext) {
 		frame->width,
 		frame->height,
 		frame->format,
-		encodeContext->param.i_width,
-		encodeContext->param.i_height,
+		encodeContext->width,
+		encodeContext->height,
 		PIX_FMT_YUV420P,
 		SWS_SPLINE,
 		NULL,
