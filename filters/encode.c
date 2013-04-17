@@ -81,3 +81,8 @@ int writeEncodeToFile(FILE *output, EncodeContext *encodeContext) {
 	}
 	return fwriteStatus;
 }
+
+int closeDecoder(EncodeContext *encodeContext) {
+	av_free(encodeContext->picIn);
+	free(encodeContext);
+}
