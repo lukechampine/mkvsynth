@@ -10,6 +10,8 @@
 
 #include "vars.h"
 
+// This function initializes a hashtable with data that has
+// a size of dataSize.
 hashTable * makeHashTable(int dataSize, hashTable *makeThis) {
   makeThis->dataSize = dataSize;
   makeThis->size = 0;
@@ -23,6 +25,8 @@ void deleteHashTable(hashTable *deleteThis) {
   free(deleteThis->table);
 }
 
+/* This function expands a table once   *
+ * it is no longer sufficiently sparse. */
 void resizeTable(hashTable *resizeThis) {
   // allocates twice as much memory for our newtable
   int oldSize = resizeThis->tableSize, i;
@@ -38,6 +42,7 @@ void resizeTable(hashTable *resizeThis) {
   free(oldTable);
 }
 
+// This is the lame hash function for the table
 int hash(char *hashThis) {
   if ( hashThis == NULL ) return 0;
   int i = 0, hashVal = 0;

@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 MainWindow::~MainWindow()
 {
   delete commandDock;
+  delete videoBox;
+  delete menus;
 }
 
 void
