@@ -1,5 +1,6 @@
 #include "funs.h"
 
+// creates a function struct
 function *makeFun(function *fillThis, char *name,
 		  void * (*fun)(void *,char *)) {
   int i = strlen(name) + 1;
@@ -9,6 +10,7 @@ function *makeFun(function *fillThis, char *name,
   return fillThis;
 }
 
+// deallocates memory.
 void deleteFun(function *deleteThis) {
   if ( deleteThis->functionName != NULL ) free(deleteThis->functionName);
   memset(deleteThis,0,sizeof(function));

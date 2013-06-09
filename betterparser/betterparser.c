@@ -9,15 +9,22 @@
 hashTable vars;
 hashTable funs;
 
+// This function parses a line into language code.
 int parseline( char *lineBuff) {
   char *var, *funName, *args, **strtokPtr = &lineBuff;
   function *fun;
 
+  // gets the name of the variable
   var = strtok_r(lineBuff,".",strtokPtr);
   dataStruct *found = (dataStruct *)findData(var,&vars,1);
+
+  // finds functions and processes them
   while ( ( funName = strtok_r(NULL," \t\n.(",strtokPtr) ) != NULL ) {
+
+    // finds the function corresponding to funName
     fun = findData(funName,&funs,0);
     if ( fun != NULL ) {
+      // processes the function
       args = strtok_r(NULL,")",strtokPtr);
       fun->function(found,args);
     }
@@ -27,7 +34,7 @@ int parseline( char *lineBuff) {
   return 0;
 }
 
-
+// initializes variables and enters an input loop
 int main() {
   char lineBuff[1024];
   makeHashTable(sizeof(dataStruct),&vars);
