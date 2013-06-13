@@ -1,28 +1,30 @@
 %{
 	#include <stdio.h>
 	#include <string.h>
-	#include "delbrot.h"  /* Contains definitions for symbol table and argument list */
+	#include "delbrot.h"
 	void yyerror (char *);
 	extern int linenumber;
+	
 %}
 
 %union {
-	double 	val;		/* For returning numbers.  */
-	symrec 	*tptr; 		/* For returning symbol-table pointers.  */
-	argNode *nPtr;
+	double 	val;		/* number */
+	symRec 	*tptr; 		/* symbol-table pointer */
+	argNode *nPtr;		/* argument list root node */
 }
-%token <val>  NUM 		/* Simple double precision number.  */
-%token <tptr> VAR FNCT 	/* Variable and function.  */
-%type  <val>  expr
-%type  <nPtr> arglist	/* argument list, in the form of a linked list */
+%token <val>  NUM 		/* numbers are numbers */
+%token <tptr> VAR FNCT 	/* variables and functions are symbl-table pointers */
+%type  <val>  expr		/* expressions are numbers */
+%type  <nPtr> arglist	/* function arguments are a linked list */
 
 %right '='
 %left '-' '+'
 %left '*' '/'
-%left NEG     /* negation--unary minus */
+%left NEG     /* negation */
 %right '^'    /* exponentiation */
 
-%% /* The grammar follows.  */
+%% /* grammar definition section  */
+
 input:
 		/* empty */
 		| input statement
@@ -30,89 +32,87 @@ input:
 
 statement:
 		';'
-		| expr ';'   			{									}
-		| error ';'				{ yyerrok;							}
+		| expr ';'				{								 }
+		| error ';'				{ yyerrok;						 }
 		;
 
 expr:
-		NUM 					{ $$ = $1;							}
-		| VAR 					{ $$ = $1->value.var;				}
-		| VAR '=' expr			{ $$ = $3; $1->value.var = $3;		}
-		| FNCT '(' arglist ')'	{ $$ = (*($1->value.fnctptr))($3);	}
-		| expr '+' expr			{ $$ = $1 + $3;						}
-		| expr '-' expr			{ $$ = $1 - $3;						}
-		| expr '*' expr			{ $$ = $1 * $3;						}
-		| expr '/' expr			{ $$ = $1 / $3;						}
-		| '-' expr  %prec NEG 	{ $$ = -$2;							}
-		//| expr '^' expr 		{ $$ = pow($1, $3);					}
-		| '(' expr ')' 			{ $$ = $2;							}
+		NUM 					{ $$ = $1;						 }
+		| VAR 					{ $$ = $1->value.var;			 }
+		| VAR '=' expr			{ $$ = $3; $1->value.var = $3;	 }
+		| FNCT '(' arglist ')'	{ $$ = (*($1->value.fnPtr))($3); }
+		| expr '+' expr			{ $$ = $1 + $3;					 }
+		| expr '-' expr			{ $$ = $1 - $3;					 }
+		| expr '*' expr			{ $$ = $1 * $3;					 }
+		| expr '/' expr			{ $$ = $1 / $3;					 }
+		| '-' expr %prec NEG 	{ $$ = -$2;						 }
+		| expr '^' expr 		{ $$ = npow($1, $3);			 }
+		| '(' expr ')' 			{ $$ = $2;						 }
 		;
 
 arglist:
-		expr					{ $$ = makeArgNode($1);				}
-		| arglist ',' expr		{ $$ = appendArgNode($1, $3);		}
+		expr					{ $$ = makeArgNode($1);			 }
+		| arglist ',' expr		{ $$ = appendArgNode($1, $3);	 }
 		;
 
+%% /* end of grammar */
 
-/* End of grammar.  */
-%%
-
-struct init {
+/* map strings to their corresponding function pointers */
+static struct {
 	char const *fname;
 	double (*fnct) (argNode *);
-};
-
-struct init const arith_fncts[] =
-{
-	"ffmpegDecode", ffmpegDecode,
-	"print", print,
-	// "sin",  sin,
-	// "cos",  cos,
-	// "atan", atan,
-	// "ln",   log,
-	// "exp",  exp,
-	// "sqrt", sqrt,
+} coreFunctions[] = {
+	"ffmpegDecode",	ffmpegDecode,
+	"print",		print,
+	"sin",			nsin,
+	"cos",			ncos,
+	"ln",			nlog,
+	"exp",			nexp,
+	"sqrt",			nsqrt,
 	0, 0
 };
 
-/* The symbol table: a chain of `struct symrec'.  */
-symrec *sym_table;
-
-/* Put arithmetic functions in table.  */
-void init_table (void) {
+void initFunctionMap (void) {
 	int i;
-	for (i = 0; arith_fncts[i].fname != 0; i++)	{
-		symrec *ptr = putsym (arith_fncts[i].fname, FNCT);
-		ptr->value.fnctptr = arith_fncts[i].fnct;
+	for (i = 0; coreFunctions[i].fname != 0; i++)	{
+		symRec *ptr = putSym (coreFunctions[i].fname, FNCT);
+		ptr->value.fnPtr = coreFunctions[i].fnct;
 	}
 }
-     
-symrec *putsym (char const *sym_name, int sym_type) {
-	symrec *ptr = (symrec *) malloc (sizeof (symrec));
-	ptr->name = (char *) malloc (strlen (sym_name) + 1);
-	strcpy (ptr->name,sym_name);
-	ptr->type = sym_type;
+
+/* the symbol table: a chain of `struct symRec'.  */
+symRec *symTable;
+
+/* add a new symbol to the table */
+symRec *putSym (char const *symName, int symType) {
+	symRec *ptr = (symRec *) malloc (sizeof (symRec));
+	ptr->name = (char *) malloc (strlen (symName) + 1);
+	strcpy (ptr->name,symName);
+	ptr->type = symType;
 	ptr->value.var = 0; /* Set value to 0 even if fctn.  */
-	ptr->next = (struct symrec *)sym_table;
-	sym_table = ptr;
+	ptr->next = (struct symRec *)symTable;
+	symTable = ptr;
 	return ptr;
 }
 
-symrec *getsym (char const *sym_name) {
-	symrec *ptr;
-	for (ptr = sym_table; ptr != (symrec *) 0; ptr = (symrec *)ptr->next) {
-		if (strcmp (ptr->name,sym_name) == 0)
+/* get the value of a symbol in the table */
+symRec *getSym (char const *symName) {
+	symRec *ptr;
+	for (ptr = symTable; ptr != (symRec *) 0; ptr = (symRec *)ptr->next) {
+		if (strcmp (ptr->name,symName) == 0)
 			return ptr;
 	}
 	return 0;
 }
 
+/* create the root node of an argument list */
 argNode *makeArgNode(double dub) {
 	argNode *root = (argNode*)malloc(sizeof(argNode));
 	root->dValue = dub;
 	return root;
 }
 
+/* add an argument to the end of a linked list of arguments */
 argNode *appendArgNode(argNode *root, double dub) {
 	argNode *newArg = (argNode*)malloc(sizeof(argNode));
 	newArg->dValue = dub;
@@ -126,6 +126,6 @@ void yyerror(char *s) {
 }
 
 int main () {
-	init_table ();
-	return yyparse ();
+	initFunctionMap();
+	return yyparse();
 }

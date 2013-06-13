@@ -383,7 +383,7 @@ struct yy_trans_info
 static yyconst flex_int16_t yy_accept[16] =
     {   0,
         0,    0,    8,    6,    4,    5,    3,    2,    1,    4,
-        2,    2,    1,    2,    0
+        0,    2,    1,    2,    0
     } ;
 
 static yyconst flex_int32_t yy_ec[256] =
@@ -661,8 +661,7 @@ YY_DECL
 #line 11 "delbrot.l"
 
 
-	/* match variable names and function names */
-#line 666 "lex.yy.c"
+#line 665 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -747,24 +746,25 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 14 "delbrot.l"
-{
-						symrec *i;
-						i = getsym(yytext);
+#line 13 "delbrot.l"
+{	/* match variable names and function names */
+						symRec *i;
+						i = getSym(yytext);
 						if (i == 0)
-							i = putsym(yytext, VAR);
+							i = putSym(yytext, VAR);
 						yylval.tptr = i;
 						return i->type;
  					}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 22 "delbrot.l"
-{
+#line 21 "delbrot.l"
+{	/* numbers, with optional decimal */
 						yylval.val = atof(yytext);
 						return NUM;
 					}
 	YY_BREAK
+/* miscellaneous characters */
 case 3:
 YY_RULE_SETUP
 #line 26 "delbrot.l"

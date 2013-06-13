@@ -59,11 +59,11 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 9 "delbrot.y"
+#line 10 "delbrot.y"
 
-	double 	val;		/* For returning numbers.  */
-	symrec 	*tptr; 		/* For returning symbol-table pointers.  */
-	argNode *nPtr;
+	double 	val;		/* number */
+	symRec 	*tptr; 		/* symbol-table pointer */
+	argNode *nPtr;		/* argument list root node */
 
 
 
