@@ -1,0 +1,144 @@
+######
+#   List of Objects:
+#
+#       FrameStream:    a sequence of frames
+#       Encoder:        an x264 encoder
+#       RawData:        a bunch of 1s and 0s
+#       String:         usually a filename
+#       Int:            used for loops and integer operations
+#                                           
+#       int operations: add,
+#                       subtract,
+#                       multiply,
+#                       divide,
+#                       modulus
+######
+
+######
+#   List of predefined functions
+#       decode:         decode(input, output)
+#                           input: can be RawData or a filename (as a String)
+#                           output:   a FrameStream
+#                                           
+#       setEncoder:     setEncoder(input, output)
+#                           input: either an Encoder, or a set of parameters (as a String)
+#                           output:   an Encoder
+#                           
+#                           Notes:
+#                                  Encoders can only be initialized once, the parameters
+#                               must not change. Parameters must also include a width and
+#                               a height.
+#                                  The Encoder object will automatically resize any FrameStream
+#                               passed to it so that there will be no erros.
+#
+#
+#       resize:         resize(height, width, input, output)
+#                           height:   an int or an int operation
+#                           width:    an int or an int operation
+#                           input:    a FrameStream
+#                           output:   a FrameStream
+#                           
+#                           Notes:
+#                               It's generally reccommeded that you avoid resize,
+#                           because the encoder will automatically resize any FrameStream
+#                           that it gets passed. Of course if you are not planning to pass
+#                           the stream to an encoder, you should resize it manually.
+#                                       
+#       crop:           crop(left, top, right, bottom, input, output)
+#                           left:     how many pixels to remove from the left border (int or int operation)
+#                           top:      how many pixels to remove from the top border (int or int operation)
+#                           right:    how many pixels to remove from the right border (int or int operation)
+#                           bottom:   how many pixels to remove from the bottom border (int or int operation)
+#                           input:    a FrameStream
+#                           output:   a FrameStream
+#
+#       append:         append(newVideo, input, output)
+#                           newVideo: a FrameStream, it will be appended to the input to produce the output
+#                           input:    a FrameStream
+#                           output:   a FrameStream
+#
+#       getFrameRange:  getFrameRange(start, end, input, output)
+#                           start:    the first frame
+#                           end:      the last frame
+#                           input:    a FrameStream
+#                           output:   a FrameStream
+#                           
+#                           Note:
+#                               getFrameRange will return a FrameStream comprising only of the
+#                           frames between start and end (inclusive)
+#
+#       send:           send(input, output)
+#                           input: RawData or FrameStream
+#                           output: either a filename (string), or stderr, or stdout
+#
+######
+
+######
+#   Dots, Equals, and Other Shortcuts 
+#
+#       Dots: resize(height, width, input, output) is equivalent to input.resize(height, width, output)
+#
+#       Equals: resize(height, width, input, output) is equivalent to output = resize(height, width, input)
+#
+#       The following are all equivalent:
+#           resize(height, width, input, output)
+#           input.resize(height, width, output)
+#           output = resize(height, width, input)
+#           output = input.resize(height, width)
+#
+#           Note: For clarity, it is preferred that you use the last form
+#           
+#
+#       You don't need an input AND and output, if only one is specified it will be used for both
+#       The following are all equivalent:
+#           resize(height, width, video1, video1)
+#           video1 = resize(height, width)
+#           video1 = video1.resize(height, width)
+#           video1.resize(height, width)
+#
+#           Note: For clarity, it is preferred that you use the last form
+#
+######
+
+######
+#   For Loops
+#       This is perhaps a lofty goal, but we hope to support for loops
+######
+
+
+
+###### Example code: ######
+
+# You have to decode a video before you can process it
+FrameStream originalVideo = decode("filters/test.mp4")
+
+# This loop does something silly
+for(i = 0; i < 20; i++) {
+    # getFrameRange(X, Y) gets all frames between X and Y in a video (inclusive)
+    FrameStream funkyChunk = originalVideo.getFrameRange(200*i, 250*i)
+
+    #add to a different video (all variables have global scope)
+    FrameStream funkyVideo = funkyVideo.append(funkyChunk)
+}
+
+#setEncoder will always return a completely new encoder
+encoder hqEncoder = setEncoder("--width 1080 --height 1920 --crf 17 --preset veryslow")
+encoder lqEncoder = setEncoder("--width 480 --height 854 --crf 21 --preset fast")
+
+#encoded videos are just bundles of data
+rawData hqVideo = hqEncoder.encode(funkyVideo)
+rawData lqVideo = lqEncoder.encode(funkyVideo)
+
+#this allows us to view the encoded stream in the gui
+frameStream viewHQ = decode(hqVideo)
+frameStream viewLQ = decode(lqVideo)
+
+#this will save the videos to disk
+send(hqVideo, "/home/david/mkvsynth/hqTest.h264")
+send(lqVideo, "/home/david/mkvsynth/lqTest.h264")
+
+#if you don't know what this is, don't worry about it
+send(viewHQ, stdout)
+send(viewLQ, stderr)
+
+###### End ######
