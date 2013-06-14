@@ -1,5 +1,6 @@
 %{
     #include <stdio.h>
+    #include <math.h>
     #include <string.h>
     #include "delbrot.h"
     void yyerror (char *);
@@ -18,6 +19,7 @@
 %type  <nPtr> arglist   /* function arguments are a linked list */
 
 %right '='
+%left GE LE EQ NE '>' '<'
 %left '-' '+'
 %left '*' '/'
 %left NEG     /* negation */
@@ -32,27 +34,33 @@ input:
 
 statement:
         ';'
-        | expr ';'              {                                }
-        | error ';'             { yyerrok;                       }
+        | expr ';'              {                               }
+        | error ';'             { yyerrok;                      }
         ;
 
 expr:
-        NUM                     { $$ = $1;                       }
-        | VAR                   { $$ = $1->value.var;            }
-        | VAR '=' expr          { $$ = $3; $1->value.var = $3;   }
+        NUM                     { $$ = $1;                      }
+        | VAR                   { $$ = $1->value.var;           }
+        | VAR '=' expr          { $$ = $3; $1->value.var = $3;  }
         | FNCT '(' arglist ')'  { $$ = (*($1->value.fnPtr))($3->head); }
-        | expr '+' expr         { $$ = $1 + $3;                  }
-        | expr '-' expr         { $$ = $1 - $3;                  }
-        | expr '*' expr         { $$ = $1 * $3;                  }
-        | expr '/' expr         { $$ = $1 / $3;                  }
-        | '-' expr %prec NEG    { $$ = -$2;                      }
-        | expr '^' expr         { $$ = npow($1, $3);             }
-        | '(' expr ')'          { $$ = $2;                       }
+        | '-' expr %prec NEG    { $$ = -$2;                     }
+        | expr '+' expr         { $$ = $1 + $3;                 }
+        | expr '-' expr         { $$ = $1 - $3;                 }
+        | expr '*' expr         { $$ = $1 * $3;                 }
+        | expr '/' expr         { $$ = $1 / $3;                 }
+        | expr '^' expr         { $$ = pow($1, $3);             }
+        | expr EQ expr          { $$ = $1 == $3;                }
+        | expr NE expr          { $$ = $1 != $3;                }
+        | expr '>' expr         { $$ = $1 > $3;                 }
+        | expr '<' expr         { $$ = $1 < $3;                 }
+        | expr GE expr          { $$ = $1 >= $3;                }
+        | expr LE expr          { $$ = $1 <= $3;                }
+        | '(' expr ')'          { $$ = $2;                      }
         ;
 
 arglist:
-        expr                    { $$ = makeArgNode($1);          }
-        | arglist ',' expr      { $$ = appendArgNode($1, $3);    }
+        expr                    { $$ = makeArgNode($1);         }
+        | arglist ',' expr      { $$ = appendArgNode($1, $3);   }
         ;
 
 %% /* end of grammar */

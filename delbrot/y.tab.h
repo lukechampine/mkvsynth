@@ -45,7 +45,11 @@
      WHILE = 261,
      IF = 262,
      ELSE = 263,
-     NEG = 264
+     NE = 264,
+     EQ = 265,
+     LE = 266,
+     GE = 267,
+     NEG = 268
    };
 #endif
 /* Tokens.  */
@@ -55,7 +59,11 @@
 #define WHILE 261
 #define IF 262
 #define ELSE 263
-#define NEG 264
+#define NE 264
+#define EQ 265
+#define LE 266
+#define GE 267
+#define NEG 268
 
 
 
@@ -65,7 +73,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 9 "delbrot.y"
+#line 10 "delbrot.y"
 
     double  val;        /* number */
     symRec  *tptr;      /* symbol-table pointer */
@@ -74,7 +82,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 78 "y.tab.h"
+#line 86 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -25,8 +25,16 @@
                         yylval.val = atof(yytext);
                         return NUM;
                     }
+                        /* boolean operators */
+">="                    return GE;
+"<="                    return LE;
+"=="                    return EQ;
+"!="                    return NE;
+
                         /* miscellaneous characters */
-[()+*=/.,;\-\^]         return *yytext;
+[()<>+*=/.,;\-\^]       return *yytext;
+
+
 
 [ \t]+                  ; /* ignore whitespace */
 \n                      linenumber++; /* used for error messages */
