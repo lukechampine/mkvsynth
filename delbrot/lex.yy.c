@@ -465,11 +465,11 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "delbrot.l"
 #line 2 "delbrot.l"
-	#include <stdlib.h>
-	#include "delbrot.h"
-	#include "y.tab.h"
-	void yyerror(char *);
-	int linenumber = 1;
+    #include <stdlib.h>
+    #include "delbrot.h"
+    #include "y.tab.h"
+    void yyerror(char *);
+    int linenumber = 1;
 /* don't keep scanning after EOF */
 #line 475 "lex.yy.c"
 
@@ -747,51 +747,54 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 YY_RULE_SETUP
 #line 13 "delbrot.l"
-{	/* match variable names and function names */
-						symRec *i;
-						i = getSym(yytext);
-						if (i == 0)
-							i = putSym(yytext, VAR);
-						yylval.tptr = i;
-						return i->type;
- 					}
+{   /* match a keyword or function; alternatively, assign a variable */
+                        int i;
+                        symRec *j;
+                        if ((i = resWord(yytext)) != 0)
+                            return i;
+                        else if ((j = getSym(yytext)) != NULL)
+                            yylval.tptr = j;
+                        else
+                            j = putSym(yytext, VAR);
+                        return j->type;
+                    }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 21 "delbrot.l"
-{	/* numbers, with optional decimal */
-						yylval.val = atof(yytext);
-						return NUM;
-					}
+#line 24 "delbrot.l"
+{   /* numbers, with optional decimal */
+                        yylval.val = atof(yytext);
+                        return NUM;
+                    }
 	YY_BREAK
 /* miscellaneous characters */
 case 3:
 YY_RULE_SETUP
-#line 26 "delbrot.l"
+#line 29 "delbrot.l"
 return *yytext;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 28 "delbrot.l"
+#line 31 "delbrot.l"
 ; /* ignore whitespace */
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 29 "delbrot.l"
+#line 32 "delbrot.l"
 linenumber++; /* used for error messages */
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 31 "delbrot.l"
+#line 34 "delbrot.l"
 yyerror("Unknown character");
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 33 "delbrot.l"
+#line 36 "delbrot.l"
 ECHO;
 	YY_BREAK
-#line 795 "lex.yy.c"
+#line 798 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1789,6 +1792,17 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 33 "delbrot.l"
+#line 36 "delbrot.l"
 
 
+
+int resWord(char *str) {
+    if      (!strcmp(str, "while"))
+        return WHILE;
+    else if (!strcmp(str, "if"))
+        return IF;
+    else if (!strcmp(str, "else"))
+        return ELSE;
+    else
+        return 0;
+}

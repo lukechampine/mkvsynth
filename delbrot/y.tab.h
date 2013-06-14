@@ -42,14 +42,20 @@
      NUM = 258,
      VAR = 259,
      FNCT = 260,
-     NEG = 261
+     WHILE = 261,
+     IF = 262,
+     ELSE = 263,
+     NEG = 264
    };
 #endif
 /* Tokens.  */
 #define NUM 258
 #define VAR 259
 #define FNCT 260
-#define NEG 261
+#define WHILE 261
+#define IF 262
+#define ELSE 263
+#define NEG 264
 
 
 
@@ -59,16 +65,16 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 10 "delbrot.y"
+#line 9 "delbrot.y"
 
-	double 	val;		/* number */
-	symRec 	*tptr; 		/* symbol-table pointer */
-	argNode *nPtr;		/* argument list root node */
+    double  val;        /* number */
+    symRec  *tptr;      /* symbol-table pointer */
+    argNode *nPtr;      /* argument list root node */
 
 
 
 /* Line 1676 of yacc.c  */
-#line 72 "y.tab.h"
+#line 78 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
