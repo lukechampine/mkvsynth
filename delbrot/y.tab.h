@@ -73,11 +73,11 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 10 "delbrot.y"
+#line 17 "delbrot.y"
 
-    double  val;        /* number */
-    symRec  *tptr;      /* symbol-table pointer */
-    argNode *nPtr;      /* argument list root node */
+    ASTnode *ASTptr;                    /* pointer to node in the AST */
+    double  val;                        /* number */
+    symRec  *tptr;                      /* symbol-table pointer */
 
 
 

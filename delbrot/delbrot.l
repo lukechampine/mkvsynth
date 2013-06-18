@@ -1,5 +1,6 @@
 %{
     #include <stdlib.h>
+    #include <stdio.h>
     #include "delbrot.h"
     #include "y.tab.h"
     void yyerror(char *);
@@ -15,10 +16,9 @@
                         symRec *j;
                         if ((i = resWord(yytext)) != 0)
                             return i;
-                        else if ((j = getSym(yytext)) != NULL)
-                            yylval.tptr = j;
-                        else
+                        else if ((j = getSym(yytext)) == 0)
                             j = putSym(yytext, VAR);
+                        yylval.tptr = j;
                         return j->type;
                     }
 [0-9]+(\.[0-9]+)?   {   /* numbers, with optional decimal */
@@ -32,7 +32,7 @@
 "!="                    return NE;
 
                         /* miscellaneous characters */
-[()<>+*=/.,;\-\^]       return *yytext;
+[(){}<>+*=/.,;\-\^]     return *yytext;
 
 
 

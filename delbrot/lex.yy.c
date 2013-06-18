@@ -402,7 +402,7 @@ static yyconst flex_int32_t yy_ec[256] =
 
        11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
        11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
-       11,   11,    1,    1,    1,    1,    1,    1,    1,    1,
+       11,   11,    5,    1,    5,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -472,12 +472,13 @@ char *yytext;
 #line 1 "delbrot.l"
 #line 2 "delbrot.l"
     #include <stdlib.h>
+    #include <stdio.h>
     #include "delbrot.h"
     #include "y.tab.h"
     void yyerror(char *);
     int linenumber = 1;
 /* don't keep scanning after EOF */
-#line 481 "lex.yy.c"
+#line 482 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -664,10 +665,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 11 "delbrot.l"
+#line 12 "delbrot.l"
 
 
-#line 671 "lex.yy.c"
+#line 672 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -752,16 +753,15 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 13 "delbrot.l"
+#line 14 "delbrot.l"
 {   /* match a keyword or function; alternatively, assign a variable */
                         int i;
                         symRec *j;
                         if ((i = resWord(yytext)) != 0)
                             return i;
-                        else if ((j = getSym(yytext)) != NULL)
-                            yylval.tptr = j;
-                        else
+                        else if ((j = getSym(yytext)) == 0)
                             j = putSym(yytext, VAR);
+                        yylval.tptr = j;
                         return j->type;
                     }
 	YY_BREAK
