@@ -18,11 +18,11 @@ If your language's grammar is very simple, bison can serve as your interpreter, 
     x  0  >    ...
 
 The equivalent C code would be:
-```c
+
     if (x > 0) {
         ...
     }
-```
+
 A separate function is then used to walk down the AST and execute the code. This is the model that delbrot uses.
 
 ## delbrot.l ##
