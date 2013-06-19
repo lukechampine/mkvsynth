@@ -16,30 +16,33 @@ ASTnode* ex(ASTnode *n) {
         yyerror("out of memory");
     /* copy information */
     memcpy(p, n, sizeof(ASTnode));
+    /* this is almost always the case. For special cases it can be redefined. */
+    p->type = typeVal;
 
     /* for convenience/readability */
     ASTnode **child = p->op.ops;
 
-    switch(p->type) {
+    switch(n->type) {
         case typeVal: return p;
-        case typeVar: p->val = p->var->val; return p; // dereference variable
+        case typeStr: p->type = typeStr; return p;
+        case typeVar: p = p->var->value; p->next = n->next; return p;
         case typeOp:
-            switch(p->op.oper) {
+            switch(n->op.oper) {
                 /* keywords */
                 case WHILE: while (ex(child[0])->val) ex(child[1]); return p;
                 case IF:    if    (ex(child[0])->val) ex(child[1]); return p;
                 /* functions */
-                case FNCT:  return (*((child[0])->var->fnPtr))(p, child[1]);
+                case FNCT:  return (*((child[0])->fnPtr))(p, ex(child[1]));
                 /* special syntax */
-                case '=':   p->val = child[0]->var->val = ex(child[1])->val; p->type = typeVal; return p;
-                case ';':   ex(child[0]); p->val = ex(child[1])->val;        p->type = typeVal; return p;                
-                case NEG:   p->val = -(ex(child[0])->val);                   p->type = typeVal; return p;
+                case '=':   p = child[0]->var->value = ex(child[1]);return p;
+                case ';':   ex(child[0]); p = ex(child[1]);         return p;                
+                case NEG:   p->val = -(ex(child[0])->val);          return p;
                 /* standard mathematical functions */
                 case '+':   return nadd(p, ex(child[0]), ex(child[1]));
                 case '-':   return nsub(p, ex(child[0]), ex(child[1]));
                 case '*':   return nmul(p, ex(child[0]), ex(child[1]));
                 case '/':   return ndiv(p, ex(child[0]), ex(child[1]));
-                case '^':   return nexp(p, ex(child[0]), ex(child[1]));
+                case '^':   return npow(p, ex(child[0]), ex(child[1]));
                 case '>':   return ngtr(p, ex(child[0]), ex(child[1]));
                 case '<':   return nles(p, ex(child[0]), ex(child[1]));
                 case GE:    return ngte(p, ex(child[0]), ex(child[1]));
@@ -82,46 +85,68 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs) {
 }
 
 /* standard mathematical functions, modified to use ASTnode */
-ASTnode* nadd (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val + c2->val; p->type = typeVal; return p; }
-ASTnode* nsub (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val - c2->val; p->type = typeVal; return p; }
-ASTnode* nmul (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val * c2->val; p->type = typeVal; return p; }
-ASTnode* ndiv (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val / c2->val; p->type = typeVal; return p; }
-ASTnode* nexp (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = pow(c1->val,c2->val);p->type=typeVal; return p; }
-ASTnode* ngtr (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val > c2->val; p->type = typeVal; return p; }
-ASTnode* nles (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val < c2->val; p->type = typeVal; return p; }
-ASTnode* ngte (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val >=c2->val; p->type = typeVal; return p; }
-ASTnode* nlte (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val <=c2->val; p->type = typeVal; return p; }
-ASTnode* neql (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val ==c2->val; p->type = typeVal; return p; }
-ASTnode* nneq (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val !=c2->val; p->type = typeVal; return p; }
-ASTnode* nsin (ASTnode *p, ASTnode *args) { checkArgs("sin", args, 1); p->val = sin(args->val); p->type = typeVal;  return p;                 }
-ASTnode* ncos (ASTnode *p, ASTnode *args) { checkArgs("cos", args, 1); p->val = cos(args->val); p->type = typeVal;  return p;                 }
-ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1); p->val = log(args->val); p->type = typeVal;  return p;                 }
-ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = sqrt(args->val); p->type = typeVal; return p;                 }
-ASTnode* npow (ASTnode *p, ASTnode *args) { checkArgs("pow", args, 2); p->val = pow(args->val, args->next->val); p->type = typeVal; return p; }
+ASTnode* nadd (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val + c2->val;  return p; }
+ASTnode* nsub (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val - c2->val;  return p; }
+ASTnode* nmul (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val * c2->val;  return p; }
+ASTnode* ndiv (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val / c2->val;  return p; }
+ASTnode* npow (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val =pow(c1->val,c2->val);return p; }
+ASTnode* ngtr (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val > c2->val;  return p; }
+ASTnode* nles (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val < c2->val;  return p; }
+ASTnode* ngte (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val >=c2->val;  return p; }
+ASTnode* nlte (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val <=c2->val;  return p; }
+ASTnode* neql (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val ==c2->val;  return p; }
+ASTnode* nneq (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val !=c2->val;  return p; }
+/* these have to use checkArgs() because they are called like ordinary functions */
+ASTnode* nsin (ASTnode *p, ASTnode *args) { checkArgs("sin", args, 1); p->val = sin(args->val);  return p; }
+ASTnode* ncos (ASTnode *p, ASTnode *args) { checkArgs("cos", args, 1); p->val = cos(args->val);  return p; }
+ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1); p->val = log(args->val);  return p; }
+ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = sqrt(args->val); return p; }
 
-/* generalized print function, will print any number of args */
+/* helper function to interpret string literals */
+char* unesc(char* str) {
+    int i, j;
+    for (i = 0; str[i] != '\0'; i++) {
+        if (str[i] == '\\') {
+            switch (str[i+1]) {
+                case 't': str[i] = '\t'; break;
+                case 'n': str[i] = '\n'; break;
+                case 'r': str[i] = '\r'; break;
+                case '\\':str[i] = '\\'; break;
+                case '\'':str[i] = '\''; break;
+                case '\"':str[i] = '\"'; break;
+                default: yyerror("unknown literal"); break;
+            }
+            for (j = i + 1; str[j] != '\0'; j++)
+                str[j] = str[j+1];
+        }
+    }
+    return str;
+}
+
+/* generalized print function; will print any number of args */
 ASTnode* print(ASTnode *p, ASTnode *args) {
-    printf ("\t");
-    /* iterate through args */
-    double num;
+    printf("\t");
     while(args) {
-        num = ex(args)->val;
-        printf ("%.10g ", num);
+        /* reduce any unevaluated arguments */
+        if (args->type == typeVar || args->type == typeOp)
+            args = ex(args);
+
+        if (args->type == typeVal)
+            printf("%.10g ", args->val);
+        if (args->type == typeStr)
+            printf("%s ", unesc(args->str));
+
         args = args->next;
     }
-    printf ("\n");
+    printf("\n");
     return p;
 }
 
 /* ffmpeg decoding function */
 ASTnode* ffmpegDecode(ASTnode *p, ASTnode *args) {
     // get arguments
-    checkArgs("ffmpegDecode", args, 3);
-    double x = args->val;
-    double y = args->next->val;
-    double z = args->next->next->val;
-
-    p->val = sqrt(x*x + y*y + z*z);
+    checkArgs("ffmpegDecode", args, 1);
+    printf("\tdecoded %s\n", args->str);
     p->type = typeVal;
     return p;
 }

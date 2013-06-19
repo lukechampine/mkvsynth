@@ -11,30 +11,45 @@
 
 %%  /* rule definition section */
 
-[a-zA-Z]+           {   /* match a keyword or function; alternatively, assign a variable */
+    /* keyword, function, or variable */
+[a-zA-Z]+           {
                         int i;
                         symRec *j;
                         if ((i = resWord(yytext)) != 0)
                             return i;
-                        else if ((j = getSym(yytext)) == 0)
-                            j = putSym(yytext, VAR);
-                        yylval.tptr = j;
-                        return j->type;
+                        else if ((j = getSym(yytext)) != 0) {
+                            yylval.tptr = j;
+                            if (j->value->type == typeFn)  return FNCT; /* TODO: quit lumping functions and variables together, it ain't worth it. */
+                            else return VAR;
+                        }
+                        else {
+                            yylval.tptr = putSym(yytext);
+                            return VAR;
+                        }
                     }
-[0-9]+(\.[0-9]+)?   {   /* numbers, with optional decimal */
+    /* number, with optional decimal */
+[0-9]+(\.[0-9]+)?   {
                         yylval.val = atof(yytext);
                         return NUM;
                     }
-                        /* boolean operators */
+    /* string (literal -- don't preemptively process escape characters) */
+\"([^\\\"]|\\.)*\"  { //"
+                        yylval.str = strdup(yytext+1);
+                        if (yylval.str[yyleng-2] != '"')
+                            yyerror("improperly terminated string");
+                        else
+                            yylval.str[yyleng-2] = 0;
+                        return STRING;
+                    }
+
+    /* boolean operator */
 ">="                    return GE;
 "<="                    return LE;
 "=="                    return EQ;
 "!="                    return NE;
 
-                        /* miscellaneous characters */
+    /* miscellaneous character */
 [(){}<>+*=/.,;\-\^]     return *yytext;
-
-
 
 [ \t]+                  ; /* ignore whitespace */
 \n                      linenumber++; /* used for error messages */

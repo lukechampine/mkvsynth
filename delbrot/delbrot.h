@@ -1,5 +1,11 @@
 /* types */
-typedef enum { typeVal, typeVar, typeOp } nodeType;
+typedef enum { typeVal, typeStr, typeFn, typeVar, typeOp } nodeType;
+
+/* a function */
+/* arg1 is passed by reference and will contain result of the function */
+/* arg2 is a linked list of ASTnodes, allowing an arbitrary number of arguments to be passed */
+typedef struct ASTnode ASTnode;
+typedef ASTnode * (*func) (ASTnode *, ASTnode *); 
 
 typedef struct {
     int oper;                   /* operator */
@@ -9,27 +15,22 @@ typedef struct {
 
 /* a node in the AST */
 typedef struct symRec symRec;
-typedef struct ASTnode {
+struct ASTnode {
     nodeType type;              /* type of node */
     union {
         double  val;            /* value */
-        symRec *var;            /* function or variable */
+        char   *str;            /* string */
+        func  fnPtr;            /* function pointer */
+        symRec *var;            /* variable */
         opNode  op;             /* operator */
     };
     struct ASTnode *next;       /* used for argument linked lists */
-} ASTnode;
-
-/* a function */
-typedef ASTnode * (*func) (ASTnode *, ASTnode *);
+};
 
 /* Data type for links in the chain of symbols.  */
 struct symRec {
     char *name;             /* name of symbol */
-    int type;               /* type of symbol: either VAR or FNCT */
-    union {
-        double val;         /* value of a VAR */
-        func fnPtr;         /* value of a FNCT */
-    };
+    ASTnode *value;         /* ASTnode it references */
     struct symRec *next;    /* link field */
 };
 
@@ -37,7 +38,7 @@ struct symRec {
 extern symRec *symTable;
 
 /* symbol function prototypes */
-symRec *putSym (char const *, int);
+symRec *putSym (char const *);
 symRec *getSym (char const *);
 
 /* link two nodes together */
@@ -48,14 +49,13 @@ ASTnode* nadd (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nsub (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nmul (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* ndiv (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* nexp (ASTnode *, ASTnode *, ASTnode *);
+ASTnode* npow (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* ngtr (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nles (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* ngte (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nlte (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* neql (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nneq (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* npow (ASTnode *, ASTnode *);
 ASTnode* nsin (ASTnode *, ASTnode *);
 ASTnode* ncos (ASTnode *, ASTnode *);
 ASTnode* nlog (ASTnode *, ASTnode *);

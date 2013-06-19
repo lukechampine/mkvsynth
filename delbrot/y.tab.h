@@ -40,30 +40,32 @@
       know about them.  */
    enum yytokentype {
      NUM = 258,
-     VAR = 259,
-     FNCT = 260,
-     WHILE = 261,
-     IF = 262,
-     ELSE = 263,
-     NE = 264,
-     EQ = 265,
-     LE = 266,
-     GE = 267,
-     NEG = 268
+     STRING = 259,
+     VAR = 260,
+     FNCT = 261,
+     WHILE = 262,
+     IF = 263,
+     ELSE = 264,
+     NE = 265,
+     EQ = 266,
+     LE = 267,
+     GE = 268,
+     NEG = 269
    };
 #endif
 /* Tokens.  */
 #define NUM 258
-#define VAR 259
-#define FNCT 260
-#define WHILE 261
-#define IF 262
-#define ELSE 263
-#define NE 264
-#define EQ 265
-#define LE 266
-#define GE 267
-#define NEG 268
+#define STRING 259
+#define VAR 260
+#define FNCT 261
+#define WHILE 262
+#define IF 263
+#define ELSE 264
+#define NE 265
+#define EQ 266
+#define LE 267
+#define GE 268
+#define NEG 269
 
 
 
@@ -73,16 +75,17 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 17 "delbrot.y"
+#line 18 "delbrot.y"
 
-    ASTnode *ASTptr;                    /* pointer to node in the AST */
-    double  val;                        /* number */
-    symRec  *tptr;                      /* symbol-table pointer */
+    ASTnode *ASTptr; /* pointer to node in the AST */
+    double  val;     /* number */
+    char    *str;    /* string */
+    symRec  *tptr;   /* symbol-table pointer */
 
 
 
 /* Line 1676 of yacc.c  */
-#line 86 "y.tab.h"
+#line 89 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -4,29 +4,31 @@
     #include <stdarg.h>
     #include "delbrot.h"
     /* prototypes */
-    ASTnode *mkOpNode(int, int, ...);   /* create an operation node in the AST */
-    ASTnode *mkVarNode(symRec *);       /* create a variable node in the AST */
-    ASTnode *mkValNode(double);         /* create a value node in the AST */             
-    void freeNode(ASTnode *);           /* destroy a node in the AST */
-    ASTnode *ex(ASTnode *);             /* execute a section of the AST */
+    ASTnode *mkOpNode(int, int, ...); /* create an operation node in the AST */
+    ASTnode *mkVarNode(symRec *);     /* create a variable node in the AST */
+    ASTnode *mkValNode(double);       /* create a value node in the AST */  
+    ASTnode *mkStrNode(char *);           
+    void freeNode(ASTnode *);         /* destroy a node in the AST */
+    ASTnode *ex(ASTnode *);           /* execute a section of the AST */
     void yyerror (char *);
 
     extern int linenumber;
 %}
 
 %union {
-    ASTnode *ASTptr;                    /* pointer to node in the AST */
-    double  val;                        /* number */
-    symRec  *tptr;                      /* symbol-table pointer */
+    ASTnode *ASTptr; /* pointer to node in the AST */
+    double  val;     /* number */
+    char    *str;    /* string */
+    symRec  *tptr;   /* symbol-table pointer */
 }
 
-%type  <ASTptr> stmt stmtlist           /* statements are "parent" nodes in the AST */
-%type  <ASTptr> expr arglist            /* expressions are "child" nodes in the AST */
-%token <val>  NUM                       /* all numbers are doubles */
-%token <tptr> VAR FNCT                  /* variables and functions are symbol-table pointers */
+%type  <ASTptr> stmt stmtlist /* statements are "parent" nodes in the AST */
+%type  <ASTptr> expr arglist  /* expressions are "child" nodes in the AST */
+%token <val>    NUM           /* all numbers are doubles */
+%token <str>    STRING        /* strings are char*s */ 
+%token <tptr>   VAR FNCT      /* variables and functions are symbol-table pointers */
 
-%token WHILE IF ELSE                    /* keywords don't have a type */
-
+%token WHILE IF ELSE          /* keywords don't have a type */
 
 %right '='
 %left GE LE EQ NE '>' '<'
@@ -49,6 +51,7 @@ stmt:
         | IF '(' expr ')' stmt    { $$ = mkOpNode(IF, 2, $3, $5);             }
         | WHILE '(' expr ')' stmt { $$ = mkOpNode(WHILE, 2, $3, $5);          }
         | '{' stmtlist '}'        { $$ = $2;                                  }
+        | error '}'               { yyerrok;                                  }
         ;
 
 stmtlist:
@@ -58,9 +61,10 @@ stmtlist:
 
 expr:
         NUM                       { $$ = mkValNode($1);                       }
+        |STRING                   { $$ = mkStrNode($1);                       }
         | VAR                     { $$ = mkVarNode($1);                       }
         | VAR '=' expr            { $$ = mkOpNode('=', 2, mkVarNode($1), $3); }
-        | FNCT '(' arglist ')'    { $$ = mkOpNode(FNCT,2, mkVarNode($1), $3); }
+        | FNCT '(' arglist ')'    { $$ = mkOpNode(FNCT,2, $1->value, $3);     }
         | '-' expr %prec NEG      { $$ = mkOpNode(NEG, 1, $2);                }
         | expr '+' expr           { $$ = mkOpNode('+', 2, $1, $3);            }
         | expr '-' expr           { $$ = mkOpNode('-', 2, $1, $3);            }
@@ -83,8 +87,6 @@ arglist:
 
 %% /* end of grammar */
 
-#define SIZEOF_ASTNODE ((char *)&p->val - (char *)p)
-
 /* create a value node in the AST */
 ASTnode *mkValNode(double val) {
     ASTnode *p;
@@ -94,6 +96,18 @@ ASTnode *mkValNode(double val) {
     /* copy information */
     p->type = typeVal;
     p->val = val;
+    return p;
+}
+
+/* create a string node in the AST */
+ASTnode *mkStrNode(char *str) {
+    ASTnode *p;
+    /* allocate node */
+    if ((p = malloc(sizeof(ASTnode))) == NULL)
+        yyerror("out of memory");
+    /* copy information */
+    p->type = typeStr;
+    p->str = str;
     return p;
 }
 
@@ -139,7 +153,6 @@ void freeNode(ASTnode *p) {
         for (i = 0; i < p->op.nops; i++) {
             freeNode(p->op.ops[i]);
         }
-        
         free(p->op.ops);
     }
     free(p);
@@ -170,8 +183,9 @@ static struct {
 void initFunctionMap (void) {
     int i;
     for (i = 0; coreFunctions[i].fname != 0; i++) {
-        symRec *ptr = putSym (coreFunctions[i].fname, FNCT);
-        ptr->fnPtr = coreFunctions[i].fnct;
+        symRec *ptr = putSym (coreFunctions[i].fname);
+        ptr->value->fnPtr = coreFunctions[i].fnct;
+        ptr->value->type = typeFn;
     }
 }
 
@@ -179,12 +193,12 @@ void initFunctionMap (void) {
 symRec *symTable;
 
 /* add a new symbol to the table */
-symRec *putSym (char const *symName, int symType) {
+symRec *putSym (char const *symName) {
     symRec *ptr = (symRec *) malloc (sizeof (symRec));
     ptr->name = (char *) malloc (strlen (symName) + 1);
     strcpy (ptr->name,symName);
-    ptr->type = symType;
-    ptr->val = 0; /* Set value to 0 even if function */
+    ptr->value = (ASTnode *) malloc (sizeof (ASTnode)); /* allocate space for ASTnode */
+    ptr->value->type = typeVar;
     ptr->next = (struct symRec *)symTable;
     symTable = ptr;
     return ptr;

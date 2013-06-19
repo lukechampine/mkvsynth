@@ -371,8 +371,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 11
-#define YY_END_OF_BUFFER 12
+#define YY_NUM_RULES 12
+#define YY_END_OF_BUFFER 13
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -380,11 +380,11 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static yyconst flex_int16_t yy_accept[24] =
+static yyconst flex_int16_t yy_accept[28] =
     {   0,
-        0,    0,   12,   10,    8,    9,   10,    7,    2,    7,
-        7,    7,    1,    8,    6,    0,    2,    4,    5,    3,
-        1,    2,    0
+        0,    0,   13,   11,    9,   10,   11,   11,    8,    2,
+        8,    8,    8,    1,    9,    7,    0,    3,    0,    0,
+        2,    5,    6,    4,    1,    2,    0
     } ;
 
 static yyconst flex_int32_t yy_ec[256] =
@@ -392,17 +392,17 @@ static yyconst flex_int32_t yy_ec[256] =
         1,    1,    1,    1,    1,    1,    1,    1,    2,    3,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    2,    4,    1,    1,    1,    1,    1,    1,    5,
-        5,    5,    5,    5,    5,    6,    5,    7,    7,    7,
-        7,    7,    7,    7,    7,    7,    7,    1,    5,    8,
-        9,   10,    1,    1,   11,   11,   11,   11,   11,   11,
-       11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
-       11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
-        1,    1,    1,    5,    1,    1,   11,   11,   11,   11,
+        1,    2,    4,    5,    1,    1,    1,    1,    1,    6,
+        6,    6,    6,    6,    6,    7,    6,    8,    8,    8,
+        8,    8,    8,    8,    8,    8,    8,    1,    6,    9,
+       10,   11,    1,    1,   12,   12,   12,   12,   12,   12,
+       12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
+       12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
+        1,   13,    1,    6,    1,    1,   12,   12,   12,   12,
 
-       11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
-       11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
-       11,   11,    5,    1,    5,    1,    1,    1,    1,    1,
+       12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
+       12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
+       12,   12,    6,    1,    6,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -419,40 +419,42 @@ static yyconst flex_int32_t yy_ec[256] =
         1,    1,    1,    1,    1
     } ;
 
-static yyconst flex_int32_t yy_meta[12] =
+static yyconst flex_int32_t yy_meta[14] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1
+        1,    1,    1
     } ;
 
-static yyconst flex_int16_t yy_base[24] =
+static yyconst flex_int16_t yy_base[29] =
     {   0,
-        0,    0,   24,   25,   21,   25,   13,   25,    6,   12,
-       11,   10,    7,   15,   25,    9,    0,   25,   25,   25,
-        4,    7,   25
+        0,    0,   31,   34,   28,   34,   19,    9,   34,   16,
+       18,   17,   16,    9,   18,   34,   20,   34,   16,   10,
+        0,   34,   34,   34,    5,    8,   34,   14
     } ;
 
-static yyconst flex_int16_t yy_def[24] =
+static yyconst flex_int16_t yy_def[29] =
     {   0,
-       23,    1,   23,   23,   23,   23,   23,   23,   23,   23,
-       23,   23,   23,   23,   23,   23,    9,   23,   23,   23,
-       23,   23,    0
+       27,    1,   27,   27,   27,   27,   27,   28,   27,   27,
+       27,   27,   27,   27,   27,   27,   28,   27,   28,   27,
+       10,   27,   27,   27,   27,   27,    0,   27
     } ;
 
-static yyconst flex_int16_t yy_nxt[37] =
+static yyconst flex_int16_t yy_nxt[48] =
     {   0,
-        4,    5,    6,    7,    8,    8,    9,   10,   11,   12,
-       13,   16,   17,   22,   21,   22,   14,   21,   20,   19,
-       18,   15,   14,   23,    3,   23,   23,   23,   23,   23,
-       23,   23,   23,   23,   23,   23
+        4,    5,    6,    7,    8,    9,    9,   10,   11,   12,
+       13,   14,    4,   18,   17,   26,   25,   26,   27,   15,
+       25,   19,   20,   21,   18,   24,   23,   22,   16,   15,
+       27,   27,   19,    3,   27,   27,   27,   27,   27,   27,
+       27,   27,   27,   27,   27,   27,   27
     } ;
 
-static yyconst flex_int16_t yy_chk[37] =
+static yyconst flex_int16_t yy_chk[48] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    9,    9,   22,   21,   16,   14,   13,   12,   11,
-       10,    7,    5,    3,   23,   23,   23,   23,   23,   23,
-       23,   23,   23,   23,   23,   23
+        1,    1,    1,    8,   28,   26,   25,   20,   19,   15,
+       14,    8,   10,   10,   17,   13,   12,   11,    7,    5,
+        3,    0,   17,   27,   27,   27,   27,   27,   27,   27,
+       27,   27,   27,   27,   27,   27,   27
     } ;
 
 static yy_state_type yy_last_accepting_state;
@@ -478,7 +480,7 @@ char *yytext;
     void yyerror(char *);
     int linenumber = 1;
 /* don't keep scanning after EOF */
-#line 482 "lex.yy.c"
+#line 484 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -668,7 +670,8 @@ YY_DECL
 #line 12 "delbrot.l"
 
 
-#line 672 "lex.yy.c"
+    /* keyword, function, or variable */
+#line 675 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -721,13 +724,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 24 )
+				if ( yy_current_state >= 28 )
 					yy_c = yy_meta[(unsigned int) yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 25 );
+		while ( yy_base[yy_current_state] != 34 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -753,75 +756,95 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 14 "delbrot.l"
-{   /* match a keyword or function; alternatively, assign a variable */
+#line 15 "delbrot.l"
+{
                         int i;
                         symRec *j;
                         if ((i = resWord(yytext)) != 0)
                             return i;
-                        else if ((j = getSym(yytext)) == 0)
-                            j = putSym(yytext, VAR);
-                        yylval.tptr = j;
-                        return j->type;
+                        else if ((j = getSym(yytext)) != 0) {
+                            yylval.tptr = j;
+                            if (j->value->type == typeFn)  return FNCT; /* TODO: quit lumping functions and variables together, it ain't worth it. */
+                            else return VAR;
+                        }
+                        else {
+                            yylval.tptr = putSym(yytext);
+                            return VAR;
+                        }
                     }
 	YY_BREAK
+/* number, with optional decimal */
 case 2:
 YY_RULE_SETUP
-#line 24 "delbrot.l"
-{   /* numbers, with optional decimal */
+#line 31 "delbrot.l"
+{
                         yylval.val = atof(yytext);
                         return NUM;
                     }
 	YY_BREAK
-/* boolean operators */
+/* string (literal -- don't preemptively process escape characters) */
 case 3:
+/* rule 3 can match eol */
 YY_RULE_SETUP
-#line 29 "delbrot.l"
-return GE;
+#line 36 "delbrot.l"
+{ //"
+                        yylval.str = strdup(yytext+1);
+                        if (yylval.str[yyleng-2] != '"')
+                            yyerror("improperly terminated string");
+                        else
+                            yylval.str[yyleng-2] = 0;
+                        return STRING;
+                    }
 	YY_BREAK
+/* boolean operator */
 case 4:
 YY_RULE_SETUP
-#line 30 "delbrot.l"
-return LE;
+#line 46 "delbrot.l"
+return GE;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 31 "delbrot.l"
-return EQ;
+#line 47 "delbrot.l"
+return LE;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 32 "delbrot.l"
-return NE;
+#line 48 "delbrot.l"
+return EQ;
 	YY_BREAK
-/* miscellaneous characters */
 case 7:
 YY_RULE_SETUP
-#line 35 "delbrot.l"
-return *yytext;
+#line 49 "delbrot.l"
+return NE;
 	YY_BREAK
+/* miscellaneous character */
 case 8:
 YY_RULE_SETUP
-#line 39 "delbrot.l"
-; /* ignore whitespace */
+#line 52 "delbrot.l"
+return *yytext;
 	YY_BREAK
 case 9:
-/* rule 9 can match eol */
 YY_RULE_SETUP
-#line 40 "delbrot.l"
-linenumber++; /* used for error messages */
+#line 54 "delbrot.l"
+; /* ignore whitespace */
 	YY_BREAK
 case 10:
+/* rule 10 can match eol */
 YY_RULE_SETUP
-#line 42 "delbrot.l"
-yyerror("Unknown character");
+#line 55 "delbrot.l"
+linenumber++; /* used for error messages */
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 44 "delbrot.l"
+#line 57 "delbrot.l"
+yyerror("Unknown character");
+	YY_BREAK
+case 12:
+YY_RULE_SETUP
+#line 59 "delbrot.l"
 ECHO;
 	YY_BREAK
-#line 825 "lex.yy.c"
+#line 848 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1113,7 +1136,7 @@ static int yy_get_next_buffer (void)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 24 )
+			if ( yy_current_state >= 28 )
 				yy_c = yy_meta[(unsigned int) yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
@@ -1141,11 +1164,11 @@ static int yy_get_next_buffer (void)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 24 )
+		if ( yy_current_state >= 28 )
 			yy_c = yy_meta[(unsigned int) yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
-	yy_is_jam = (yy_current_state == 23);
+	yy_is_jam = (yy_current_state == 27);
 
 	return yy_is_jam ? 0 : yy_current_state;
 }
@@ -1819,7 +1842,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 44 "delbrot.l"
+#line 59 "delbrot.l"
 
 
 
