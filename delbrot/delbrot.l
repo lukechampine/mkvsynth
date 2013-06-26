@@ -56,7 +56,7 @@
 "!="                    return NE;
 
     /* miscellaneous character */
-[(){}<>+*=/.,;\-\^]     return *yytext;
+[(){}<>+*=/%.,;\-\^]    return *yytext;
 
     /* comment */
 #.*\n                   ; 

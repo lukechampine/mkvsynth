@@ -51,9 +51,9 @@
      EQ = 267,
      LE = 268,
      GE = 269,
-     DEC = 270,
-     INC = 271,
-     NEG = 272
+     NEG = 270,
+     DEC = 271,
+     INC = 272
    };
 #endif
 /* Tokens.  */
@@ -69,9 +69,9 @@
 #define EQ 267
 #define LE 268
 #define GE 269
-#define DEC 270
-#define INC 271
-#define NEG 272
+#define NEG 270
+#define DEC 271
+#define INC 272
 
 
 

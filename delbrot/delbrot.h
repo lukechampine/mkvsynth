@@ -50,6 +50,7 @@ ASTnode* nadd (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nsub (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nmul (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* ndiv (ASTnode *, ASTnode *, ASTnode *);
+ASTnode* nmod (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* npow (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* ngtr (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nles (ASTnode *, ASTnode *, ASTnode *);

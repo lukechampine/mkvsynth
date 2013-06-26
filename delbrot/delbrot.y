@@ -38,12 +38,12 @@
 %nonassoc IFX
 %nonassoc ELSE
 %right '='
+%right '^'
 %left GE LE EQ NE '>' '<'
 %left '+' '-'
-%nonassoc INC DEC
-%left '*' '/'
-%left NEG
-%right '^'
+%left '*' '/' '%'
+%right NEG
+%left INC DEC
 
 %% /* grammar definition section  */
 
@@ -81,6 +81,7 @@ expr:
         | expr '-' expr                  { $$ = mkOpNode('-', 2, $1, $3);            }
         | expr '*' expr                  { $$ = mkOpNode('*', 2, $1, $3);            }
         | expr '/' expr                  { $$ = mkOpNode('/', 2, $1, $3);            }
+        | expr '%' expr                  { $$ = mkOpNode('%', 2, $1, $3);            }
         | expr '^' expr                  { $$ = mkOpNode('^', 2, $1, $3);            }
         | expr '>' expr                  { $$ = mkOpNode('>', 2, $1, $3);            }
         | expr '<' expr                  { $$ = mkOpNode('<', 2, $1, $3);            }

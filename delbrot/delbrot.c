@@ -43,6 +43,7 @@ ASTnode* ex(ASTnode *n) {
                 case '-':   return nsub(p, ex(child[0]), ex(child[1]));
                 case '*':   return nmul(p, ex(child[0]), ex(child[1]));
                 case '/':   return ndiv(p, ex(child[0]), ex(child[1]));
+                case '%':   return nmod(p, ex(child[0]), ex(child[1]));
                 case '^':   return npow(p, ex(child[0]), ex(child[1]));
                 case '>':   return ngtr(p, ex(child[0]), ex(child[1]));
                 case '<':   return nles(p, ex(child[0]), ex(child[1]));
@@ -90,6 +91,7 @@ ASTnode* nadd (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val + c2->va
 ASTnode* nsub (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val - c2->val;  return p; }
 ASTnode* nmul (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val * c2->val;  return p; }
 ASTnode* ndiv (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val / c2->val;  return p; }
+ASTnode* nmod (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = (int)c1->val % (int)c2->val;  return p; }
 ASTnode* npow (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val =pow(c1->val,c2->val);return p; }
 ASTnode* ngtr (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val > c2->val;  return p; }
 ASTnode* nles (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val < c2->val;  return p; }
