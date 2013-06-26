@@ -41,8 +41,8 @@
    enum yytokentype {
      NUM = 258,
      STRING = 259,
-     VAR = 260,
-     FNCT = 261,
+     FNCT = 260,
+     VAR = 261,
      WHILE = 262,
      IF = 263,
      ELSE = 264,
@@ -56,8 +56,8 @@
 /* Tokens.  */
 #define NUM 258
 #define STRING 259
-#define VAR 260
-#define FNCT 261
+#define FNCT 260
+#define VAR 261
 #define WHILE 262
 #define IF 263
 #define ELSE 264
@@ -75,17 +75,18 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 18 "delbrot.y"
+#line 20 "delbrot.y"
 
     ASTnode *ASTptr; /* pointer to node in the AST */
     double  val;     /* number */
     char    *str;    /* string */
-    symRec  *tptr;   /* symbol-table pointer */
+    func    fptr;    /* function */
+    var     *vptr;   /* variable */
 
 
 
 /* Line 1676 of yacc.c  */
-#line 89 "y.tab.h"
+#line 90 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

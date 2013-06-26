@@ -5,9 +5,11 @@
     #include "delbrot.h"
     /* prototypes */
     ASTnode *mkOpNode(int, int, ...); /* create an operation node in the AST */
-    ASTnode *mkVarNode(symRec *);     /* create a variable node in the AST */
-    ASTnode *mkValNode(double);       /* create a value node in the AST */  
-    ASTnode *mkStrNode(char *);           
+    ASTnode *mkValNode(double);       /* create a value node in the AST */
+    ASTnode *mkStrNode(char *);       /* create a string node in the AST */
+    ASTnode *mkFnNode(func);          /* create a function node in the AST */
+    ASTnode *mkVarNode(var *);        /* create a variable node in the AST */
+              
     void freeNode(ASTnode *);         /* destroy a node in the AST */
     ASTnode *ex(ASTnode *);           /* execute a section of the AST */
     void yyerror (char *);
@@ -19,14 +21,16 @@
     ASTnode *ASTptr; /* pointer to node in the AST */
     double  val;     /* number */
     char    *str;    /* string */
-    symRec  *tptr;   /* symbol-table pointer */
+    func    fptr;    /* function */
+    var     *vptr;   /* variable */
 }
 
 %type  <ASTptr> stmt stmtlist /* statements are "parent" nodes in the AST */
 %type  <ASTptr> expr arglist  /* expressions are "child" nodes in the AST */
 %token <val>    NUM           /* all numbers are doubles */
 %token <str>    STRING        /* strings are char*s */ 
-%token <tptr>   VAR FNCT      /* variables and functions are symbol-table pointers */
+%token <fptr>   FNCT          /* functions are function pointers */
+%token <vptr>   VAR           /* variables are variable table pointers */
 
 %token WHILE IF ELSE          /* keywords don't have a type */
 
@@ -64,7 +68,7 @@ expr:
         |STRING                   { $$ = mkStrNode($1);                       }
         | VAR                     { $$ = mkVarNode($1);                       }
         | VAR '=' expr            { $$ = mkOpNode('=', 2, mkVarNode($1), $3); }
-        | FNCT '(' arglist ')'    { $$ = mkOpNode(FNCT,2, $1->value, $3);     }
+        | FNCT '(' arglist ')'    { $$ = mkOpNode(FNCT,2, mkFnNode($1), $3);  }
         | '-' expr %prec NEG      { $$ = mkOpNode(NEG, 1, $2);                }
         | expr '+' expr           { $$ = mkOpNode('+', 2, $1, $3);            }
         | expr '-' expr           { $$ = mkOpNode('-', 2, $1, $3);            }
@@ -111,15 +115,27 @@ ASTnode *mkStrNode(char *str) {
     return p;
 }
 
+/* create a function node in the AST */
+ASTnode *mkFnNode(func fptr) {
+    ASTnode *p;
+    /* allocate node */
+    if ((p = malloc(sizeof(ASTnode))) == NULL)
+        yyerror("out of memory");
+    /* copy information */
+    p->type = typeFn;
+    p->fnPtr = fptr;
+    return p;
+}
+
 /* create a variable node in the AST */
-ASTnode *mkVarNode(symRec *tptr) {
+ASTnode *mkVarNode(var *vptr) {
     ASTnode *p;
     /* allocate node */
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
     /* copy information */
     p->type = typeVar;
-    p->var = tptr;
+    p->varPtr = vptr;
     return p;
 }
 
@@ -169,7 +185,7 @@ ASTnode *append(ASTnode *root, ASTnode *node) {
 /* map strings to their corresponding function pointers */
 static struct {
     char const *fname;
-    ASTnode * (*fnct) (ASTnode *, ASTnode *);
+    func fnPtr;
 } coreFunctions[] = {
     "ffmpegDecode", ffmpegDecode,
     "print", print,
@@ -180,38 +196,39 @@ static struct {
     0, 0
 };
 
-void initFunctionMap (void) {
+/* look up a function name's corresponding pointer */
+func getFn (char const *fnName) {
     int i;
     for (i = 0; coreFunctions[i].fname != 0; i++) {
-        symRec *ptr = putSym (coreFunctions[i].fname);
-        ptr->value->fnPtr = coreFunctions[i].fnct;
-        ptr->value->type = typeFn;
+        if (strcmp (coreFunctions[i].fname,fnName) == 0)
+            return coreFunctions[i].fnPtr;
     }
+    return NULL;
 }
 
-/* the symbol table: a chain of `struct symRec' */
-symRec *symTable;
+/* the variable table */
+var *varTable;
 
-/* add a new symbol to the table */
-symRec *putSym (char const *symName) {
-    symRec *ptr = (symRec *) malloc (sizeof (symRec));
-    ptr->name = (char *) malloc (strlen (symName) + 1);
-    strcpy (ptr->name,symName);
-    ptr->value = (ASTnode *) malloc (sizeof (ASTnode)); /* allocate space for ASTnode */
+/* allocate a new variable */
+var *putVar (char const *varName) {
+    var *ptr = (var *) malloc(sizeof (var));
+    ptr->name = (char *) malloc(strlen (varName) + 1);
+    strcpy(ptr->name,varName);
+    ptr->value = (ASTnode *) malloc(sizeof (ASTnode)); /* allocate space for ASTnode */
     ptr->value->type = typeVar;
-    ptr->next = (struct symRec *)symTable;
-    symTable = ptr;
+    ptr->next = (struct var *)varTable;
+    varTable = ptr;
     return ptr;
 }
 
-/* get the value of a symbol in the table */
-symRec *getSym (char const *symName) {
-    symRec *ptr;
-    for (ptr = symTable; ptr != (symRec *) 0; ptr = (symRec *)ptr->next) {
-        if (strcmp (ptr->name,symName) == 0)
+/* look up a variable's corresponding ASTnode */
+var *getVar (char const *varName) {
+    var *ptr;
+    for (ptr = varTable; ptr != (var *) 0; ptr = (var *)ptr->next) {
+        if (strcmp (ptr->name,varName) == 0)
             return ptr;
     }
-    return 0;
+    return NULL;
 }
 
 /* Called by yyparse on error. */
@@ -220,6 +237,5 @@ void yyerror(char *s) {
 }
 
 int main () {
-    initFunctionMap();
     return yyparse();
 }

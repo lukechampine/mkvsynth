@@ -76,9 +76,11 @@
     #include "delbrot.h"
     /* prototypes */
     ASTnode *mkOpNode(int, int, ...); /* create an operation node in the AST */
-    ASTnode *mkVarNode(symRec *);     /* create a variable node in the AST */
-    ASTnode *mkValNode(double);       /* create a value node in the AST */  
-    ASTnode *mkStrNode(char *);           
+    ASTnode *mkValNode(double);       /* create a value node in the AST */
+    ASTnode *mkStrNode(char *);       /* create a string node in the AST */
+    ASTnode *mkFnNode(func);          /* create a function node in the AST */
+    ASTnode *mkVarNode(var *);        /* create a variable node in the AST */
+              
     void freeNode(ASTnode *);         /* destroy a node in the AST */
     ASTnode *ex(ASTnode *);           /* execute a section of the AST */
     void yyerror (char *);
@@ -87,7 +89,7 @@
 
 
 /* Line 189 of yacc.c  */
-#line 91 "y.tab.c"
+#line 93 "y.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -116,8 +118,8 @@
    enum yytokentype {
      NUM = 258,
      STRING = 259,
-     VAR = 260,
-     FNCT = 261,
+     FNCT = 260,
+     VAR = 261,
      WHILE = 262,
      IF = 263,
      ELSE = 264,
@@ -131,8 +133,8 @@
 /* Tokens.  */
 #define NUM 258
 #define STRING 259
-#define VAR 260
-#define FNCT 261
+#define FNCT 260
+#define VAR 261
 #define WHILE 262
 #define IF 263
 #define ELSE 264
@@ -150,17 +152,18 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 18 "delbrot.y"
+#line 20 "delbrot.y"
 
     ASTnode *ASTptr; /* pointer to node in the AST */
     double  val;     /* number */
     char    *str;    /* string */
-    symRec  *tptr;   /* symbol-table pointer */
+    func    fptr;    /* function */
+    var     *vptr;   /* variable */
 
 
 
 /* Line 214 of yacc.c  */
-#line 164 "y.tab.c"
+#line 167 "y.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -172,7 +175,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 176 "y.tab.c"
+#line 179 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -455,7 +458,7 @@ static const yytype_int8 yyrhs[] =
       23,    -1,     1,    23,    -1,     8,    24,    33,    25,    31,
       -1,     7,    24,    33,    25,    31,    -1,    26,    32,    27,
       -1,     1,    27,    -1,    31,    -1,    32,    31,    -1,     3,
-      -1,     4,    -1,     5,    -1,     5,    10,    33,    -1,     6,
+      -1,     4,    -1,     6,    -1,     6,    10,    33,    -1,     5,
       24,    34,    25,    -1,    17,    33,    -1,    33,    18,    33,
       -1,    33,    17,    33,    -1,    33,    19,    33,    -1,    33,
       20,    33,    -1,    33,    22,    33,    -1,    33,    11,    33,
@@ -468,10 +471,10 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    42,    42,    44,    48,    49,    50,    51,    52,    53,
-      54,    58,    59,    63,    64,    65,    66,    67,    68,    69,
-      70,    71,    72,    73,    74,    75,    76,    77,    78,    79,
-      80,    84,    85
+       0,    46,    46,    48,    52,    53,    54,    55,    56,    57,
+      58,    62,    63,    67,    68,    69,    70,    71,    72,    73,
+      74,    75,    76,    77,    78,    79,    80,    81,    82,    83,
+      84,    88,    89
 };
 #endif
 
@@ -480,7 +483,7 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "NUM", "STRING", "VAR", "FNCT", "WHILE",
+  "$end", "error", "$undefined", "NUM", "STRING", "FNCT", "VAR", "WHILE",
   "IF", "ELSE", "'='", "'>'", "'<'", "NE", "EQ", "LE", "GE", "'-'", "'+'",
   "'*'", "'/'", "NEG", "'^'", "';'", "'('", "')'", "'{'", "'}'", "','",
   "$accept", "input", "stmt", "stmtlist", "expr", "arglist", 0
@@ -521,11 +524,11 @@ static const yytype_uint8 yyr2[] =
    means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       2,     0,     1,     0,    13,    14,    15,     0,     0,     0,
+       2,     0,     1,     0,    13,    14,     0,    15,     0,     0,
        0,     4,     0,     0,     3,     0,     6,    10,     0,     0,
        0,     0,    18,     0,    11,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     5,    16,    31,
-       0,     0,     0,    30,     9,    12,    24,    25,    27,    26,
+       0,     0,     0,     0,     0,     0,     0,     5,    31,     0,
+      16,     0,     0,    30,     9,    12,    24,    25,    27,    26,
       29,    28,    20,    19,    21,    22,    23,    17,     0,     0,
        0,    32,     8,     7
 };
@@ -533,7 +536,7 @@ static const yytype_uint8 yydefact[] =
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1,    14,    25,    15,    40
+      -1,     1,    14,    25,    15,    39
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
@@ -541,11 +544,11 @@ static const yytype_int8 yydefgoto[] =
 #define YYPACT_NINF -23
 static const yytype_int16 yypact[] =
 {
-     -23,    28,   -23,   -22,   -23,   -23,    -3,   -12,   -11,     6,
+     -23,    28,   -23,   -22,   -23,   -23,   -17,     3,   -12,     6,
       87,   -23,    87,    79,   -23,   146,   -23,   -23,    87,    87,
       87,    87,    -8,   101,   -23,    52,    87,    87,    87,    87,
-      87,    87,    87,    87,    87,    87,    87,   -23,   159,   159,
-      16,   116,   131,   -23,   -23,   -23,    20,    20,    20,    20,
+      87,    87,    87,    87,    87,    87,    87,   -23,   159,    16,
+     159,   116,   131,   -23,   -23,   -23,    20,    20,    20,    20,
       20,    20,   -16,   -16,    -8,    -8,    -8,   -23,    87,    79,
       79,   159,   -23,   -23
 };
@@ -563,8 +566,8 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -1
 static const yytype_uint8 yytable[] =
 {
-      22,    16,    23,    34,    35,    17,    36,    18,    38,    39,
-      41,    42,    19,    20,    36,    24,    46,    47,    48,    49,
+      22,    16,    23,    34,    35,    17,    36,    18,    38,    40,
+      41,    42,    20,    19,    36,    24,    46,    47,    48,    49,
       50,    51,    52,    53,    54,    55,    56,    45,     2,     3,
       21,     4,     5,     6,     7,     8,     9,    32,    33,    34,
       35,    57,    36,     0,    58,    10,     0,     0,    61,     0,
@@ -586,8 +589,8 @@ static const yytype_uint8 yytable[] =
 
 static const yytype_int8 yycheck[] =
 {
-      10,    23,    12,    19,    20,    27,    22,    10,    18,    19,
-      20,    21,    24,    24,    22,    13,    26,    27,    28,    29,
+      10,    23,    12,    19,    20,    27,    22,    24,    18,    19,
+      20,    21,    24,    10,    22,    13,    26,    27,    28,    29,
       30,    31,    32,    33,    34,    35,    36,    25,     0,     1,
       24,     3,     4,     5,     6,     7,     8,    17,    18,    19,
       20,    25,    22,    -1,    28,    17,    -1,    -1,    58,    -1,
@@ -612,10 +615,10 @@ static const yytype_int8 yycheck[] =
 static const yytype_uint8 yystos[] =
 {
        0,    30,     0,     1,     3,     4,     5,     6,     7,     8,
-      17,    23,    24,    26,    31,    33,    23,    27,    10,    24,
+      17,    23,    24,    26,    31,    33,    23,    27,    24,    10,
       24,    24,    33,    33,    31,    32,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    20,    22,    23,    33,    33,
-      34,    33,    33,    25,    27,    31,    33,    33,    33,    33,
+      15,    16,    17,    18,    19,    20,    22,    23,    33,    34,
+      33,    33,    33,    25,    27,    31,    33,    33,    33,    33,
       33,    33,    33,    33,    33,    33,    33,    25,    28,    25,
       25,    33,    31,    31
 };
@@ -1431,217 +1434,217 @@ yyreduce:
         case 3:
 
 /* Line 1455 of yacc.c  */
-#line 44 "delbrot.y"
+#line 48 "delbrot.y"
     { ex((yyvsp[(2) - (2)].ASTptr)); /*freeNode($2);*/                 }
     break;
 
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 48 "delbrot.y"
+#line 52 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode(';', 2, NULL, NULL);        }
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 49 "delbrot.y"
+#line 53 "delbrot.y"
     { (yyval.ASTptr) = (yyvsp[(1) - (2)].ASTptr);                                  }
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 50 "delbrot.y"
+#line 54 "delbrot.y"
     { yyerrok;                                  }
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 51 "delbrot.y"
+#line 55 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode(IF, 2, (yyvsp[(3) - (5)].ASTptr), (yyvsp[(5) - (5)].ASTptr));             }
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 52 "delbrot.y"
+#line 56 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode(WHILE, 2, (yyvsp[(3) - (5)].ASTptr), (yyvsp[(5) - (5)].ASTptr));          }
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 53 "delbrot.y"
+#line 57 "delbrot.y"
     { (yyval.ASTptr) = (yyvsp[(2) - (3)].ASTptr);                                  }
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 54 "delbrot.y"
+#line 58 "delbrot.y"
     { yyerrok;                                  }
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 58 "delbrot.y"
+#line 62 "delbrot.y"
     { (yyval.ASTptr) = (yyvsp[(1) - (1)].ASTptr);                                  }
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 59 "delbrot.y"
+#line 63 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode(';', 2, (yyvsp[(1) - (2)].ASTptr), (yyvsp[(2) - (2)].ASTptr));            }
     break;
 
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 63 "delbrot.y"
+#line 67 "delbrot.y"
     { (yyval.ASTptr) = mkValNode((yyvsp[(1) - (1)].val));                       }
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 64 "delbrot.y"
+#line 68 "delbrot.y"
     { (yyval.ASTptr) = mkStrNode((yyvsp[(1) - (1)].str));                       }
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 65 "delbrot.y"
-    { (yyval.ASTptr) = mkVarNode((yyvsp[(1) - (1)].tptr));                       }
+#line 69 "delbrot.y"
+    { (yyval.ASTptr) = mkVarNode((yyvsp[(1) - (1)].vptr));                       }
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 66 "delbrot.y"
-    { (yyval.ASTptr) = mkOpNode('=', 2, mkVarNode((yyvsp[(1) - (3)].tptr)), (yyvsp[(3) - (3)].ASTptr)); }
+#line 70 "delbrot.y"
+    { (yyval.ASTptr) = mkOpNode('=', 2, mkVarNode((yyvsp[(1) - (3)].vptr)), (yyvsp[(3) - (3)].ASTptr)); }
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 67 "delbrot.y"
-    { (yyval.ASTptr) = mkOpNode(FNCT,2, (yyvsp[(1) - (4)].tptr)->value, (yyvsp[(3) - (4)].ASTptr));     }
+#line 71 "delbrot.y"
+    { (yyval.ASTptr) = mkOpNode(FNCT,2, mkFnNode((yyvsp[(1) - (4)].fptr)), (yyvsp[(3) - (4)].ASTptr));  }
     break;
 
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 68 "delbrot.y"
+#line 72 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode(NEG, 1, (yyvsp[(2) - (2)].ASTptr));                }
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 69 "delbrot.y"
+#line 73 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode('+', 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));            }
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 70 "delbrot.y"
+#line 74 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode('-', 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));            }
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 71 "delbrot.y"
+#line 75 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode('*', 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));            }
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 72 "delbrot.y"
+#line 76 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode('/', 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));            }
     break;
 
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 73 "delbrot.y"
+#line 77 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode('^', 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));            }
     break;
 
   case 24:
 
 /* Line 1455 of yacc.c  */
-#line 74 "delbrot.y"
+#line 78 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode('>', 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));            }
     break;
 
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 75 "delbrot.y"
+#line 79 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode('<', 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));            }
     break;
 
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 76 "delbrot.y"
+#line 80 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode(EQ, 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));             }
     break;
 
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 77 "delbrot.y"
+#line 81 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode(NE, 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));             }
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 78 "delbrot.y"
+#line 82 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode(GE, 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));             }
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 79 "delbrot.y"
+#line 83 "delbrot.y"
     { (yyval.ASTptr) = mkOpNode(LE, 2, (yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));             }
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 80 "delbrot.y"
+#line 84 "delbrot.y"
     { (yyval.ASTptr) = (yyvsp[(2) - (3)].ASTptr);                                  }
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 84 "delbrot.y"
+#line 88 "delbrot.y"
     { (yyval.ASTptr) = (yyvsp[(1) - (1)].ASTptr);                                  }
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 85 "delbrot.y"
+#line 89 "delbrot.y"
     { (yyval.ASTptr) = append((yyvsp[(1) - (3)].ASTptr), (yyvsp[(3) - (3)].ASTptr));                      }
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1645 "y.tab.c"
+#line 1648 "y.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1853,7 +1856,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 88 "delbrot.y"
+#line 92 "delbrot.y"
  /* end of grammar */
 
 /* create a value node in the AST */
@@ -1880,15 +1883,27 @@ ASTnode *mkStrNode(char *str) {
     return p;
 }
 
+/* create a function node in the AST */
+ASTnode *mkFnNode(func fptr) {
+    ASTnode *p;
+    /* allocate node */
+    if ((p = malloc(sizeof(ASTnode))) == NULL)
+        yyerror("out of memory");
+    /* copy information */
+    p->type = typeFn;
+    p->fnPtr = fptr;
+    return p;
+}
+
 /* create a variable node in the AST */
-ASTnode *mkVarNode(symRec *tptr) {
+ASTnode *mkVarNode(var *vptr) {
     ASTnode *p;
     /* allocate node */
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
     /* copy information */
     p->type = typeVar;
-    p->var = tptr;
+    p->varPtr = vptr;
     return p;
 }
 
@@ -1938,7 +1953,7 @@ ASTnode *append(ASTnode *root, ASTnode *node) {
 /* map strings to their corresponding function pointers */
 static struct {
     char const *fname;
-    ASTnode * (*fnct) (ASTnode *, ASTnode *);
+    func fnPtr;
 } coreFunctions[] = {
     "ffmpegDecode", ffmpegDecode,
     "print", print,
@@ -1949,38 +1964,39 @@ static struct {
     0, 0
 };
 
-void initFunctionMap (void) {
+/* look up a function name's corresponding pointer */
+func getFn (char const *fnName) {
     int i;
     for (i = 0; coreFunctions[i].fname != 0; i++) {
-        symRec *ptr = putSym (coreFunctions[i].fname);
-        ptr->value->fnPtr = coreFunctions[i].fnct;
-        ptr->value->type = typeFn;
+        if (strcmp (coreFunctions[i].fname,fnName) == 0)
+            return coreFunctions[i].fnPtr;
     }
+    return NULL;
 }
 
-/* the symbol table: a chain of `struct symRec' */
-symRec *symTable;
+/* the variable table */
+var *varTable;
 
-/* add a new symbol to the table */
-symRec *putSym (char const *symName) {
-    symRec *ptr = (symRec *) malloc (sizeof (symRec));
-    ptr->name = (char *) malloc (strlen (symName) + 1);
-    strcpy (ptr->name,symName);
-    ptr->value = (ASTnode *) malloc (sizeof (ASTnode)); /* allocate space for ASTnode */
+/* allocate a new variable */
+var *putVar (char const *varName) {
+    var *ptr = (var *) malloc(sizeof (var));
+    ptr->name = (char *) malloc(strlen (varName) + 1);
+    strcpy(ptr->name,varName);
+    ptr->value = (ASTnode *) malloc(sizeof (ASTnode)); /* allocate space for ASTnode */
     ptr->value->type = typeVar;
-    ptr->next = (struct symRec *)symTable;
-    symTable = ptr;
+    ptr->next = (struct var *)varTable;
+    varTable = ptr;
     return ptr;
 }
 
-/* get the value of a symbol in the table */
-symRec *getSym (char const *symName) {
-    symRec *ptr;
-    for (ptr = symTable; ptr != (symRec *) 0; ptr = (symRec *)ptr->next) {
-        if (strcmp (ptr->name,symName) == 0)
+/* look up a variable's corresponding ASTnode */
+var *getVar (char const *varName) {
+    var *ptr;
+    for (ptr = varTable; ptr != (var *) 0; ptr = (var *)ptr->next) {
+        if (strcmp (ptr->name,varName) == 0)
             return ptr;
     }
-    return 0;
+    return NULL;
 }
 
 /* Called by yyparse on error. */
@@ -1989,6 +2005,5 @@ void yyerror(char *s) {
 }
 
 int main () {
-    initFunctionMap();
     return yyparse();
 }

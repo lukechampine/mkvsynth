@@ -14,32 +14,33 @@ typedef struct {
 } opNode;
 
 /* a node in the AST */
-typedef struct symRec symRec;
+typedef struct var var;
 struct ASTnode {
     nodeType type;              /* type of node */
     union {
         double  val;            /* value */
         char   *str;            /* string */
         func  fnPtr;            /* function pointer */
-        symRec *var;            /* variable */
+        var *varPtr;            /* variable */
         opNode  op;             /* operator */
     };
     struct ASTnode *next;       /* used for argument linked lists */
 };
 
 /* Data type for links in the chain of symbols.  */
-struct symRec {
-    char *name;             /* name of symbol */
+struct var {
+    char *name;             /* variable name */
     ASTnode *value;         /* ASTnode it references */
-    struct symRec *next;    /* link field */
+    struct var *next;       /* link field */
 };
 
-/* The symbol table: a chain of `struct symRec'.  */
-extern symRec *symTable;
+/* the variable table */
+extern var *varTable;
 
-/* symbol function prototypes */
-symRec *putSym (char const *);
-symRec *getSym (char const *);
+/* variable/function access prototypes */
+var *putVar (char const *);
+var *getVar (char const *);
+func getFn  (char const *);
 
 /* link two nodes together */
 ASTnode *append (ASTnode *, ASTnode *);

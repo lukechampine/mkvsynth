@@ -16,8 +16,7 @@ ASTnode* ex(ASTnode *n) {
         yyerror("out of memory");
     /* copy information */
     memcpy(p, n, sizeof(ASTnode));
-    /* this is almost always the case. For special cases it can be redefined. */
-    p->type = typeVal;
+    p->type = typeVal; /* this is almost always the case. For special cases it can be redefined. */
 
     /* for convenience/readability */
     ASTnode **child = p->op.ops;
@@ -25,7 +24,7 @@ ASTnode* ex(ASTnode *n) {
     switch(n->type) {
         case typeVal: return p;
         case typeStr: p->type = typeStr; return p;
-        case typeVar: p = p->var->value; p->next = n->next; return p;
+        case typeVar: p = p->varPtr->value; p->next = n->next; return p;
         case typeOp:
             switch(n->op.oper) {
                 /* keywords */
@@ -34,9 +33,9 @@ ASTnode* ex(ASTnode *n) {
                 /* functions */
                 case FNCT:  return (*((child[0])->fnPtr))(p, ex(child[1]));
                 /* special syntax */
-                case '=':   p = child[0]->var->value = ex(child[1]);return p;
-                case ';':   ex(child[0]); p = ex(child[1]);         return p;                
-                case NEG:   p->val = -(ex(child[0])->val);          return p;
+                case '=':   p = child[0]->varPtr->value = ex(child[1]); return p;
+                case ';':   ex(child[0]); p = ex(child[1]); return p;                
+                case NEG:   p->val = -(ex(child[0])->val);  return p;
                 /* standard mathematical functions */
                 case '+':   return nadd(p, ex(child[0]), ex(child[1]));
                 case '-':   return nsub(p, ex(child[0]), ex(child[1]));
@@ -55,7 +54,7 @@ ASTnode* ex(ASTnode *n) {
 }
 
 /* helper function to ensure that a function call is valid. Also calls ex() on each argument */
-/* TODO: use ... to allow checking of any number of arguments */
+/* TODO: use ... to allow type checking */
 void checkArgs(char *funcName, ASTnode *args, int numArgs) {
     char errorMsg[128];
     int i;
@@ -114,7 +113,7 @@ char* unesc(char* str) {
                 case '\\':str[i] = '\\'; break;
                 case '\'':str[i] = '\''; break;
                 case '\"':str[i] = '\"'; break;
-                default: yyerror("unknown literal"); break;
+                default: yyerror("unknown literal");
             }
             for (j = i + 1; str[j] != '\0'; j++)
                 str[j] = str[j+1];
@@ -125,12 +124,11 @@ char* unesc(char* str) {
 
 /* generalized print function; will print any number of args */
 ASTnode* print(ASTnode *p, ASTnode *args) {
-    printf("\t");
     while(args) {
         /* reduce any unevaluated arguments */
         if (args->type == typeVar || args->type == typeOp)
             args = ex(args);
-
+        /* print according to argument type */
         if (args->type == typeVal)
             printf("%.10g ", args->val);
         if (args->type == typeStr)
@@ -146,7 +144,7 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
 ASTnode* ffmpegDecode(ASTnode *p, ASTnode *args) {
     // get arguments
     checkArgs("ffmpegDecode", args, 1);
-    printf("\tdecoded %s\n", args->str);
+    p->val = printf("\tdecoded %s\n", args->str);
     p->type = typeVal;
     return p;
 }
