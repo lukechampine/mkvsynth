@@ -9,6 +9,8 @@
     /* don't keep scanning after EOF */
 %option noyywrap
 
+%x COMMENT
+
 %%  /* rule definition section */
 
     /* keyword, function, or variable */
@@ -53,6 +55,8 @@
 
 [ \t]+                  ; /* ignore whitespace */
 \n                      linenumber++; /* used for error messages */
+
+#.*\n                   ; /* comments */
 
 .                       yyerror("Unknown character");
 
