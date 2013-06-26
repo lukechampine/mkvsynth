@@ -70,12 +70,12 @@
 %%
 
 int resWord(char *str) {
-    if      (!strcmp(str, "while"))
-        return WHILE;
-    else if (!strcmp(str, "if"))
+    if      (!strcmp(str, "if"))
         return IF;
     else if (!strcmp(str, "else"))
         return ELSE;
+    else if (!strcmp(str, "while"))
+        return WHILE;
     else
         return 0;
 }

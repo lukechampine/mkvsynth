@@ -28,8 +28,8 @@ ASTnode* ex(ASTnode *n) {
         case typeOp:
             switch(n->op.oper) {
                 /* keywords */
-                case WHILE: while (ex(child[0])->val) ex(child[1]); return p;
-                case IF:    if    (ex(child[0])->val) ex(child[1]); return p;
+                case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); return NULL;
+                case WHILE: while (ex(child[0])->val) ex(child[1]); return NULL;
                 /* functions */
                 case FNCT:  return (*((child[0])->fnPtr))(p, ex(child[1]));
                 /* special syntax */

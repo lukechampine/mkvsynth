@@ -1,4 +1,5 @@
 %{
+    #include <stdlib.h>
     #include <stdio.h>
     #include <string.h>
     #include <stdarg.h>
@@ -12,7 +13,7 @@
               
     void freeNode(ASTnode *);         /* destroy a node in the AST */
     ASTnode *ex(ASTnode *);           /* execute a section of the AST */
-    void yyerror (char *);
+    void yyerror(char *);
 
     extern int linenumber;
 %}
@@ -34,6 +35,8 @@
 
 %token WHILE IF ELSE          /* keywords don't have a type */
 
+%nonassoc IFX
+%nonassoc ELSE
 %right '='
 %left GE LE EQ NE '>' '<'
 %left '-' '+'
@@ -45,48 +48,50 @@
 
 input:
         /* empty */
-        | input stmt              { ex($2); /*freeNode($2);*/                 }
+        | input stmt                     { ex($2); freeNode($2);                     }
         ;
 
 stmt:
-        ';'                       { $$ = mkOpNode(';', 2, NULL, NULL);        }
-        | expr ';'                { $$ = $1;                                  }
-        | error ';'               { yyerrok;                                  }
-        | IF '(' expr ')' stmt    { $$ = mkOpNode(IF, 2, $3, $5);             }
-        | WHILE '(' expr ')' stmt { $$ = mkOpNode(WHILE, 2, $3, $5);          }
-        | '{' stmtlist '}'        { $$ = $2;                                  }
-        | error '}'               { yyerrok;                                  }
+        ';'                              { $$ = mkOpNode(';', 2, NULL, NULL);        }
+        | expr ';'                       { $$ = $1;                                  }
+        | IF '(' expr ')' stmt %prec IFX { $$ = mkOpNode(IF, 2, $3, $5);             }
+        | IF '(' expr ')' stmt ELSE stmt { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
+        | WHILE '(' expr ')' stmt        { $$ = mkOpNode(WHILE, 2, $3, $5);          }
+        | '{' stmtlist '}'               { $$ = $2;                                  }
+        | error ';'                      { yyerrok;                                  }
+        | error '}'                      { yyerrok;                                  }
         ;
 
 stmtlist:
-        stmt                      { $$ = $1;                                  }
-        | stmtlist stmt           { $$ = mkOpNode(';', 2, $1, $2);            }
+        stmt                             { $$ = $1;                                  }
+        | stmtlist stmt                  { $$ = mkOpNode(';', 2, $1, $2);            }
         ;
 
 expr:
-        NUM                       { $$ = mkValNode($1);                       }
-        |STRING                   { $$ = mkStrNode($1);                       }
-        | VAR                     { $$ = mkVarNode($1);                       }
-        | VAR '=' expr            { $$ = mkOpNode('=', 2, mkVarNode($1), $3); }
-        | FNCT '(' arglist ')'    { $$ = mkOpNode(FNCT,2, mkFnNode($1), $3);  }
-        | '-' expr %prec NEG      { $$ = mkOpNode(NEG, 1, $2);                }
-        | expr '+' expr           { $$ = mkOpNode('+', 2, $1, $3);            }
-        | expr '-' expr           { $$ = mkOpNode('-', 2, $1, $3);            }
-        | expr '*' expr           { $$ = mkOpNode('*', 2, $1, $3);            }
-        | expr '/' expr           { $$ = mkOpNode('/', 2, $1, $3);            }
-        | expr '^' expr           { $$ = mkOpNode('^', 2, $1, $3);            }
-        | expr '>' expr           { $$ = mkOpNode('>', 2, $1, $3);            }
-        | expr '<' expr           { $$ = mkOpNode('<', 2, $1, $3);            }
-        | expr EQ expr            { $$ = mkOpNode(EQ, 2, $1, $3);             }
-        | expr NE expr            { $$ = mkOpNode(NE, 2, $1, $3);             }
-        | expr GE expr            { $$ = mkOpNode(GE, 2, $1, $3);             }
-        | expr LE expr            { $$ = mkOpNode(LE, 2, $1, $3);             }
-        | '(' expr ')'            { $$ = $2;                                  }
+        NUM                              { $$ = mkValNode($1);                       }
+        |STRING                          { $$ = mkStrNode($1);                       }
+        | VAR                            { $$ = mkVarNode($1);                       }
+        | VAR '=' expr                   { $$ = mkOpNode('=', 2, mkVarNode($1), $3); }
+        | FNCT '(' arglist ')'           { $$ = mkOpNode(FNCT,2, mkFnNode($1), $3);  }
+        | '-' expr %prec NEG             { $$ = mkOpNode(NEG, 1, $2);                }
+        | expr '+' expr                  { $$ = mkOpNode('+', 2, $1, $3);            }
+        | expr '-' expr                  { $$ = mkOpNode('-', 2, $1, $3);            }
+        | expr '*' expr                  { $$ = mkOpNode('*', 2, $1, $3);            }
+        | expr '/' expr                  { $$ = mkOpNode('/', 2, $1, $3);            }
+        | expr '^' expr                  { $$ = mkOpNode('^', 2, $1, $3);            }
+        | expr '>' expr                  { $$ = mkOpNode('>', 2, $1, $3);            }
+        | expr '<' expr                  { $$ = mkOpNode('<', 2, $1, $3);            }
+        | expr EQ expr                   { $$ = mkOpNode(EQ, 2, $1, $3);             }
+        | expr NE expr                   { $$ = mkOpNode(NE, 2, $1, $3);             }
+        | expr GE expr                   { $$ = mkOpNode(GE, 2, $1, $3);             }
+        | expr LE expr                   { $$ = mkOpNode(LE, 2, $1, $3);             }
+        | '(' expr ')'                   { $$ = $2;                                  }
         ;
 
 arglist:
-        expr                      { $$ = $1;                                  }
-        | arglist ',' expr        { $$ = append($1, $3);                      }
+        /* empty */                      { $$ = NULL;                                }
+        | expr                           { $$ = $1;                                  }
+        | arglist ',' expr               { $$ = append($1, $3);                      }
         ;
 
 %% /* end of grammar */
@@ -165,19 +170,21 @@ void freeNode(ASTnode *p) {
     int i;
     if (!p)
         return;
-    if (p->type == typeOp) {
-        for (i = 0; i < p->op.nops; i++) {
-            freeNode(p->op.ops[i]);
-        }
-        free(p->op.ops);
+    /* traverse linked list, if it exists */
+    while(p) {
+        ASTnode* next = p->next;
+        if (p->type == typeOp)
+            for (i = 0; i < p->op.nops; i++)
+                freeNode(p->op.ops[i]);
+        free(p);
+        p = next;
     }
-    free(p);
 }
 
 /* add an AST node to the end of a linked list of arguments */
 ASTnode *append(ASTnode *root, ASTnode *node) {
-    ASTnode *traverse = root;
-    while (traverse->next != NULL) traverse = traverse->next;
+    ASTnode *traverse;
+    for (traverse = root; traverse->next != NULL; traverse = traverse->next);
     traverse->next = node;
     return root;
 }
@@ -199,10 +206,9 @@ static struct {
 /* look up a function name's corresponding pointer */
 func getFn (char const *fnName) {
     int i;
-    for (i = 0; coreFunctions[i].fname != 0; i++) {
+    for (i = 0; coreFunctions[i].fname != 0; i++)
         if (strcmp (coreFunctions[i].fname,fnName) == 0)
             return coreFunctions[i].fnPtr;
-    }
     return NULL;
 }
 
@@ -216,7 +222,7 @@ var *putVar (char const *varName) {
     strcpy(ptr->name,varName);
     ptr->value = (ASTnode *) malloc(sizeof (ASTnode)); /* allocate space for ASTnode */
     ptr->value->type = typeVar;
-    ptr->next = (struct var *)varTable;
+    ptr->next = varTable;
     varTable = ptr;
     return ptr;
 }
@@ -224,16 +230,16 @@ var *putVar (char const *varName) {
 /* look up a variable's corresponding ASTnode */
 var *getVar (char const *varName) {
     var *ptr;
-    for (ptr = varTable; ptr != (var *) 0; ptr = (var *)ptr->next) {
+    for (ptr = varTable; ptr != NULL; ptr = ptr->next)
         if (strcmp (ptr->name,varName) == 0)
             return ptr;
-    }
     return NULL;
 }
 
 /* Called by yyparse on error. */
 void yyerror(char *s) {
     fprintf(stderr, "delbrot:%d error: %s\n", linenumber, s);
+    exit(1);
 }
 
 int main () {

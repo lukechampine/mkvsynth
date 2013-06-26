@@ -8,26 +8,26 @@ typedef struct ASTnode ASTnode;
 typedef ASTnode * (*func) (ASTnode *, ASTnode *); 
 
 typedef struct {
-    int oper;                   /* operator */
-    int nops;                   /* number of operands */
-    struct ASTnode **ops;       /* operands */
+    int oper;               /* operator */
+    int nops;               /* number of operands */
+    struct ASTnode **ops;   /* operands */
 } opNode;
 
 /* a node in the AST */
 typedef struct var var;
 struct ASTnode {
-    nodeType type;              /* type of node */
+    nodeType type;          /* type of node */
     union {
-        double  val;            /* value */
-        char   *str;            /* string */
-        func  fnPtr;            /* function pointer */
-        var *varPtr;            /* variable */
-        opNode  op;             /* operator */
+        double  val;        /* value */
+        char   *str;        /* string */
+        func  fnPtr;        /* function pointer */
+        var *varPtr;        /* variable */
+        opNode   op;        /* operator */
     };
-    struct ASTnode *next;       /* used for argument linked lists */
+    struct ASTnode *next;   /* used for argument linked lists */
 };
 
-/* Data type for links in the chain of symbols.  */
+/* a variable  */
 struct var {
     char *name;             /* variable name */
     ASTnode *value;         /* ASTnode it references */

@@ -46,11 +46,12 @@
      WHILE = 262,
      IF = 263,
      ELSE = 264,
-     NE = 265,
-     EQ = 266,
-     LE = 267,
-     GE = 268,
-     NEG = 269
+     IFX = 265,
+     NE = 266,
+     EQ = 267,
+     LE = 268,
+     GE = 269,
+     NEG = 270
    };
 #endif
 /* Tokens.  */
@@ -61,11 +62,12 @@
 #define WHILE 262
 #define IF 263
 #define ELSE 264
-#define NE 265
-#define EQ 266
-#define LE 267
-#define GE 268
-#define NEG 269
+#define IFX 265
+#define NE 266
+#define EQ 267
+#define LE 268
+#define GE 269
+#define NEG 270
 
 
 
@@ -75,7 +77,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 20 "delbrot.y"
+#line 21 "delbrot.y"
 
     ASTnode *ASTptr; /* pointer to node in the AST */
     double  val;     /* number */
@@ -86,7 +88,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 90 "y.tab.h"
+#line 92 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
