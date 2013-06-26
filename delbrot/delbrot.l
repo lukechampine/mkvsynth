@@ -45,6 +45,9 @@
                             yylval.str[yyleng-2] = 0;
                         return STRING;
                     }
+    /* increment/decrement -- these are preincrements! Post increments are not supported! */
+"++"                    return INC;
+"--"                    return DEC;
 
     /* boolean operator */
 ">="                    return GE;

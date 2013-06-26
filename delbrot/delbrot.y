@@ -39,7 +39,8 @@
 %nonassoc ELSE
 %right '='
 %left GE LE EQ NE '>' '<'
-%left '-' '+'
+%left '+' '-'
+%nonassoc INC DEC
 %left '*' '/'
 %left NEG
 %right '^'
@@ -72,6 +73,8 @@ expr:
         |STRING                          { $$ = mkStrNode($1);                       }
         | VAR                            { $$ = mkVarNode($1);                       }
         | VAR '=' expr                   { $$ = mkOpNode('=', 2, mkVarNode($1), $3); }
+        | VAR INC                        { $$ = mkOpNode(INC, 1, mkVarNode($1));     }
+        | VAR DEC                        { $$ = mkOpNode(DEC, 1, mkVarNode($1));     }
         | FNCT '(' arglist ')'           { $$ = mkOpNode(FNCT,2, mkFnNode($1), $3);  }
         | '-' expr %prec NEG             { $$ = mkOpNode(NEG, 1, $2);                }
         | expr '+' expr                  { $$ = mkOpNode('+', 2, $1, $3);            }
@@ -174,8 +177,8 @@ void freeNode(ASTnode *p) {
     while(p) {
         ASTnode* next = p->next;
         if (p->type == typeOp)
-            for (i = 0; i < p->op.nops; i++)
-                freeNode(p->op.ops[i]);
+            for (i = 0; i < p->op.nops; i++);
+                //freeNode(p->op.ops[i]);
         free(p);
         p = next;
     }

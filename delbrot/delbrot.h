@@ -63,5 +63,7 @@ ASTnode* nlog (ASTnode *, ASTnode *);
 ASTnode* nsqrt(ASTnode *, ASTnode *);
 
 /* mkvsynth function prototypes */
+ASTnode* ninc(ASTnode *, ASTnode *);
+ASTnode* ndec(ASTnode *, ASTnode *);
 ASTnode* ffmpegDecode(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);

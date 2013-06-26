@@ -51,7 +51,9 @@
      EQ = 267,
      LE = 268,
      GE = 269,
-     NEG = 270
+     DEC = 270,
+     INC = 271,
+     NEG = 272
    };
 #endif
 /* Tokens.  */
@@ -67,7 +69,9 @@
 #define EQ 267
 #define LE 268
 #define GE 269
-#define NEG 270
+#define DEC 270
+#define INC 271
+#define NEG 272
 
 
 
@@ -88,7 +92,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 92 "y.tab.h"
+#line 96 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

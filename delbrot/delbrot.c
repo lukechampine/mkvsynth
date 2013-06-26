@@ -34,8 +34,10 @@ ASTnode* ex(ASTnode *n) {
                 case FNCT:  return (*((child[0])->fnPtr))(p, ex(child[1]));
                 /* special syntax */
                 case '=':   p = child[0]->varPtr->value = ex(child[1]); return p;
-                case ';':   ex(child[0]); p = ex(child[1]); return p;                
-                case NEG:   p->val = -(ex(child[0])->val);  return p;
+                case ';':   ex(child[0]); p = ex(child[1]);   return p;
+                case NEG:   p->val = -(ex(child[0])->val);    return p;
+                case INC:   return ninc(p, child[0]);
+                case DEC:   return ndec(p, child[0]);
                 /* standard mathematical functions */
                 case '+':   return nadd(p, ex(child[0]), ex(child[1]));
                 case '-':   return nsub(p, ex(child[0]), ex(child[1]));
@@ -100,6 +102,11 @@ ASTnode* nsin (ASTnode *p, ASTnode *args) { checkArgs("sin", args, 1); p->val = 
 ASTnode* ncos (ASTnode *p, ASTnode *args) { checkArgs("cos", args, 1); p->val = cos(args->val);  return p; }
 ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1); p->val = log(args->val);  return p; }
 ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = sqrt(args->val); return p; }
+
+ASTnode* ninc (ASTnode *p, ASTnode *c1) { if(c1->varPtr->value->type != typeVal) yyerror("non-numeric values cannot be incremented");
+                                          c1->varPtr->value->val++; ASTnode *next = p->next; p = ex(c1); p->next = next; return p; }
+ASTnode* ndec (ASTnode *p, ASTnode *c1) { if(c1->varPtr->value->type != typeVal) yyerror("non-numeric values cannot be incremented");
+                                          c1->varPtr->value->val--; ASTnode *next = p->next; p = ex(c1); p->next = next; return p; }
 
 /* helper function to interpret string literals */
 char* unesc(char* str) {
