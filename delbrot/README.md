@@ -2,20 +2,20 @@
 This is the current implementation of delbrot, the MkvSynth script interpreter.
 
 ## features ##
-At present, delbrot is essentially a glorified calculator. It only has support for doubles (strings will be added soon, I promise). But already it showcases a level of sophistication greater than any previous implementation. Control structures like if statements and while loops are fully supported, and expressions are evaluated recursively before being passed to functions:
+At present, delbrot is essentially a glorified calculator. It only has support for doubles (strings will be added soon, I promise). But already it showcases a level of sophistication greater than any previous implementation. Control structures like if statements and while loops are fully supported, and expressions are evaluated recursively before being passed to functions. As a simple example, here is Project Euler problem 1:
 
 ```c
-x = y = 3;
-if (x == y) {
-    while (x > 0) {
-        print(x,x*y);
-        x = x - 1;
-        y = y^x; // exponentiation, not XOR
-    }
+x = y = 0;
+while (x < 1000) {
+    if (x % 3 == 0)
+        y = y + x;
+    if (x % 5 == 0)
+        y = y + x;
+    if (x % 15 == 0)
+        y = y - x;
+    x++;
 }
-// output: 3 9
-//         2 18
-//         1 9
+print(y);
 ```
 These are basic operations, to be sure, but they demonstrate the advantages of using flex and bison over writing our own interpreter from scratch.
 
