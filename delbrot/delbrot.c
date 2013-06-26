@@ -34,23 +34,27 @@ ASTnode* ex(ASTnode *n) {
                 case FNCT:  return (*((child[0])->fnPtr))(p, ex(child[1]));
                 /* special syntax */
                 case '=':   p = memcpy(child[0]->varPtr->value, ex(child[1]), sizeof(ASTnode)); return p;
-                case ';':   ex(child[0]); p = ex(child[1]);   return p;
-                case NEG:   p->val = -(ex(child[0])->val);    return p;
-                case INC:   return ninc(p, child[0]);
-                case DEC:   return ndec(p, child[0]);
+                case ';':   ex(child[0]); p = ex(child[1]); return p;
+                case '!':   p->val = !ex(child[0])->val;    return p;
+                case NEG:   p->val = -(ex(child[0])->val);  return p;
+                case INC:   return incdec(p, child[0], '+');
+                case DEC:   return incdec(p, child[0], '-');
                 /* standard mathematical functions */
-                case '+':   return nadd(p, ex(child[0]), ex(child[1]));
-                case '-':   return nsub(p, ex(child[0]), ex(child[1]));
-                case '*':   return nmul(p, ex(child[0]), ex(child[1]));
-                case '/':   return ndiv(p, ex(child[0]), ex(child[1]));
-                case '%':   return nmod(p, ex(child[0]), ex(child[1]));
-                case '^':   return npow(p, ex(child[0]), ex(child[1]));
-                case '>':   return ngtr(p, ex(child[0]), ex(child[1]));
-                case '<':   return nles(p, ex(child[0]), ex(child[1]));
-                case GE:    return ngte(p, ex(child[0]), ex(child[1]));
-                case LE:    return nlte(p, ex(child[0]), ex(child[1]));
-                case EQ:    return neql(p, ex(child[0]), ex(child[1]));
-                case NE:    return nneq(p, ex(child[0]), ex(child[1]));
+                case '%':   p->val = (int) ex(child[0])->val % (int) ex(child[1])->val; return p;
+                case '^':   p->val = pow(ex(child[0])->val, ex(child[1])->val); return p;
+                case '+':   p->val = ex(child[0])->val +  ex(child[1])->val; return p;
+                case '-':   p->val = ex(child[0])->val -  ex(child[1])->val; return p;
+                case '*':   p->val = ex(child[0])->val *  ex(child[1])->val; return p;
+                case '/':   p->val = ex(child[0])->val /  ex(child[1])->val; return p;
+                case '>':   p->val = ex(child[0])->val >  ex(child[1])->val; return p;
+                case '<':   p->val = ex(child[0])->val <  ex(child[1])->val; return p;
+                case GE:    p->val = ex(child[0])->val >= ex(child[1])->val; return p;
+                case LE:    p->val = ex(child[0])->val <= ex(child[1])->val; return p;
+                case EQ:    p->val = ex(child[0])->val == ex(child[1])->val; return p;
+                case NE:    p->val = ex(child[0])->val != ex(child[1])->val; return p;
+                case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
+                case LOR:   p->val = ex(child[0])->val || ex(child[1])->val; return p;
+                
             }
     }
     return NULL;
@@ -87,28 +91,21 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs) {
 }
 
 /* standard mathematical functions, modified to use ASTnode */
-ASTnode* nadd (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val + c2->val;  return p; }
-ASTnode* nsub (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val - c2->val;  return p; }
-ASTnode* nmul (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val * c2->val;  return p; }
-ASTnode* ndiv (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val / c2->val;  return p; }
-ASTnode* nmod (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = (int)c1->val % (int)c2->val;  return p; }
-ASTnode* npow (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val =pow(c1->val,c2->val);return p; }
-ASTnode* ngtr (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val > c2->val;  return p; }
-ASTnode* nles (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val < c2->val;  return p; }
-ASTnode* ngte (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val >=c2->val;  return p; }
-ASTnode* nlte (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val <=c2->val;  return p; }
-ASTnode* neql (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val ==c2->val;  return p; }
-ASTnode* nneq (ASTnode *p, ASTnode *c1, ASTnode *c2) { p->val = c1->val !=c2->val;  return p; }
-/* these have to use checkArgs() because they are called like ordinary functions */
 ASTnode* nsin (ASTnode *p, ASTnode *args) { checkArgs("sin", args, 1); p->val = sin(args->val);  return p; }
 ASTnode* ncos (ASTnode *p, ASTnode *args) { checkArgs("cos", args, 1); p->val = cos(args->val);  return p; }
 ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1); p->val = log(args->val);  return p; }
 ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = sqrt(args->val); return p; }
 
-ASTnode* ninc (ASTnode *p, ASTnode *c1) { if(c1->varPtr->value->type != typeVal) yyerror("non-numeric values cannot be incremented");
-                                          c1->varPtr->value->val++; ASTnode *next = p->next; p = ex(c1); p->next = next; return p; }
-ASTnode* ndec (ASTnode *p, ASTnode *c1) { if(c1->varPtr->value->type != typeVal) yyerror("non-numeric values cannot be incremented");
-                                          c1->varPtr->value->val--; ASTnode *next = p->next; p = ex(c1); p->next = next; return p; }
+/* disgustingly verbose increment/decrement function */
+ASTnode* incdec (ASTnode *p, ASTnode *c1, int opr) {
+    if(c1->varPtr->value->type != typeVal)
+        yyerror("non-numeric values cannot be incremented");
+    c1->varPtr->value->val += (opr == '+') ? 1 : -1;
+    ASTnode *next = p->next;
+    p = ex(c1);
+    p->next = next;
+    return p;
+}
 
 /* helper function to interpret string literals */
 char* unesc(char* str) {

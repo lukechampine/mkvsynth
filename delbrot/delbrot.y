@@ -39,6 +39,7 @@
 %nonassoc ELSE
 %right '='
 %right '^'
+%left LAND LOR
 %left GE LE EQ NE '>' '<'
 %left '+' '-'
 %left '*' '/' '%'
@@ -77,6 +78,7 @@ expr:
         | VAR DEC                        { $$ = mkOpNode(DEC, 1, mkVarNode($1));     }
         | FNCT '(' arglist ')'           { $$ = mkOpNode(FNCT,2, mkFnNode($1), $3);  }
         | '-' expr %prec NEG             { $$ = mkOpNode(NEG, 1, $2);                }
+        | '!' expr %prec NEG             { $$ = mkOpNode('!', 1, $2);               }
         | expr '+' expr                  { $$ = mkOpNode('+', 2, $1, $3);            }
         | expr '-' expr                  { $$ = mkOpNode('-', 2, $1, $3);            }
         | expr '*' expr                  { $$ = mkOpNode('*', 2, $1, $3);            }
@@ -85,6 +87,8 @@ expr:
         | expr '^' expr                  { $$ = mkOpNode('^', 2, $1, $3);            }
         | expr '>' expr                  { $$ = mkOpNode('>', 2, $1, $3);            }
         | expr '<' expr                  { $$ = mkOpNode('<', 2, $1, $3);            }
+        | expr LAND expr                 { $$ = mkOpNode(LAND, 2, $1, $3);           }
+        | expr LOR expr                  { $$ = mkOpNode(LOR, 2, $1, $3);            }
         | expr EQ expr                   { $$ = mkOpNode(EQ, 2, $1, $3);             }
         | expr NE expr                   { $$ = mkOpNode(NE, 2, $1, $3);             }
         | expr GE expr                   { $$ = mkOpNode(GE, 2, $1, $3);             }

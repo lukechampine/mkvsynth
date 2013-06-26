@@ -47,13 +47,15 @@
      IF = 263,
      ELSE = 264,
      IFX = 265,
-     NE = 266,
-     EQ = 267,
-     LE = 268,
-     GE = 269,
-     NEG = 270,
-     DEC = 271,
-     INC = 272
+     LOR = 266,
+     LAND = 267,
+     NE = 268,
+     EQ = 269,
+     LE = 270,
+     GE = 271,
+     NEG = 272,
+     DEC = 273,
+     INC = 274
    };
 #endif
 /* Tokens.  */
@@ -65,13 +67,15 @@
 #define IF 263
 #define ELSE 264
 #define IFX 265
-#define NE 266
-#define EQ 267
-#define LE 268
-#define GE 269
-#define NEG 270
-#define DEC 271
-#define INC 272
+#define LOR 266
+#define LAND 267
+#define NE 268
+#define EQ 269
+#define LE 270
+#define GE 271
+#define NEG 272
+#define DEC 273
+#define INC 274
 
 
 
@@ -92,7 +96,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 96 "y.tab.h"
+#line 100 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

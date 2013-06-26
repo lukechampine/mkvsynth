@@ -46,25 +46,12 @@ func getFn  (char const *);
 ASTnode *append (ASTnode *, ASTnode *);
 
 /* standard mathematical function prototypes */
-ASTnode* nadd (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* nsub (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* nmul (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* ndiv (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* nmod (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* npow (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* ngtr (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* nles (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* ngte (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* nlte (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* neql (ASTnode *, ASTnode *, ASTnode *);
-ASTnode* nneq (ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nsin (ASTnode *, ASTnode *);
 ASTnode* ncos (ASTnode *, ASTnode *);
 ASTnode* nlog (ASTnode *, ASTnode *);
 ASTnode* nsqrt(ASTnode *, ASTnode *);
+ASTnode* incdec(ASTnode *, ASTnode *, int);
 
 /* mkvsynth function prototypes */
-ASTnode* ninc(ASTnode *, ASTnode *);
-ASTnode* ndec(ASTnode *, ASTnode *);
 ASTnode* ffmpegDecode(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);

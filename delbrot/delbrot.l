@@ -49,14 +49,16 @@
 "++"                    return INC;
 "--"                    return DEC;
 
-    /* boolean operator */
+    /* comparator or boolean operator */
 ">="                    return GE;
 "<="                    return LE;
 "=="                    return EQ;
 "!="                    return NE;
+"&&"                    return LAND;
+"||"                    return LOR;
 
     /* miscellaneous character */
-[(){}<>+*=/%.,;\-\^]    return *yytext;
+[(){}<>+*=/%!.,;\-\^]   return *yytext;
 
     /* comment */
 #.*\n                   ; 
