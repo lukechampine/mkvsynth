@@ -33,7 +33,7 @@ ASTnode* ex(ASTnode *n) {
                 /* functions */
                 case FNCT:  return (*((child[0])->fnPtr))(p, ex(child[1]));
                 /* special syntax */
-                case '=':   p = child[0]->varPtr->value = ex(child[1]); return p;
+                case '=':   p = memcpy(child[0]->varPtr->value, ex(child[1]), sizeof(ASTnode)); return p;
                 case ';':   ex(child[0]); p = ex(child[1]);   return p;
                 case NEG:   p->val = -(ex(child[0])->val);    return p;
                 case INC:   return ninc(p, child[0]);
