@@ -37,4 +37,4 @@ Next comes the main grammar section. For each rule, we define what arrangements 
 This file contains the `ex()` function, which is called each time we read in a full statement. The purpose of `ex()` is to reduce a section of the AST. In the example above, that would mean reducing the "cond" node (and all its children) down to a single node containing either "true" or "false." As such, this function must be highly recursive, since a node's children may need to be reduced before they can be meaningfully combined. This is also where we define the built-in functions of the language.
 
 ## memory concerns ##
-Currently, the interpreter is more prone to leaks than the United States government. This situation should improve as soon as I reenable the freeNode function, which had to be commented out due to excessive segfaulting.
+Currently, the interpreter is more prone to leaks than the United States government. This situation has improved slightly now that the `freeNode()` function has been reenabled, but `ex()` is still quite leaky.
