@@ -14,7 +14,6 @@
     void freeNode(ASTnode *);         /* destroy a node in the AST */
     ASTnode *ex(ASTnode *);           /* execute a section of the AST */
     void yyerror(char *);
-
     extern int linenumber;
 %}
 
@@ -26,19 +25,15 @@
     var     *vptr;   /* variable */
 }
 
-%type  <ASTptr> stmt stmtlist /* statements are "parent" nodes in the AST */
-%type  <ASTptr> expr arglist  /* expressions are "child" nodes in the AST */
-%token <val>    NUM           /* all numbers are doubles */
-%token <str>    STRING        /* strings are char*s */ 
-%token <fptr>   FNCT          /* functions are function pointers */
-%token <vptr>   VAR           /* variables are variable table pointers */
+%type  <ASTptr> stmt compound_stmt expression_stmt selection_stmt iteration_stmt stmt_list arg_list
+%type  <ASTptr> expr function_expr assignment_expr arithmetic_expr boolean_expr primary_expr
+%token <val>    CONSTANT
+%token <str>    STRING_LITERAL
+%token <fptr>   FNCT
+%token <vptr>   VAR
 
-%token WHILE IF ELSE          /* keywords don't have a type */
-%token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN 
-
-%nonassoc IFX
+%nonassoc IFX  /* avoid shift/reduce conflicts */
 %nonassoc ELSE
-%right '='
 %right '^'
 %left LAND LOR
 %left GE LE EQ NE '>' '<'
@@ -47,62 +42,100 @@
 %right NEG
 %left INC DEC
 
+%token LE GE EQ NE
+%token ADDEQ SUBEQ MULEQ DIVEQ MODEQ
+%token IF ELSE WHILE
+
 %% /* grammar definition section  */
 
-input:
-        /* empty */
-        | input stmt                     { ex($2); freeNode($2);                     }
-        ;
+input
+    : /* empty program */
+    | input stmt                         { ex($2); freeNode($2);                     }
+    ;
 
-stmt:
-        ';'                              { $$ = mkOpNode(';', 2, NULL, NULL);        }
-        | expr ';'                       { $$ = $1;                                  }
-        | IF '(' expr ')' stmt %prec IFX { $$ = mkOpNode(IF, 2, $3, $5);             }
-        | IF '(' expr ')' stmt ELSE stmt { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
-        | WHILE '(' expr ')' stmt        { $$ = mkOpNode(WHILE, 2, $3, $5);          }
-        | '{' stmtlist '}'               { $$ = $2;                                  }
-        | error ';'                      { yyerrok;                                  }
-        | error '}'                      { yyerrok;                                  }
-        ;
+stmt
+    : compound_stmt
+    | expression_stmt
+    | selection_stmt
+    | iteration_stmt
+    ;
 
-stmtlist:
-        stmt                             { $$ = $1;                                  }
-        | stmtlist stmt                  { $$ = mkOpNode(';', 2, $1, $2);            }
-        ;
+compound_stmt
+    : '{' stmt_list '}'                  { $$ = $2;                                  }
+    ;
 
-expr:
-        NUM                              { $$ = mkValNode($1);                       }
-        |STRING                          { $$ = mkStrNode($1);                       }
-        | VAR                            { $$ = mkVarNode($1);                       }
-        | VAR '=' expr                   { $$ = mkOpNode('=', 2, mkVarNode($1), $3); }
-        | VAR ADD_ASSIGN NUM             { $$ = mkOpNode(ADD_ASSIGN, 2, mkVarNode($1), mkValNode($3));     }
-        | VAR INC                        { $$ = mkOpNode(INC, 1, mkVarNode($1));     }
-        | VAR DEC                        { $$ = mkOpNode(DEC, 1, mkVarNode($1));     }
-        | FNCT '(' arglist ')'           { $$ = mkOpNode(FNCT,2, mkFnNode($1), $3);  }
-        | '-' expr %prec NEG             { $$ = mkOpNode(NEG, 1, $2);                }
-        | '!' expr %prec NEG             { $$ = mkOpNode('!', 1, $2);                }
-        | expr '+' expr                  { $$ = mkOpNode('+', 2, $1, $3);            }
-        | expr '-' expr                  { $$ = mkOpNode('-', 2, $1, $3);            }
-        | expr '*' expr                  { $$ = mkOpNode('*', 2, $1, $3);            }
-        | expr '/' expr                  { $$ = mkOpNode('/', 2, $1, $3);            }
-        | expr '%' expr                  { $$ = mkOpNode('%', 2, $1, $3);            }
-        | expr '^' expr                  { $$ = mkOpNode('^', 2, $1, $3);            }
-        | expr '>' expr                  { $$ = mkOpNode('>', 2, $1, $3);            }
-        | expr '<' expr                  { $$ = mkOpNode('<', 2, $1, $3);            }
-        | expr LAND expr                 { $$ = mkOpNode(LAND, 2, $1, $3);           }
-        | expr LOR expr                  { $$ = mkOpNode(LOR, 2, $1, $3);            }
-        | expr EQ expr                   { $$ = mkOpNode(EQ, 2, $1, $3);             }
-        | expr NE expr                   { $$ = mkOpNode(NE, 2, $1, $3);             }
-        | expr GE expr                   { $$ = mkOpNode(GE, 2, $1, $3);             }
-        | expr LE expr                   { $$ = mkOpNode(LE, 2, $1, $3);             }
-        | '(' expr ')'                   { $$ = $2;                                  }
-        ;
+expression_stmt
+    : ';'                                { $$ = mkOpNode(';', 2, NULL, NULL);        }
+    | expr ';'
+    ;
 
-arglist:
-        /* empty */                      { $$ = NULL;                                }
-        | expr                           { $$ = $1;                                  }
-        | arglist ',' expr               { $$ = append($1, $3);                      }
-        ;
+selection_stmt
+    : IF '(' expr ')' stmt %prec IFX     { $$ = mkOpNode(IF, 2, $3, $5);             }
+    | IF '(' expr ')' stmt ELSE stmt     { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
+    ;
+
+iteration_stmt
+    : WHILE '(' expr ')' stmt            { $$ = mkOpNode(WHILE, 2, $3, $5);          }
+    ;
+
+stmt_list
+    : stmt
+    | stmt_list stmt                     { $$ = mkOpNode(';', 2, $1, $2);            }
+    ;
+
+expr
+    : function_expr
+    ;
+
+function_expr
+    : assignment_expr
+    | FNCT '(' arg_list ')'              { $$ = mkOpNode(FNCT, 2, mkFnNode($1), $3); }
+    ;
+
+arg_list
+    : /* empty */                        { $$ = NULL;                                }
+    | expr                               { $$ = $1;                                  }
+    | arg_list ',' expr                  { $$ = append($1, $3);                      }
+    ;
+
+assignment_expr
+    : boolean_expr
+    | primary_expr '=' assignment_expr   { $$ = mkOpNode('=', 2, $1, $3);            }
+    | primary_expr ADDEQ assignment_expr { $$ = mkOpNode(ADDEQ, 2, $1, $3);          }
+    | primary_expr SUBEQ assignment_expr { $$ = mkOpNode(SUBEQ, 2, $1, $3);          }
+    | primary_expr MULEQ assignment_expr { $$ = mkOpNode(MULEQ, 2, $1, $3);          }
+    | primary_expr DIVEQ assignment_expr { $$ = mkOpNode(DIVEQ, 2, $1, $3);          }
+    | primary_expr MODEQ assignment_expr { $$ = mkOpNode(MODEQ, 2, $1, $3);          }
+    ;
+
+boolean_expr
+    : arithmetic_expr
+    | boolean_expr EQ arithmetic_expr    { $$ = mkOpNode(EQ,  2, $1, $3);            }
+    | boolean_expr NE arithmetic_expr    { $$ = mkOpNode(NE,  2, $1, $3);            }
+    | boolean_expr GE arithmetic_expr    { $$ = mkOpNode(GE,  2, $1, $3);            }
+    | boolean_expr LE arithmetic_expr    { $$ = mkOpNode(LE,  2, $1, $3);            }
+    | boolean_expr '>' arithmetic_expr   { $$ = mkOpNode('>', 2, $1, $3);            }
+    | boolean_expr '<' arithmetic_expr   { $$ = mkOpNode('<', 2, $1, $3);            }
+    ;
+
+arithmetic_expr
+    : primary_expr
+    | primary_expr INC                   { $$ = mkOpNode(INC, 2, $1);                }
+    | primary_expr DEC                   { $$ = mkOpNode(DEC, 2, $1);                }
+    | arithmetic_expr '+' primary_expr   { $$ = mkOpNode('+', 2, $1, $3);            }
+    | arithmetic_expr '-' primary_expr   { $$ = mkOpNode('-', 2, $1, $3);            }
+    | arithmetic_expr '*' primary_expr   { $$ = mkOpNode('*', 2, $1, $3);            }
+    | arithmetic_expr '/' primary_expr   { $$ = mkOpNode('/', 2, $1, $3);            }
+    | arithmetic_expr '^' primary_expr   { $$ = mkOpNode('^', 2, $1, $3);            }
+    | arithmetic_expr '%' primary_expr   { $$ = mkOpNode('%', 2, $1, $3);            }
+    ;
+
+primary_expr
+    : CONSTANT                           { $$ = mkValNode($1);                       }
+    | STRING_LITERAL                     { $$ = mkStrNode($1);                       }
+    | VAR                                { $$ = mkVarNode($1);                       }
+    | '(' expr ')'                       { $$ = $2;                                  }
+    ;
 
 %% /* end of grammar */
 

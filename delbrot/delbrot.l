@@ -34,7 +34,7 @@
     /* number, with optional decimal */
 [0-9]+(\.[0-9]+)?   {
                         yylval.val = atof(yytext);
-                        return NUM;
+                        return CONSTANT;
                     }
     /* string (literal -- don't preemptively process escape characters) */
 \"([^\\\"]|\\.)*\"  { //"
@@ -43,7 +43,7 @@
                             yyerror("improperly terminated string");
                         else
                             yylval.str[yyleng-2] = 0;
-                        return STRING;
+                        return STRING_LITERAL;
                     }
     /* increment/decrement -- these are preincrements! Post increments are not supported! */
 "++"                    return INC;
@@ -58,11 +58,11 @@
 "||"                    return LOR;
 
     /* arithmetic assignment operator */
-"+="                    return ADD_ASSIGN;
-"-="                    return SUB_ASSIGN;
-"*="                    return MUL_ASSIGN;
-"/="                    return DIV_ASSIGN;
-"%="                    return MOD_ASSIGN;
+"+="                    return ADDEQ;
+"-="                    return SUBEQ;
+"*="                    return MULEQ;
+"/="                    return DIVEQ;
+"%="                    return MODEQ;
 
     /* miscellaneous character */
 [(){}<>+*=/%!.,;\-\^]   return *yytext;

@@ -5,6 +5,16 @@
 #include "delbrot.h"
 #include "y.tab.h"
 
+/* assign a variable */
+ASTnode *assign(ASTnode *p, ASTnode *c1, ASTnode *c2) {
+    if (c1->type != typeVar)
+        yyerror("can't assign to a constant value");
+
+    p = memcpy(c1->varPtr->value, c2, sizeof(ASTnode));
+    return p;
+}
+
+
 /* execute a section of the AST */
 ASTnode* ex(ASTnode *n) {
     if (!n)
@@ -33,17 +43,26 @@ ASTnode* ex(ASTnode *n) {
                 /* functions */
                 case FNCT:  return (*((child[0])->fnPtr))(p, ex(child[1]));
                 /* assignment */
-                case '=':   p = memcpy(child[0]->varPtr->value, ex(child[1]), sizeof(ASTnode)); return p;
-                case ADD_ASSIGN: return modvar(p, child[0], ex(child[1])->val);
-                /* standard mathematical functions */
+                case '=':   return assign(p, child[0], ex(child[1])); 
+                case ADDEQ: return modvar(p, child[0], '+', ex(child[1])->val);
+                case SUBEQ: return modvar(p, child[0], '-', ex(child[1])->val);
+                case MULEQ: return modvar(p, child[0], '*', ex(child[1])->val);
+                case DIVEQ: return modvar(p, child[0], '/', ex(child[1])->val);
+                case MODEQ: return modvar(p, child[0], '%', ex(child[1])->val);
+                /* arithmetic operators */
                 case '%':   p->val = (int) ex(child[0])->val % (int) ex(child[1])->val; return p;
                 case '^':   p->val = pow(ex(child[0])->val, ex(child[1])->val); return p;
-                case '+':   p->val = ex(child[0])->val +  ex(child[1])->val; return p;
-                case '-':   p->val = ex(child[0])->val -  ex(child[1])->val; return p;
-                case '*':   p->val = ex(child[0])->val *  ex(child[1])->val; return p;
-                case '/':   p->val = ex(child[0])->val /  ex(child[1])->val; return p;
-                case '>':   p->val = ex(child[0])->val >  ex(child[1])->val; return p;
-                case '<':   p->val = ex(child[0])->val <  ex(child[1])->val; return p;
+                case '*':   p->val = ex(child[0])->val * ex(child[1])->val; return p;
+                case '/':   p->val = ex(child[0])->val / ex(child[1])->val; return p;
+                case '+':   p->val = ex(child[0])->val + ex(child[1])->val; return p;
+                case '-':   p->val = ex(child[0])->val - ex(child[1])->val; return p;
+                case NEG:   p->val = -(ex(child[0])->val);                  return p;
+                case INC:   return modvar(p, child[0], '+', 1);
+                case DEC:   return modvar(p, child[0], '-', 1);
+                /* boolean operators */
+                case '!':   p->val = !ex(child[0])->val;                    return p;
+                case '>':   p->val = ex(child[0])->val > ex(child[1])->val; return p;
+                case '<':   p->val = ex(child[0])->val < ex(child[1])->val; return p;
                 case GE:    p->val = ex(child[0])->val >= ex(child[1])->val; return p;
                 case LE:    p->val = ex(child[0])->val <= ex(child[1])->val; return p;
                 case EQ:    p->val = ex(child[0])->val == ex(child[1])->val; return p;
@@ -51,12 +70,7 @@ ASTnode* ex(ASTnode *n) {
                 case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
                 case LOR:   p->val = ex(child[0])->val || ex(child[1])->val; return p;
                 /* misc operations */
-                case ';':   ex(child[0]); p = ex(child[1]); return p;
-                case '!':   p->val = !ex(child[0])->val;    return p;
-                case NEG:   p->val = -(ex(child[0])->val);  return p;
-                case INC:   return modvar(p, child[0], 1);
-                case DEC:   return modvar(p, child[0], -1);
-                
+                case ';':   ex(child[0]); p = ex(child[1]); return p;  
             }
     }
     return NULL;
@@ -99,10 +113,16 @@ ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1); p->val = 
 ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = sqrt(args->val); return p; }
 
 /* modify the value of a variable */
-ASTnode* modvar(ASTnode *p, ASTnode *c1, double mod) {
+ASTnode* modvar(ASTnode *p, ASTnode *c1, char op, double mod) {
     if(c1->varPtr->value->type != typeVal)
         yyerror("type mismatch");
-    c1->varPtr->value->val += mod;
+    switch (op) {
+        case '+': c1->varPtr->value->val += mod; break;
+        case '-': c1->varPtr->value->val -= mod; break;
+        case '*': c1->varPtr->value->val *= mod; break;
+        case '/': c1->varPtr->value->val /= mod; break;
+        case '%': c1->varPtr->value->val = (double)((int)c1->varPtr->value->val % (int)mod); break;
+    }
     ASTnode *next = p->next;
     p = ex(c1);
     p->next = next;

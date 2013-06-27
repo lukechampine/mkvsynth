@@ -39,53 +39,53 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     NUM = 258,
-     STRING = 259,
+     CONSTANT = 258,
+     STRING_LITERAL = 259,
      FNCT = 260,
      VAR = 261,
-     WHILE = 262,
-     IF = 263,
-     ELSE = 264,
-     ADD_ASSIGN = 265,
-     SUB_ASSIGN = 266,
-     MUL_ASSIGN = 267,
-     DIV_ASSIGN = 268,
-     MOD_ASSIGN = 269,
-     IFX = 270,
-     LOR = 271,
-     LAND = 272,
-     NE = 273,
-     EQ = 274,
-     LE = 275,
-     GE = 276,
-     NEG = 277,
-     DEC = 278,
-     INC = 279
+     IFX = 262,
+     ELSE = 263,
+     LOR = 264,
+     LAND = 265,
+     NE = 266,
+     EQ = 267,
+     LE = 268,
+     GE = 269,
+     NEG = 270,
+     DEC = 271,
+     INC = 272,
+     ADDEQ = 273,
+     SUBEQ = 274,
+     MULEQ = 275,
+     DIVEQ = 276,
+     MODEQ = 277,
+     IF = 278,
+     WHILE = 279
    };
 #endif
 /* Tokens.  */
-#define NUM 258
-#define STRING 259
+#define CONSTANT 258
+#define STRING_LITERAL 259
 #define FNCT 260
 #define VAR 261
-#define WHILE 262
-#define IF 263
-#define ELSE 264
-#define ADD_ASSIGN 265
-#define SUB_ASSIGN 266
-#define MUL_ASSIGN 267
-#define DIV_ASSIGN 268
-#define MOD_ASSIGN 269
-#define IFX 270
-#define LOR 271
-#define LAND 272
-#define NE 273
-#define EQ 274
-#define LE 275
-#define GE 276
-#define NEG 277
-#define DEC 278
-#define INC 279
+#define IFX 262
+#define ELSE 263
+#define LOR 264
+#define LAND 265
+#define NE 266
+#define EQ 267
+#define LE 268
+#define GE 269
+#define NEG 270
+#define DEC 271
+#define INC 272
+#define ADDEQ 273
+#define SUBEQ 274
+#define MULEQ 275
+#define DIVEQ 276
+#define MODEQ 277
+#define IF 278
+#define WHILE 279
 
 
 
@@ -95,7 +95,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 21 "delbrot.y"
+#line 20 "delbrot.y"
 
     ASTnode *ASTptr; /* pointer to node in the AST */
     double  val;     /* number */

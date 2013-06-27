@@ -796,7 +796,7 @@ YY_RULE_SETUP
 #line 35 "delbrot.l"
 {
                         yylval.val = atof(yytext);
-                        return NUM;
+                        return CONSTANT;
                     }
 	YY_BREAK
 /* string (literal -- don't preemptively process escape characters) */
@@ -810,7 +810,7 @@ YY_RULE_SETUP
                             yyerror("improperly terminated string");
                         else
                             yylval.str[yyleng-2] = 0;
-                        return STRING;
+                        return STRING_LITERAL;
                     }
 	YY_BREAK
 /* increment/decrement -- these are preincrements! Post increments are not supported! */
@@ -859,27 +859,27 @@ return LOR;
 case 12:
 YY_RULE_SETUP
 #line 61 "delbrot.l"
-return ADD_ASSIGN;
+return ADDEQ;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 #line 62 "delbrot.l"
-return SUB_ASSIGN;
+return SUBEQ;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 63 "delbrot.l"
-return MUL_ASSIGN;
+return MULEQ;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 64 "delbrot.l"
-return DIV_ASSIGN;
+return DIVEQ;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 65 "delbrot.l"
-return MOD_ASSIGN;
+return MODEQ;
 	YY_BREAK
 /* miscellaneous character */
 case 17:
