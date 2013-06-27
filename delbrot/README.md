@@ -8,7 +8,7 @@ At present, delbrot is essentially a glorified calculator. It only has support f
 x = y = 0;
 while (x < 1000) {
     if (!(x % 3 && x % 5))
-        y = y + x;
+        y += x;
     x++;
 }
 print(y); # 233168

@@ -100,7 +100,7 @@ arg_list
 
 assignment_expr
     : boolean_expr
-    | primary_expr '=' assignment_expr   { $$ = mkOpNode('=', 2, $1, $3);            }
+    | primary_expr '=' assignment_expr   { $$ = mkOpNode('=',   2, $1, $3);          }
     | primary_expr ADDEQ assignment_expr { $$ = mkOpNode(ADDEQ, 2, $1, $3);          }
     | primary_expr SUBEQ assignment_expr { $$ = mkOpNode(SUBEQ, 2, $1, $3);          }
     | primary_expr MULEQ assignment_expr { $$ = mkOpNode(MULEQ, 2, $1, $3);          }
@@ -110,18 +110,21 @@ assignment_expr
 
 boolean_expr
     : arithmetic_expr
+    | '!' arithmetic_expr                { $$ = mkOpNode('!', 1, $2);                }
     | boolean_expr EQ arithmetic_expr    { $$ = mkOpNode(EQ,  2, $1, $3);            }
     | boolean_expr NE arithmetic_expr    { $$ = mkOpNode(NE,  2, $1, $3);            }
     | boolean_expr GE arithmetic_expr    { $$ = mkOpNode(GE,  2, $1, $3);            }
     | boolean_expr LE arithmetic_expr    { $$ = mkOpNode(LE,  2, $1, $3);            }
     | boolean_expr '>' arithmetic_expr   { $$ = mkOpNode('>', 2, $1, $3);            }
     | boolean_expr '<' arithmetic_expr   { $$ = mkOpNode('<', 2, $1, $3);            }
+    | boolean_expr LOR arithmetic_expr   { $$ = mkOpNode(LOR, 2, $1, $3);            }
+    | boolean_expr LAND arithmetic_expr  { $$ = mkOpNode(LAND,2, $1, $3);            }
     ;
 
 arithmetic_expr
     : primary_expr
-    | primary_expr INC                   { $$ = mkOpNode(INC, 2, $1);                }
-    | primary_expr DEC                   { $$ = mkOpNode(DEC, 2, $1);                }
+    | primary_expr INC                   { $$ = mkOpNode(INC, 1, $1);                }
+    | primary_expr DEC                   { $$ = mkOpNode(DEC, 1, $1);                }
     | arithmetic_expr '+' primary_expr   { $$ = mkOpNode('+', 2, $1, $3);            }
     | arithmetic_expr '-' primary_expr   { $$ = mkOpNode('-', 2, $1, $3);            }
     | arithmetic_expr '*' primary_expr   { $$ = mkOpNode('*', 2, $1, $3);            }

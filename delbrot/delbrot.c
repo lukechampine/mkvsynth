@@ -60,15 +60,15 @@ ASTnode* ex(ASTnode *n) {
                 case INC:   return modvar(p, child[0], '+', 1);
                 case DEC:   return modvar(p, child[0], '-', 1);
                 /* boolean operators */
-                case '!':   p->val = !ex(child[0])->val;                    return p;
-                case '>':   p->val = ex(child[0])->val > ex(child[1])->val; return p;
-                case '<':   p->val = ex(child[0])->val < ex(child[1])->val; return p;
+                case '!':   p->val = !ex(child[0])->val;                     return p;
+                case '>':   p->val = ex(child[0])->val > ex(child[1])->val;  return p;
+                case '<':   p->val = ex(child[0])->val < ex(child[1])->val;  return p;
                 case GE:    p->val = ex(child[0])->val >= ex(child[1])->val; return p;
                 case LE:    p->val = ex(child[0])->val <= ex(child[1])->val; return p;
                 case EQ:    p->val = ex(child[0])->val == ex(child[1])->val; return p;
                 case NE:    p->val = ex(child[0])->val != ex(child[1])->val; return p;
-                case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
                 case LOR:   p->val = ex(child[0])->val || ex(child[1])->val; return p;
+                case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
                 /* misc operations */
                 case ';':   ex(child[0]); p = ex(child[1]); return p;  
             }
