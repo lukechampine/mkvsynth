@@ -57,6 +57,13 @@
 "&&"                    return LAND;
 "||"                    return LOR;
 
+    /* arithmetic assignment operator */
+"+="                    return ADD_ASSIGN;
+"-="                    return SUB_ASSIGN;
+"*="                    return MUL_ASSIGN;
+"/="                    return DIV_ASSIGN;
+"%="                    return MOD_ASSIGN;
+
     /* miscellaneous character */
 [(){}<>+*=/%!.,;\-\^]   return *yytext;
 

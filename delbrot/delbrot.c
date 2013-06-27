@@ -32,13 +32,9 @@ ASTnode* ex(ASTnode *n) {
                 case WHILE: while (ex(child[0])->val) ex(child[1]); return NULL;
                 /* functions */
                 case FNCT:  return (*((child[0])->fnPtr))(p, ex(child[1]));
-                /* special syntax */
+                /* assignment */
                 case '=':   p = memcpy(child[0]->varPtr->value, ex(child[1]), sizeof(ASTnode)); return p;
-                case ';':   ex(child[0]); p = ex(child[1]); return p;
-                case '!':   p->val = !ex(child[0])->val;    return p;
-                case NEG:   p->val = -(ex(child[0])->val);  return p;
-                case INC:   return incdec(p, child[0], '+');
-                case DEC:   return incdec(p, child[0], '-');
+                case ADD_ASSIGN: return modvar(p, child[0], ex(child[1])->val);
                 /* standard mathematical functions */
                 case '%':   p->val = (int) ex(child[0])->val % (int) ex(child[1])->val; return p;
                 case '^':   p->val = pow(ex(child[0])->val, ex(child[1])->val); return p;
@@ -54,6 +50,12 @@ ASTnode* ex(ASTnode *n) {
                 case NE:    p->val = ex(child[0])->val != ex(child[1])->val; return p;
                 case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
                 case LOR:   p->val = ex(child[0])->val || ex(child[1])->val; return p;
+                /* misc operations */
+                case ';':   ex(child[0]); p = ex(child[1]); return p;
+                case '!':   p->val = !ex(child[0])->val;    return p;
+                case NEG:   p->val = -(ex(child[0])->val);  return p;
+                case INC:   return modvar(p, child[0], 1);
+                case DEC:   return modvar(p, child[0], -1);
                 
             }
     }
@@ -96,11 +98,11 @@ ASTnode* ncos (ASTnode *p, ASTnode *args) { checkArgs("cos", args, 1); p->val = 
 ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1); p->val = log(args->val);  return p; }
 ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = sqrt(args->val); return p; }
 
-/* disgustingly verbose increment/decrement function */
-ASTnode* incdec (ASTnode *p, ASTnode *c1, int opr) {
+/* modify the value of a variable */
+ASTnode* modvar(ASTnode *p, ASTnode *c1, double mod) {
     if(c1->varPtr->value->type != typeVal)
-        yyerror("non-numeric values cannot be incremented");
-    c1->varPtr->value->val += (opr == '+') ? 1 : -1;
+        yyerror("type mismatch");
+    c1->varPtr->value->val += mod;
     ASTnode *next = p->next;
     p = ex(c1);
     p->next = next;

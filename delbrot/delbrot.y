@@ -34,6 +34,7 @@
 %token <vptr>   VAR           /* variables are variable table pointers */
 
 %token WHILE IF ELSE          /* keywords don't have a type */
+%token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN 
 
 %nonassoc IFX
 %nonassoc ELSE
@@ -74,11 +75,12 @@ expr:
         |STRING                          { $$ = mkStrNode($1);                       }
         | VAR                            { $$ = mkVarNode($1);                       }
         | VAR '=' expr                   { $$ = mkOpNode('=', 2, mkVarNode($1), $3); }
+        | VAR ADD_ASSIGN NUM             { $$ = mkOpNode(ADD_ASSIGN, 2, mkVarNode($1), mkValNode($3));     }
         | VAR INC                        { $$ = mkOpNode(INC, 1, mkVarNode($1));     }
         | VAR DEC                        { $$ = mkOpNode(DEC, 1, mkVarNode($1));     }
         | FNCT '(' arglist ')'           { $$ = mkOpNode(FNCT,2, mkFnNode($1), $3);  }
         | '-' expr %prec NEG             { $$ = mkOpNode(NEG, 1, $2);                }
-        | '!' expr %prec NEG             { $$ = mkOpNode('!', 1, $2);               }
+        | '!' expr %prec NEG             { $$ = mkOpNode('!', 1, $2);                }
         | expr '+' expr                  { $$ = mkOpNode('+', 2, $1, $3);            }
         | expr '-' expr                  { $$ = mkOpNode('-', 2, $1, $3);            }
         | expr '*' expr                  { $$ = mkOpNode('*', 2, $1, $3);            }

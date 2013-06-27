@@ -46,16 +46,21 @@
      WHILE = 262,
      IF = 263,
      ELSE = 264,
-     IFX = 265,
-     LOR = 266,
-     LAND = 267,
-     NE = 268,
-     EQ = 269,
-     LE = 270,
-     GE = 271,
-     NEG = 272,
-     DEC = 273,
-     INC = 274
+     ADD_ASSIGN = 265,
+     SUB_ASSIGN = 266,
+     MUL_ASSIGN = 267,
+     DIV_ASSIGN = 268,
+     MOD_ASSIGN = 269,
+     IFX = 270,
+     LOR = 271,
+     LAND = 272,
+     NE = 273,
+     EQ = 274,
+     LE = 275,
+     GE = 276,
+     NEG = 277,
+     DEC = 278,
+     INC = 279
    };
 #endif
 /* Tokens.  */
@@ -66,16 +71,21 @@
 #define WHILE 262
 #define IF 263
 #define ELSE 264
-#define IFX 265
-#define LOR 266
-#define LAND 267
-#define NE 268
-#define EQ 269
-#define LE 270
-#define GE 271
-#define NEG 272
-#define DEC 273
-#define INC 274
+#define ADD_ASSIGN 265
+#define SUB_ASSIGN 266
+#define MUL_ASSIGN 267
+#define DIV_ASSIGN 268
+#define MOD_ASSIGN 269
+#define IFX 270
+#define LOR 271
+#define LAND 272
+#define NE 273
+#define EQ 274
+#define LE 275
+#define GE 276
+#define NEG 277
+#define DEC 278
+#define INC 279
 
 
 
@@ -96,7 +106,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 100 "y.tab.h"
+#line 110 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

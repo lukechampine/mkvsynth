@@ -50,7 +50,7 @@ ASTnode* nsin (ASTnode *, ASTnode *);
 ASTnode* ncos (ASTnode *, ASTnode *);
 ASTnode* nlog (ASTnode *, ASTnode *);
 ASTnode* nsqrt(ASTnode *, ASTnode *);
-ASTnode* incdec(ASTnode *, ASTnode *, int);
+ASTnode* modvar(ASTnode *, ASTnode *, double);
 
 /* mkvsynth function prototypes */
 ASTnode* ffmpegDecode(ASTnode *, ASTnode *);
