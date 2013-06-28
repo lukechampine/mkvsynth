@@ -96,7 +96,27 @@ These two types of filters do not need to do anything special internally, but
 the interpreter needs to be able to recognize them to help with warnings and
 errors, and to make sure buffers are not created if they will not be used.
 
-Spec incomplete: specifics for getFrame, getReadOnlyFrame, putFrame, and
+# Funtion specifics
+
+getFrame:
+1. getFrame has a static variable (value doesn't change when it goes out of
+   scope) pointing to the next frame in the buffer. If the next frame is not
+   in the buffer, sleep until there is a frame to consume
+2. when there is a frame to consume, check the 'filtersRemaining' count. If
+   the count is greater than 1, copy the frame into a new place in memory,
+   lock the counter, decrement the counter, unlock the counter, and pass the
+   copied frame back to the filter
+   
+   If the count is just 1, pass the frame (without allocating more memory) to
+   the filter and decrement the 'currentBufferSize' counter in the control
+   node. It is up to the filter calling getFrame to deallocate the memory.
+   
+getReadOnlyFrame:
+1. see part 1 of getFrame
+2. the frame is pointer is given to the filter, nothimg more happens. The
+   filter recieving the frame is trusted not to corrupt the data.
+
+Spec incomplete: specifics for putFrame and
                  clearFrame need to be discussed
 Spec incomplete: spawning needs to be discussed
 Spec incomplete: parallel-frame filters need to be discussed
