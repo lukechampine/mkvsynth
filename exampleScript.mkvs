@@ -77,7 +77,6 @@
 #   Dots, Equals, and Other Shortcuts 
 #
 #       Dots: resize(height, width, input, output) is equivalent to input.resize(height, width, output)
-#
 #       Equals: resize(height, width, input, output) is equivalent to output = resize(height, width, input)
 #
 #       The following are all equivalent:
@@ -110,35 +109,35 @@
 ###### Example code: ######
 
 # You have to decode a video before you can process it
-FrameStream originalVideo = decode("filters/test.mp4")
+FrameStream originalVideo = decode("filters/test.mp4");
 
 # This loop does something silly
 for(i = 0; i < 20; i++) {
     # getFrameRange(X, Y) gets all frames between X and Y in a video (inclusive)
-    FrameStream funkyChunk = originalVideo.getFrameRange(200*i, 250*i)
+    FrameStream funkyChunk = originalVideo.getFrameRange(200*i, 250*i);
 
     #add to a different video (all variables have global scope)
-    FrameStream funkyVideo = funkyVideo.append(funkyChunk)
+    FrameStream funkyVideo = funkyVideo.append(funkyChunk);
 }
 
 #setEncoder will always return a completely new encoder
-encoder hqEncoder = setEncoder("--width 1080 --height 1920 --crf 17 --preset veryslow")
-encoder lqEncoder = setEncoder("--width 480 --height 854 --crf 21 --preset fast")
+encoder hqEncoder = setEncoder("--width 1080 --height 1920 --crf 17 --preset veryslow");
+encoder lqEncoder = setEncoder("--width 480 --height 854 --crf 21 --preset fast");
 
 #encoded videos are just bundles of data
-rawData hqVideo = hqEncoder.encode(funkyVideo)
-rawData lqVideo = lqEncoder.encode(funkyVideo)
+rawData hqVideo = hqEncoder.encode(funkyVideo);
+rawData lqVideo = lqEncoder.encode(funkyVideo);
 
 #this allows us to view the encoded stream in the gui
-frameStream viewHQ = decode(hqVideo)
-frameStream viewLQ = decode(lqVideo)
+frameStream viewHQ = decode(hqVideo);
+frameStream viewLQ = decode(lqVideo);
 
 #this will save the videos to disk
-send(hqVideo, "/home/david/mkvsynth/hqTest.h264")
-send(lqVideo, "/home/david/mkvsynth/lqTest.h264")
+send(hqVideo, "/home/david/mkvsynth/hqTest.h264");
+send(lqVideo, "/home/david/mkvsynth/lqTest.h264");
 
 #if you don't know what this is, don't worry about it
-send(viewHQ, stdout)
-send(viewLQ, stderr)
+send(viewHQ, stdout);
+send(viewLQ, stderr);
 
-###### End ######
+###### End #####
