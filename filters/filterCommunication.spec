@@ -51,3 +51,5 @@ frameStreamFrame {
 
 Spec incomplete: clearFrame() needs to be discussed.
 Spec incomplete: input and output filters need to be discussed.
+Spec incomplete: spawning needs to be discussed
+Spec incomplete: parallel-frame filters need to be discussed
