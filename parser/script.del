@@ -1,3 +1,0 @@
-demo.init(video, "drop.avi")
-demo.resize(320,200)
-demo.encode("resized.avi")
