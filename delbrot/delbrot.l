@@ -65,7 +65,7 @@
 "%="                    return MODEQ;
 
     /* miscellaneous character */
-[(){}<>+*=/%!.,;\-\^]   return *yytext;
+[(){}<>+*=/%!.,:;\-\^]  return *yytext;
 
     /* comment */
 #.*\n                   ; 

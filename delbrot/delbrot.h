@@ -1,5 +1,5 @@
 /* types */
-typedef enum { typeVal, typeStr, typeFn, typeVar, typeOp } nodeType;
+typedef enum { typeVal, typeStr, typeFn, typeVar, typeParam, typeOp } nodeType;
 
 /* a function */
 /* arg1 is passed by reference and will contain result of the function */

@@ -93,7 +93,7 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs) {
         traverse = traverse->next;
     }
     /* check for excess arguments */
-    if (traverse != NULL) {
+    if (traverse != NULL && traverse->type != typeParam) {
         while ((traverse = traverse->next) != NULL) i++;
         sprintf(errorMsg, "%s expected %d arguments, got %d", funcName, numArgs, ++i);
         yyerror(errorMsg);
@@ -127,6 +127,15 @@ ASTnode* modvar(ASTnode *p, ASTnode *c1, char op, double mod) {
     p = ex(c1);
     p->next = next;
     return p;
+}
+
+/* helper function to get optional arguments in a function call */
+ASTnode* getOptArg(ASTnode *args, char *name) {
+    ASTnode *traverse = args;
+    for (traverse = args; traverse != NULL; traverse = traverse->next)
+        if (traverse->type == typeParam && !(strcmp(traverse->varPtr->name,name)))
+            return traverse->varPtr->value;
+    return NULL;
 }
 
 /* helper function to interpret string literals */
@@ -168,11 +177,22 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
     return p;
 }
 
-/* ffmpeg decoding function */
+/* ffmpeg decoding function, showcasing optional arguments */
 ASTnode* ffmpegDecode(ASTnode *p, ASTnode *args) {
-    // get arguments
+    // check that (mandatory) arguments are valid
     checkArgs("ffmpegDecode", args, 1);
-    p->val = printf("\tdecoded %s\n", args->str);
+    // get arguments
+    char *str = args->str;
+    double frames = getOptArg(args, "frames")
+                  ? ex(getOptArg(args, "frames"))->val
+                  : -1; /* default value */
+    // main function body
+    if (frames != -1)
+        printf("decoded %.f frames of %s\n", frames, str);
+    else
+        printf("decoded %s\n", str);
+    // return value
     p->type = typeVal;
+    p->val = 0;
     return p;
 }

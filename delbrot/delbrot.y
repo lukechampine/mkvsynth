@@ -10,11 +10,13 @@
     ASTnode *mkStrNode(char *);       /* create a string node in the AST */
     ASTnode *mkFnNode(func);          /* create a function node in the AST */
     ASTnode *mkVarNode(var *);        /* create a variable node in the AST */
+    ASTnode *mkParamNode(var *, ASTnode *); /* create a parameter node in the AST */
               
     void freeNode(ASTnode *);         /* destroy a node in the AST */
     ASTnode *ex(ASTnode *);           /* execute a section of the AST */
     void yyerror(char *);
     extern int linenumber;
+    #define YYDEBUG 1
 %}
 
 %union {
@@ -25,7 +27,7 @@
     var     *vptr;   /* variable */
 }
 
-%type  <ASTptr> stmt compound_stmt expression_stmt selection_stmt iteration_stmt stmt_list arg_list
+%type  <ASTptr> stmt compound_stmt expression_stmt selection_stmt iteration_stmt stmt_list arg_list arg
 %type  <ASTptr> expr function_expr assignment_expr arithmetic_expr boolean_expr primary_expr
 %token <val>    CONSTANT
 %token <str>    STRING_LITERAL
@@ -93,10 +95,14 @@ function_expr
     ;
 
 arg_list
+    : arg
+    | arg_list ',' arg                   { $$ = append($1, $3);                      }
+    ;
+
+arg
     : /* empty */                        { $$ = NULL;                                }
     | expr                               { $$ = $1;                                  }
-    | arg_list ',' expr                  { $$ = append($1, $3);                      }
-    ;
+    | VAR ':' primary_expr               { $$ = mkParamNode($1, $3);                 }
 
 assignment_expr
     : boolean_expr
@@ -190,6 +196,20 @@ ASTnode *mkVarNode(var *vptr) {
     return p;
 }
 
+/* create a param node in the AST */
+/* TODO: switch from using a var to a more general identifier */
+ASTnode *mkParamNode(var *vptr, ASTnode *node) {
+    ASTnode *p;
+    /* allocate node */
+    if ((p = malloc(sizeof(ASTnode))) == NULL)
+        yyerror("out of memory");
+    /* copy information */
+    p->type = typeParam;
+    p->varPtr = vptr;
+    p->varPtr->value = node;
+    return p;
+}
+
 /* create an operation node in the AST */
 ASTnode *mkOpNode(int oper, int nops, ...) {
     ASTnode *p;
@@ -221,7 +241,7 @@ void freeNode(ASTnode *p) {
         ASTnode* next = p->next;
         if (p->type == typeOp)
             for (i = 0; i < p->op.nops; i++);
-                //freeNode(p->op.ops[i]);
+                freeNode(p->op.ops[i]);
         free(p);
         p = next;
     }
@@ -250,7 +270,7 @@ static struct {
 };
 
 /* look up a function name's corresponding pointer */
-func getFn (char const *fnName) {
+func getFn(char const *fnName) {
     int i;
     for (i = 0; coreFunctions[i].fname != 0; i++)
         if (strcmp (coreFunctions[i].fname,fnName) == 0)
@@ -289,5 +309,6 @@ void yyerror(char *s) {
 }
 
 int main () {
+    //yydebug = 1;
     return yyparse();
 }
