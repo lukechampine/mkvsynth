@@ -8,9 +8,8 @@
     ASTnode *mkOpNode(int, int, ...); /* create an operation node in the AST */
     ASTnode *mkValNode(double);       /* create a value node in the AST */
     ASTnode *mkStrNode(char *);       /* create a string node in the AST */
-    ASTnode *mkFnNode(func);          /* create a function node in the AST */
-    ASTnode *mkVarNode(var *);        /* create a variable node in the AST */
-    ASTnode *mkParamNode(var *, ASTnode *); /* create a parameter node in the AST */
+    ASTnode *mkIdNode(char *);        /* create an identifier node in the AST */
+    ASTnode *mkParamNode(char *, ASTnode *); /* create a parameter node in the AST */
               
     void freeNode(ASTnode *);         /* destroy a node in the AST */
     ASTnode *ex(ASTnode *);           /* execute a section of the AST */
@@ -21,24 +20,19 @@
 
 %union {
     ASTnode *ASTptr; /* pointer to node in the AST */
-    double  val;     /* number */
-    char    *str;    /* string */
-    func    fptr;    /* function */
-    var     *vptr;   /* variable */
+    double val;      /* a constant */
+    char *str;       /* a string, variable, or function */
 }
 
-%type  <ASTptr> stmt compound_stmt expression_stmt selection_stmt iteration_stmt stmt_list arg_list arg
-%type  <ASTptr> expr function_expr assignment_expr arithmetic_expr boolean_expr primary_expr
-%token <val>    CONSTANT
-%token <str>    STRING_LITERAL
-%token <fptr>   FNCT
-%token <vptr>   VAR
+%type <ASTptr> stmt compound_stmt expression_stmt selection_stmt iteration_stmt stmt_list arg_list
+%type <ASTptr> expr function_expr assignment_expr arithmetic_expr boolean_expr primary_expr
+%token <val> CONSTANT
+%token <str> STRING_LITERAL IDENTIFIER
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
 %nonassoc ELSE
 %right '^'
 %left LAND LOR
-%left GE LE EQ NE '>' '<'
 %left '+' '-'
 %left '*' '/' '%'
 %right NEG
@@ -47,18 +41,19 @@
 %token LE GE EQ NE
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ
 %token IF ELSE WHILE
+%token FNCT
 
 %% /* grammar definition section  */
 
 input
     : /* empty program */
-    | input stmt                         { ex($2); freeNode($2);                     }
+    | input stmt                         { ex($2); /*freeNode($2);*/                     }
     ;
 
 stmt
     : compound_stmt
     | expression_stmt
-    | selection_stmt
+    | selection_stmt    
     | iteration_stmt
     ;
 
@@ -91,18 +86,14 @@ expr
 
 function_expr
     : assignment_expr
-    | FNCT '(' arg_list ')'              { $$ = mkOpNode(FNCT, 2, mkFnNode($1), $3); }
+    | primary_expr '(' arg_list ')'      { $$ = mkOpNode(FNCT, 2, $1, $3);           }
     ;
 
 arg_list
-    : arg
-    | arg_list ',' arg                   { $$ = append($1, $3);                      }
-    ;
-
-arg
     : /* empty */                        { $$ = NULL;                                }
     | expr                               { $$ = $1;                                  }
-    | VAR ':' primary_expr               { $$ = mkParamNode($1, $3);                 }
+    | arg_list ',' expr                  { $$ = append($1, $3);                      }
+    ;
 
 assignment_expr
     : boolean_expr
@@ -142,7 +133,8 @@ arithmetic_expr
 primary_expr
     : CONSTANT                           { $$ = mkValNode($1);                       }
     | STRING_LITERAL                     { $$ = mkStrNode($1);                       }
-    | VAR                                { $$ = mkVarNode($1);                       }
+    | IDENTIFIER                         { $$ = mkIdNode($1);                        }
+    | IDENTIFIER ':' primary_expr        { $$ = mkParamNode($1, $3);                 }
     | '(' expr ')'                       { $$ = $2;                                  }
     ;
 
@@ -172,40 +164,42 @@ ASTnode *mkStrNode(char *str) {
     return p;
 }
 
-/* create a function node in the AST */
-ASTnode *mkFnNode(func fptr) {
+/* create a variable or function node in the AST */
+ASTnode *mkIdNode(char *ident) {
     ASTnode *p;
     /* allocate node */
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
-    /* copy information */
-    p->type = typeFn;
-    p->fnPtr = fptr;
-    return p;
-}
-
-/* create a variable node in the AST */
-ASTnode *mkVarNode(var *vptr) {
-    ASTnode *p;
-    /* allocate node */
-    if ((p = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
-    /* copy information */
-    p->type = typeVar;
-    p->varPtr = vptr;
+    /* look up identifier in variable and function tables */
+    var *v; func f;
+    if ((f = getFn(ident)) != NULL) {
+        p->type = typeFn;
+        p->fnPtr = f;
+    }
+    else if ((v = getVar(ident)) != NULL) {
+        p->type = typeVar;
+        p->varPtr = v;
+    }
+    /* could be a new variable or a parameter, so don't do anything yet */
+    else {
+        p->type = typeId;
+        p->id = ident;
+    }
     return p;
 }
 
 /* create a param node in the AST */
-/* TODO: switch from using a var to a more general identifier */
-ASTnode *mkParamNode(var *vptr, ASTnode *node) {
+/* reuse the var struct, it's close enough */
+ASTnode *mkParamNode(char *ident, ASTnode *node) {
     ASTnode *p;
     /* allocate node */
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
+    if ((p->varPtr = malloc(sizeof(var))) == NULL)
+        yyerror("out of memory");
     /* copy information */
     p->type = typeParam;
-    p->varPtr = vptr;
+    p->varPtr->name = ident;
     p->varPtr->value = node;
     return p;
 }
@@ -252,6 +246,9 @@ ASTnode *append(ASTnode *root, ASTnode *node) {
     ASTnode *traverse;
     for (traverse = root; traverse->next != NULL; traverse = traverse->next);
     traverse->next = node;
+    /* save some headaches later. Hopefully this doesn't break anything... */
+    if (traverse->type == typeVar)
+        traverse->varPtr->value->next = node;
     return root;
 }
 

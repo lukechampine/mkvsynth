@@ -7,13 +7,27 @@
 
 /* assign a variable */
 ASTnode *assign(ASTnode *p, ASTnode *c1, ASTnode *c2) {
-    if (c1->type != typeVar)
+    /* existing variable */
+    if (c1->type == typeVar)
+        return memcpy(c1->varPtr->value, c2, sizeof(ASTnode));
+    /* new variable */
+    else if (c1->type == typeId) {
+        c1->type = typeVar;
+        c1->varPtr = putVar(c1->id);
+        return memcpy(c1->varPtr->value, c2, sizeof(ASTnode));
+    }
+    else
         yyerror("can't assign to a constant value");
-
-    p = memcpy(c1->varPtr->value, c2, sizeof(ASTnode));
-    return p;
 }
 
+/* dereference a variable */
+ASTnode *dereference(ASTnode *p) {
+    if (p->type != typeVar)
+        yyerror("dereference called on non-variable");
+    
+    memcpy(p, p->varPtr->value, sizeof(ASTnode));
+    return p;
+}
 
 /* execute a section of the AST */
 ASTnode* ex(ASTnode *n) {
@@ -26,22 +40,24 @@ ASTnode* ex(ASTnode *n) {
         yyerror("out of memory");
     /* copy information */
     memcpy(p, n, sizeof(ASTnode));
-    p->type = typeVal; /* this is almost always the case. For special cases it can be redefined. */
 
     /* for convenience/readability */
     ASTnode **child = p->op.ops;
 
     switch(n->type) {
+        case typeVar: return dereference(p);
         case typeVal: return p;
-        case typeStr: p->type = typeStr; return p;
-        case typeVar: p = p->varPtr->value; p->next = n->next; return p;
+        case typeStr: return p;
+        case typeFn:  return p;
+        case typeId:  return p;
         case typeOp:
+            p->type = typeVal; /* this is almost always the case. For special cases it can be redefined. */
             switch(n->op.oper) {
                 /* keywords */
                 case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); return NULL;
                 case WHILE: while (ex(child[0])->val) ex(child[1]); return NULL;
                 /* functions */
-                case FNCT:  return (*((child[0])->fnPtr))(p, ex(child[1]));
+                case FNCT:  return (*(child[0]->fnPtr))(p, child[1]);
                 /* assignment */
                 case '=':   return assign(p, child[0], ex(child[1])); 
                 case ADDEQ: return modvar(p, child[0], '+', ex(child[1])->val);
@@ -78,7 +94,8 @@ ASTnode* ex(ASTnode *n) {
 
 /* helper function to ensure that a function call is valid. Also calls ex() on each argument */
 /* TODO: use ... to allow type checking */
-void checkArgs(char *funcName, ASTnode *args, int numArgs) {
+/* TODO: add checks for uninitialized variables */
+ASTnode* checkArgs(char *funcName, ASTnode *args, int numArgs) {
     char errorMsg[128];
     int i;
     ASTnode *root = args;
@@ -99,11 +116,17 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs) {
         yyerror(errorMsg);
     }
     /* evaluate each argument */
-    traverse = root;
-    for (i = 0; i < numArgs; i++) {
+    root = ex(root);
+    traverse = root->next;
+    for (i = 1; i < numArgs; i++) {
         traverse = ex(traverse);
+        if (traverse->type == typeId) {
+            sprintf(errorMsg, "reference to uninitialized variable %s", args->id);
+            yyerror(errorMsg);
+        }
         traverse = traverse->next;
     }
+    return root;
 }
 
 /* standard mathematical functions, modified to use ASTnode */
@@ -114,8 +137,16 @@ ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = 
 
 /* modify the value of a variable */
 ASTnode* modvar(ASTnode *p, ASTnode *c1, char op, double mod) {
+    if(c1->type == typeId) {
+        char errorMsg[128];
+        sprintf(errorMsg, "reference to uninitialized variable %s", p->id);
+        yyerror(errorMsg);
+    }
+    if(c1->type != typeVar)
+        yyerror("can't modify constant");
     if(c1->varPtr->value->type != typeVal)
-        yyerror("type mismatch");
+        yyerror("can't modify non-numeric variable");
+
     switch (op) {
         case '+': c1->varPtr->value->val += mod; break;
         case '-': c1->varPtr->value->val -= mod; break;
@@ -123,9 +154,7 @@ ASTnode* modvar(ASTnode *p, ASTnode *c1, char op, double mod) {
         case '/': c1->varPtr->value->val /= mod; break;
         case '%': c1->varPtr->value->val = (double)((int)c1->varPtr->value->val % (int)mod); break;
     }
-    ASTnode *next = p->next;
     p = ex(c1);
-    p->next = next;
     return p;
 }
 
@@ -163,14 +192,17 @@ char* unesc(char* str) {
 ASTnode* print(ASTnode *p, ASTnode *args) {
     while(args) {
         /* reduce any unevaluated arguments */
-        if (args->type == typeVar || args->type == typeOp)
-            args = ex(args);
+        args = ex(args);
+        if (args->type == typeId) {
+            char errorMsg[128];
+            sprintf(errorMsg, "reference to uninitialized variable %s", args->id);
+            yyerror(errorMsg);
+        }
         /* print according to argument type */
         if (args->type == typeVal)
             printf("%.10g ", args->val);
         if (args->type == typeStr)
             printf("%s ", unesc(args->str));
-
         args = args->next;
     }
     printf("\n");
@@ -180,7 +212,7 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
 /* ffmpeg decoding function, showcasing optional arguments */
 ASTnode* ffmpegDecode(ASTnode *p, ASTnode *args) {
     // check that (mandatory) arguments are valid
-    checkArgs("ffmpegDecode", args, 1);
+    args = checkArgs("ffmpegDecode", args, 1);
     // get arguments
     char *str = args->str;
     double frames = getOptArg(args, "frames")

@@ -13,30 +13,20 @@
 
     /* keyword, function, or variable */
 [a-zA-Z]+           {
-                        int i; var *v; func f;
                         /* reserved word */
-                        if ((i = resWord(yytext)) != 0)
-                            return i;
-                        /* built-in function */
-                        if ((f = getFn(yytext)) != 0) {
-                            yylval.fptr = f;
-                            return FNCT;
-                        }
-                        /* existing variable */
-                        if ((v = getVar(yytext)) != 0) {
-                            yylval.vptr = v;
-                            return VAR;
-                        }
-                        /* new variable */
-                        yylval.vptr = putVar(yytext);
-                        return VAR;
+                        if (resWord(yytext))
+                            return resWord(yytext);
+                        /* variable or function */
+                        yylval.str = strdup(yytext);
+                        return IDENTIFIER;
+
                     }
     /* number, with optional decimal */
 [0-9]+(\.[0-9]+)?   {
                         yylval.val = atof(yytext);
                         return CONSTANT;
                     }
-    /* string (literal -- don't preemptively process escape characters) */
+    /* string literal */
 \"([^\\\"]|\\.)*\"  { //"
                         yylval.str = strdup(yytext+1);
                         if (yylval.str[yyleng-2] != '"')

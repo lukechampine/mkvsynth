@@ -397,7 +397,7 @@ static yyconst flex_int32_t yy_ec[256] =
         1,    2,    4,    5,    6,    1,    7,    8,    1,    9,
         9,   10,   11,    9,   12,   13,   14,   15,   15,   15,
        15,   15,   15,   15,   15,   15,   15,    9,    9,   16,
-       17,   18,    9,    1,   19,   19,   19,   19,   19,   19,
+       17,   18,    1,    1,   19,   19,   19,   19,   19,   19,
        19,   19,   19,   19,   19,   19,   19,   19,   19,   19,
        19,   19,   19,   19,   19,   19,   19,   19,   19,   19,
         1,   20,    1,    9,    1,    1,   19,   19,   19,   19,
@@ -771,39 +771,29 @@ case 1:
 YY_RULE_SETUP
 #line 15 "delbrot.l"
 {
-                        int i; var *v; func f;
                         /* reserved word */
-                        if ((i = resWord(yytext)) != 0)
-                            return i;
-                        /* built-in function */
-                        if ((f = getFn(yytext)) != 0) {
-                            yylval.fptr = f;
-                            return FNCT;
-                        }
-                        /* existing variable */
-                        if ((v = getVar(yytext)) != 0) {
-                            yylval.vptr = v;
-                            return VAR;
-                        }
-                        /* new variable */
-                        yylval.vptr = putVar(yytext);
-                        return VAR;
+                        if (resWord(yytext))
+                            return resWord(yytext);
+                        /* variable or function */
+                        yylval.str = strdup(yytext);
+                        return IDENTIFIER;
+
                     }
 	YY_BREAK
 /* number, with optional decimal */
 case 2:
 YY_RULE_SETUP
-#line 35 "delbrot.l"
+#line 25 "delbrot.l"
 {
                         yylval.val = atof(yytext);
                         return CONSTANT;
                     }
 	YY_BREAK
-/* string (literal -- don't preemptively process escape characters) */
+/* string literal */
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 40 "delbrot.l"
+#line 30 "delbrot.l"
 { //"
                         yylval.str = strdup(yytext+1);
                         if (yylval.str[yyleng-2] != '"')
@@ -816,109 +806,109 @@ YY_RULE_SETUP
 /* increment/decrement -- these are preincrements! Post increments are not supported! */
 case 4:
 YY_RULE_SETUP
-#line 49 "delbrot.l"
+#line 39 "delbrot.l"
 return INC;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 50 "delbrot.l"
+#line 40 "delbrot.l"
 return DEC;
 	YY_BREAK
 /* comparator or boolean operator */
 case 6:
 YY_RULE_SETUP
-#line 53 "delbrot.l"
+#line 43 "delbrot.l"
 return GE;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 54 "delbrot.l"
+#line 44 "delbrot.l"
 return LE;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 55 "delbrot.l"
+#line 45 "delbrot.l"
 return EQ;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 56 "delbrot.l"
+#line 46 "delbrot.l"
 return NE;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 57 "delbrot.l"
+#line 47 "delbrot.l"
 return LAND;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 58 "delbrot.l"
+#line 48 "delbrot.l"
 return LOR;
 	YY_BREAK
 /* arithmetic assignment operator */
 case 12:
 YY_RULE_SETUP
-#line 61 "delbrot.l"
+#line 51 "delbrot.l"
 return ADDEQ;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 62 "delbrot.l"
+#line 52 "delbrot.l"
 return SUBEQ;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 63 "delbrot.l"
+#line 53 "delbrot.l"
 return MULEQ;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 64 "delbrot.l"
+#line 54 "delbrot.l"
 return DIVEQ;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 65 "delbrot.l"
+#line 55 "delbrot.l"
 return MODEQ;
 	YY_BREAK
 /* miscellaneous character */
 case 17:
 YY_RULE_SETUP
-#line 68 "delbrot.l"
+#line 58 "delbrot.l"
 return *yytext;
 	YY_BREAK
 /* comment */
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 71 "delbrot.l"
+#line 61 "delbrot.l"
 ; 
 	YY_BREAK
 /* ignore whitespace (2D languages are pig disgusting) */
 case 19:
 YY_RULE_SETUP
-#line 74 "delbrot.l"
+#line 64 "delbrot.l"
 ; 
 	YY_BREAK
 /* used for error messages */
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 77 "delbrot.l"
+#line 67 "delbrot.l"
 linenumber++; 
 	YY_BREAK
 /* anything else is an error */
 case 21:
 YY_RULE_SETUP
-#line 80 "delbrot.l"
+#line 70 "delbrot.l"
 yyerror("Unknown character");
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 82 "delbrot.l"
+#line 72 "delbrot.l"
 ECHO;
 	YY_BREAK
-#line 922 "lex.yy.c"
+#line 912 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1916,7 +1906,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 82 "delbrot.l"
+#line 72 "delbrot.l"
 
 
 

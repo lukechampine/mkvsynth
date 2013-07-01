@@ -41,51 +41,51 @@
    enum yytokentype {
      CONSTANT = 258,
      STRING_LITERAL = 259,
-     FNCT = 260,
-     VAR = 261,
-     IFX = 262,
-     ELSE = 263,
-     LOR = 264,
-     LAND = 265,
-     NE = 266,
-     EQ = 267,
+     IDENTIFIER = 260,
+     IFX = 261,
+     ELSE = 262,
+     LOR = 263,
+     LAND = 264,
+     NEG = 265,
+     DEC = 266,
+     INC = 267,
      LE = 268,
      GE = 269,
-     NEG = 270,
-     DEC = 271,
-     INC = 272,
-     ADDEQ = 273,
-     SUBEQ = 274,
-     MULEQ = 275,
-     DIVEQ = 276,
-     MODEQ = 277,
-     IF = 278,
-     WHILE = 279
+     EQ = 270,
+     NE = 271,
+     ADDEQ = 272,
+     SUBEQ = 273,
+     MULEQ = 274,
+     DIVEQ = 275,
+     MODEQ = 276,
+     IF = 277,
+     WHILE = 278,
+     FNCT = 279
    };
 #endif
 /* Tokens.  */
 #define CONSTANT 258
 #define STRING_LITERAL 259
-#define FNCT 260
-#define VAR 261
-#define IFX 262
-#define ELSE 263
-#define LOR 264
-#define LAND 265
-#define NE 266
-#define EQ 267
+#define IDENTIFIER 260
+#define IFX 261
+#define ELSE 262
+#define LOR 263
+#define LAND 264
+#define NEG 265
+#define DEC 266
+#define INC 267
 #define LE 268
 #define GE 269
-#define NEG 270
-#define DEC 271
-#define INC 272
-#define ADDEQ 273
-#define SUBEQ 274
-#define MULEQ 275
-#define DIVEQ 276
-#define MODEQ 277
-#define IF 278
-#define WHILE 279
+#define EQ 270
+#define NE 271
+#define ADDEQ 272
+#define SUBEQ 273
+#define MULEQ 274
+#define DIVEQ 275
+#define MODEQ 276
+#define IF 277
+#define WHILE 278
+#define FNCT 279
 
 
 
@@ -95,18 +95,16 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 22 "delbrot.y"
+#line 21 "delbrot.y"
 
     ASTnode *ASTptr; /* pointer to node in the AST */
-    double  val;     /* number */
-    char    *str;    /* string */
-    func    fptr;    /* function */
-    var     *vptr;   /* variable */
+    double val;      /* a constant */
+    char *str;       /* a string, variable, or function */
 
 
 
 /* Line 1676 of yacc.c  */
-#line 110 "y.tab.h"
+#line 108 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
