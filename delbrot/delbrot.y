@@ -25,7 +25,7 @@
     char *str;       /* a string, variable, or function */
 }
 
-%type <ASTptr> stmt compound_stmt expression_stmt selection_stmt iteration_stmt stmt_list arg_list
+%type <ASTptr> stmt compound_stmt expression_stmt selection_stmt iteration_stmt increment_stmt stmt_list arg_list
 %type <ASTptr> expr function_expr assignment_expr arithmetic_expr boolean_expr primary_expr
 %token <val> CONSTANT
 %token <str> STRING_LITERAL IDENTIFIER
@@ -48,7 +48,7 @@
 
 input
     : /* empty program */
-    | input stmt                         { ex($2); freeNode($2);                     }
+    | input stmt                          { ex($2); freeNode($2);                     }
     ;
 
 stmt
@@ -56,39 +56,38 @@ stmt
     | expression_stmt
     | selection_stmt    
     | iteration_stmt
+    | increment_stmt
     ;
 
 compound_stmt
-    : '{' stmt_list '}'                  { $$ = $2;                                  }
+    : '{' stmt_list '}'                   { $$ = $2;                                  }
     ;
 
 expression_stmt
-    : ';'                                { $$ = mkOpNode(';', 2, NULL, NULL);        }
+    : ';'                                 { $$ = mkOpNode(';', 2, NULL, NULL);        }
     | expr ';'
     ;
 
 selection_stmt
-    : IF '(' expr ')' stmt %prec IFX     { $$ = mkOpNode(IF, 2, $3, $5);             }
-    | IF '(' expr ')' stmt ELSE stmt     { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
+    : IF '(' expr ')' stmt %prec IFX      { $$ = mkOpNode(IF, 2, $3, $5);             }
+    | IF '(' expr ')' stmt ELSE stmt      { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
     ;
 
 iteration_stmt
-    : WHILE '(' expr ')' stmt            { $$ = mkOpNode(WHILE, 2, $3, $5);          }
+    : WHILE '(' expr ')' stmt             { $$ = mkOpNode(WHILE, 2, $3, $5);          }
     ;
+
+increment_stmt
+    : primary_expr INC ';'                { $$ = mkOpNode(INC, 1, $1);                }
+    | primary_expr DEC ';'                { $$ = mkOpNode(DEC, 1, $1);                }
 
 stmt_list
     : stmt
-    | stmt_list stmt                     { $$ = mkOpNode(';', 2, $1, $2);            }
+    | stmt_list stmt                      { $$ = mkOpNode(';', 2, $1, $2);            }
     ;
 
 expr
     : assignment_expr
-    ;
-
-arg_list
-    : /* empty */                        { $$ = NULL;                                }
-    | expr                               { $$ = $1;                                  }
-    | arg_list ',' expr                  { $$ = appendArg($1, $3);                   }
     ;
 
 assignment_expr
@@ -116,8 +115,6 @@ boolean_expr
 
 arithmetic_expr
     : function_expr
-    | function_expr INC                  { $$ = mkOpNode(INC, 1, $1);                }
-    | function_expr DEC                  { $$ = mkOpNode(DEC, 1, $1);                }
     | arithmetic_expr '+' function_expr  { $$ = mkOpNode('+', 2, $1, $3);            }
     | arithmetic_expr '-' function_expr  { $$ = mkOpNode('-', 2, $1, $3);            }
     | arithmetic_expr '*' function_expr  { $$ = mkOpNode('*', 2, $1, $3);            }
@@ -129,6 +126,12 @@ arithmetic_expr
 function_expr
     : primary_expr
     | primary_expr '(' arg_list ')'      { $$ = mkOpNode(FNCT, 2, $1, $3);           }
+    ;
+
+arg_list
+    : /* empty */                         { $$ = NULL;                                }
+    | expr                                { $$ = $1;                                  }
+    | arg_list ',' expr                   { $$ = appendArg($1, $3);                   }
     ;
 
 primary_expr
@@ -278,7 +281,7 @@ func getFn(char const *fnName) {
 var *varTable;
 
 /* allocate a new variable */
-var *putVar (char const *varName) {
+var *putVar(char const *varName) {
     var *ptr = (var *) malloc(sizeof (var));
     ptr->name = (char *) malloc(strlen (varName) + 1);
     strcpy(ptr->name,varName);
@@ -290,7 +293,7 @@ var *putVar (char const *varName) {
 }
 
 /* look up a variable's corresponding ASTnode */
-var *getVar (char const *varName) {
+var *getVar(char const *varName) {
     var *ptr;
     for (ptr = varTable; ptr != NULL; ptr = ptr->next)
         if (strcmp (ptr->name,varName) == 0)

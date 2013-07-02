@@ -29,6 +29,20 @@ ASTnode *dereference(ASTnode *p) {
     return p;
 }
 
+/* handle function calls */
+ASTnode *fnctCall(ASTnode *p, ASTnode *node, ASTnode *args) {
+    char errorMsg[128];
+    if (node->type == typeId) {
+        sprintf(errorMsg, "reference to undefined function \"%s\"", node->id);
+        yyerror(errorMsg);
+    }
+    if (node->type != typeFn)
+        yyerror("expected function name before '('");
+
+    p = (*(node->fnPtr))(p, args);
+    return p;
+}
+
 /* execute a section of the AST */
 ASTnode* ex(ASTnode *n) {
     if (!n)
@@ -57,7 +71,7 @@ ASTnode* ex(ASTnode *n) {
                 case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); return NULL;
                 case WHILE: while (ex(child[0])->val) ex(child[1]); return NULL;
                 /* functions */
-                case FNCT:  return (*(child[0]->fnPtr))(p, child[1]);
+                case FNCT:  return fnctCall(p, child[0], child[1]);
                 /* assignment */
                 case '=':   return assign(p, child[0], ex(child[1])); 
                 case ADDEQ: return modvar(p, child[0], '+', ex(child[1])->val);
@@ -94,7 +108,6 @@ ASTnode* ex(ASTnode *n) {
 
 /* helper function to ensure that a function call is valid. Also calls ex() on each argument */
 /* TODO: use ... to allow type checking */
-/* TODO: add checks for uninitialized variables */
 ASTnode* checkArgs(char *funcName, ASTnode *args, int numArgs) {
     char errorMsg[128];
     int i;
@@ -116,6 +129,7 @@ ASTnode* checkArgs(char *funcName, ASTnode *args, int numArgs) {
         yyerror(errorMsg);
     }
     /* evaluate each argument */
+    /* gross, fix this */
     root = ex(root);
     traverse = root->next;
     for (i = 1; i < numArgs; i++) {
