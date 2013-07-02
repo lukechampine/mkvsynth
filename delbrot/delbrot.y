@@ -5,11 +5,12 @@
     #include <stdarg.h>
     #include "delbrot.h"
     /* prototypes */
-    ASTnode *mkOpNode(int, int, ...); /* create an operation node in the AST */
-    ASTnode *mkValNode(double);       /* create a value node in the AST */
-    ASTnode *mkStrNode(char *);       /* create a string node in the AST */
-    ASTnode *mkIdNode(char *);        /* create an identifier node in the AST */
-    ASTnode *mkParamNode(char *, ASTnode *); /* create a parameter node in the AST */
+    ASTnode *mkOpNode(int, int, ...);         /* create an operation node in the AST */
+    ASTnode *mkValNode(double);               /* create a value node in the AST */
+    ASTnode *mkStrNode(char *);               /* create a string node in the AST */
+    ASTnode *mkIdNode(char *);                /* create an identifier node in the AST */
+    ASTnode *mkParamNode(char *, ASTnode *);  /* create a parameter node in the AST */
+    ASTnode *appendArg(ASTnode *, ASTnode *); /* link two nodes together */
               
     void freeNode(ASTnode *);         /* destroy a node in the AST */
     ASTnode *ex(ASTnode *);           /* execute a section of the AST */
@@ -47,7 +48,7 @@
 
 input
     : /* empty program */
-    | input stmt                         { ex($2); /*freeNode($2);*/                     }
+    | input stmt                         { ex($2); freeNode($2);                     }
     ;
 
 stmt
@@ -81,23 +82,18 @@ stmt_list
     ;
 
 expr
-    : function_expr
-    ;
-
-function_expr
     : assignment_expr
-    | primary_expr '(' arg_list ')'      { $$ = mkOpNode(FNCT, 2, $1, $3);           }
     ;
 
 arg_list
     : /* empty */                        { $$ = NULL;                                }
     | expr                               { $$ = $1;                                  }
-    | arg_list ',' expr                  { $$ = append($1, $3);                      }
+    | arg_list ',' expr                  { $$ = appendArg($1, $3);                   }
     ;
 
 assignment_expr
     : boolean_expr
-    | primary_expr '=' assignment_expr   { $$ = mkOpNode('=',   2, $1, $3);          }
+    | primary_expr  '='  assignment_expr { $$ = mkOpNode('=',   2, $1, $3);          }
     | primary_expr ADDEQ assignment_expr { $$ = mkOpNode(ADDEQ, 2, $1, $3);          }
     | primary_expr SUBEQ assignment_expr { $$ = mkOpNode(SUBEQ, 2, $1, $3);          }
     | primary_expr MULEQ assignment_expr { $$ = mkOpNode(MULEQ, 2, $1, $3);          }
@@ -119,15 +115,20 @@ boolean_expr
     ;
 
 arithmetic_expr
+    : function_expr
+    | function_expr INC                  { $$ = mkOpNode(INC, 1, $1);                }
+    | function_expr DEC                  { $$ = mkOpNode(DEC, 1, $1);                }
+    | arithmetic_expr '+' function_expr  { $$ = mkOpNode('+', 2, $1, $3);            }
+    | arithmetic_expr '-' function_expr  { $$ = mkOpNode('-', 2, $1, $3);            }
+    | arithmetic_expr '*' function_expr  { $$ = mkOpNode('*', 2, $1, $3);            }
+    | arithmetic_expr '/' function_expr  { $$ = mkOpNode('/', 2, $1, $3);            }
+    | arithmetic_expr '^' function_expr  { $$ = mkOpNode('^', 2, $1, $3);            }
+    | arithmetic_expr '%' function_expr  { $$ = mkOpNode('%', 2, $1, $3);            }
+    ;
+
+function_expr
     : primary_expr
-    | primary_expr INC                   { $$ = mkOpNode(INC, 1, $1);                }
-    | primary_expr DEC                   { $$ = mkOpNode(DEC, 1, $1);                }
-    | arithmetic_expr '+' primary_expr   { $$ = mkOpNode('+', 2, $1, $3);            }
-    | arithmetic_expr '-' primary_expr   { $$ = mkOpNode('-', 2, $1, $3);            }
-    | arithmetic_expr '*' primary_expr   { $$ = mkOpNode('*', 2, $1, $3);            }
-    | arithmetic_expr '/' primary_expr   { $$ = mkOpNode('/', 2, $1, $3);            }
-    | arithmetic_expr '^' primary_expr   { $$ = mkOpNode('^', 2, $1, $3);            }
-    | arithmetic_expr '%' primary_expr   { $$ = mkOpNode('%', 2, $1, $3);            }
+    | primary_expr '(' arg_list ')'      { $$ = mkOpNode(FNCT, 2, $1, $3);           }
     ;
 
 primary_expr
@@ -228,21 +229,19 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
 /* destroy a node in the AST */
 void freeNode(ASTnode *p) {
     int i;
-    if (!p)
-        return;
-    /* traverse linked list, if it exists */
     while(p) {
         ASTnode* next = p->next;
         if (p->type == typeOp)
-            for (i = 0; i < p->op.nops; i++);
+            for (i = 0; i < p->op.nops; i++)
                 freeNode(p->op.ops[i]);
-        free(p);
-        p = next;
+        if (p->type != typeVar)
+            free(p);
+        p = next; /* traverse linked list */
     }
 }
 
 /* add an AST node to the end of a linked list of arguments */
-ASTnode *append(ASTnode *root, ASTnode *node) {
+ASTnode *appendArg(ASTnode *root, ASTnode *node) {
     ASTnode *traverse;
     for (traverse = root; traverse->next != NULL; traverse = traverse->next);
     traverse->next = node;

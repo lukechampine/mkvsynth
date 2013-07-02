@@ -795,120 +795,123 @@ case 3:
 YY_RULE_SETUP
 #line 30 "delbrot.l"
 { //"
+                        /* don't include surrounding quotation marks */
                         yylval.str = strdup(yytext+1);
-                        if (yylval.str[yyleng-2] != '"')
-                            yyerror("improperly terminated string");
-                        else
-                            yylval.str[yyleng-2] = 0;
+                        yylval.str[yyleng-2] = 0;
+                        /* check for newlines */
+                        int i;
+                        for (i = 0; yylval.str[i] != '\0'; i++)
+                            if (yylval.str[i] == '\n')
+                                yyerror("improperly terminated string!");
                         return STRING_LITERAL;
                     }
 	YY_BREAK
 /* increment/decrement -- these are preincrements! Post increments are not supported! */
 case 4:
 YY_RULE_SETUP
-#line 39 "delbrot.l"
+#line 42 "delbrot.l"
 return INC;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 40 "delbrot.l"
+#line 43 "delbrot.l"
 return DEC;
 	YY_BREAK
 /* comparator or boolean operator */
 case 6:
 YY_RULE_SETUP
-#line 43 "delbrot.l"
+#line 46 "delbrot.l"
 return GE;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 44 "delbrot.l"
+#line 47 "delbrot.l"
 return LE;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 45 "delbrot.l"
+#line 48 "delbrot.l"
 return EQ;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 46 "delbrot.l"
+#line 49 "delbrot.l"
 return NE;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 47 "delbrot.l"
+#line 50 "delbrot.l"
 return LAND;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 48 "delbrot.l"
+#line 51 "delbrot.l"
 return LOR;
 	YY_BREAK
 /* arithmetic assignment operator */
 case 12:
 YY_RULE_SETUP
-#line 51 "delbrot.l"
+#line 54 "delbrot.l"
 return ADDEQ;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 52 "delbrot.l"
+#line 55 "delbrot.l"
 return SUBEQ;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 53 "delbrot.l"
+#line 56 "delbrot.l"
 return MULEQ;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 54 "delbrot.l"
+#line 57 "delbrot.l"
 return DIVEQ;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 55 "delbrot.l"
+#line 58 "delbrot.l"
 return MODEQ;
 	YY_BREAK
 /* miscellaneous character */
 case 17:
 YY_RULE_SETUP
-#line 58 "delbrot.l"
+#line 61 "delbrot.l"
 return *yytext;
 	YY_BREAK
 /* comment */
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 61 "delbrot.l"
+#line 64 "delbrot.l"
 ; 
 	YY_BREAK
 /* ignore whitespace (2D languages are pig disgusting) */
 case 19:
 YY_RULE_SETUP
-#line 64 "delbrot.l"
+#line 67 "delbrot.l"
 ; 
 	YY_BREAK
 /* used for error messages */
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 67 "delbrot.l"
+#line 70 "delbrot.l"
 linenumber++; 
 	YY_BREAK
 /* anything else is an error */
 case 21:
 YY_RULE_SETUP
-#line 70 "delbrot.l"
+#line 73 "delbrot.l"
 yyerror("Unknown character");
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 72 "delbrot.l"
+#line 75 "delbrot.l"
 ECHO;
 	YY_BREAK
-#line 912 "lex.yy.c"
+#line 915 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1906,7 +1909,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 72 "delbrot.l"
+#line 75 "delbrot.l"
 
 
 

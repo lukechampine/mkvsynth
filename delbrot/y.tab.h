@@ -95,7 +95,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 21 "delbrot.y"
+#line 22 "delbrot.y"
 
     ASTnode *ASTptr; /* pointer to node in the AST */
     double val;      /* a constant */

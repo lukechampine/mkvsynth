@@ -27,12 +27,11 @@
                         return CONSTANT;
                     }
     /* string literal */
+    /* TODO: switch to using string states for better error handling */
 \"([^\\\"]|\\.)*\"  { //"
+                        /* don't include surrounding quotation marks */
                         yylval.str = strdup(yytext+1);
-                        if (yylval.str[yyleng-2] != '"')
-                            yyerror("improperly terminated string");
-                        else
-                            yylval.str[yyleng-2] = 0;
+                        yylval.str[yyleng-2] = 0;
                         return STRING_LITERAL;
                     }
     /* increment/decrement -- these are preincrements! Post increments are not supported! */

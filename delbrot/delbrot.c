@@ -209,6 +209,13 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
     return p;
 }
 
+void ffmpegDecodeFinal(char *filename, int numFrames) {
+    if (numFrames != -1)
+        printf("decoded %d frames of %s\n", numFrames, filename);
+    else
+        printf("decoded %s\n", filename);
+}
+
 /* ffmpeg decoding function, showcasing optional arguments */
 ASTnode* ffmpegDecode(ASTnode *p, ASTnode *args) {
     // check that (mandatory) arguments are valid
@@ -219,10 +226,7 @@ ASTnode* ffmpegDecode(ASTnode *p, ASTnode *args) {
                   ? ex(getOptArg(args, "frames"))->val
                   : -1; /* default value */
     // main function body
-    if (frames != -1)
-        printf("decoded %.f frames of %s\n", frames, str);
-    else
-        printf("decoded %s\n", str);
+    ffmpegDecodeFinal(str, (int) frames);
     // return value
     p->type = typeVal;
     p->val = 0;

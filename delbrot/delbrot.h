@@ -44,9 +44,6 @@ var *putVar(char const *);
 var *getVar(char const *);
 func getFn(char const *);
 
-/* link two nodes together */
-ASTnode *append(ASTnode *, ASTnode *);
-
 /* standard mathematical function prototypes */
 ASTnode* nsin(ASTnode *, ASTnode *);
 ASTnode* ncos(ASTnode *, ASTnode *);
