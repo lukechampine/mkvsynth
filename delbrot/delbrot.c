@@ -60,10 +60,6 @@ ASTnode* ex(ASTnode *n) {
 
     switch(n->type) {
         case typeVar: return dereference(p);
-        case typeVal: return p;
-        case typeStr: return p;
-        case typeFn:  return p;
-        case typeId:  return p;
         case typeOp:
             p->type = typeVal; /* this is almost always the case. For special cases it can be redefined. */
             switch(n->op.oper) {
@@ -71,7 +67,7 @@ ASTnode* ex(ASTnode *n) {
                 case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); return NULL;
                 case WHILE: while (ex(child[0])->val) ex(child[1]); return NULL;
                 /* functions */
-                case FNCT:  return fnctCall(p, child[0], child[1]);
+                case FNCT:  return fnctCall(p, child[0], ex(child[1]));
                 /* assignment */
                 case '=':   return assign(p, child[0], ex(child[1])); 
                 case ADDEQ: return modvar(p, child[0], '+', ex(child[1])->val);
@@ -102,6 +98,7 @@ ASTnode* ex(ASTnode *n) {
                 /* misc operations */
                 case ';':   ex(child[0]); p = ex(child[1]); return p;  
             }
+        default: return p;
     }
     return NULL;
 }
