@@ -38,7 +38,7 @@ but that will be properly handled)
 
 // Names could proabably be improved
 // Eventually, support will be added for custom fields
-frameStreamControlNode {
+mkvsynthControlNode {
 	int maxBufferSize;
 	int currentBufferSize;
 	int numFiltersUsingAsInput;
@@ -46,12 +46,13 @@ frameStreamControlNode {
 	int height;
 	int colorDepth;
 	int colorSpace;
-	frameStreamFrame *mostRecentOutputFrame;
+	mkvsynthFrame *mostRecentOutputFrame;
 }
 
-frameStreamFrame {
+mkvsynthFrame {
 	uint8_t *data;
 	int numFiltersRemaining;
+	int frameNumber;
 	frameStreamFrame *nextFrame;
 }
 
@@ -157,6 +158,14 @@ Primarily because you have to accept the frames in order anway, I don't see
 a particular use for counting frames from within the actual frame struct
 itself, but the filter needs some way to recognize that it's time to finish
 processing and output it's last few frames and terminate.
+
+I would like to add some functionality where a 'novice' filter builder would
+not have to deal with checking for the last frame and the program woud just
+automatically terminate when the last frame had been processed, but I haven't
+yet thought of a good way to do this that wouldn't also make life harder for
+experienced filter writers. At this point, I'm more worried about making life
+simple for advanced developers than I am for novice developers, because it's
+the advanced filters that will make this program worth using.
 
 The parent thread will then confirm that the whole stream got processed
 without error. Which means that the runtime thread will need some way to
