@@ -143,6 +143,30 @@ the very first null-data frame for each buffer. The spawning process will
 have to make sure that all the starting variables are correct but then the
 filter stream will do everything else itself.
 
+What is probably going to happen is that Delbrot is going to have a template
+for writing a parent process that spawns all the filter threads and insures
+that they terminate successfully and without error.
+
+# Termination
+
+I'm not happy with my current solution for termination, but what currently
+happens is that I'm adding a value to the frame struct that accounts for
+frame number, a negative number signifying that this is the last frame.
+
+Primarily because you have to accept the frames in order anway, I don't see
+a particular use for counting frames from within the actual frame struct
+itself, but the filter needs some way to recognize that it's time to finish
+processing and output it's last few frames and terminate.
+
+The parent thread will then confirm that the whole stream got processed
+without error. Which means that the runtime thread will need some way to
+pass an error message to the parent in the even that something happens such
+as 'input resolution must be evenly divisible by 16'.
+
+And now that I'm thinking about it, it would be nice to have a way to catch
+simpler errors like that compile-time instead of run-time. This might not be
+an MVP feature though
+
 # Parallel Filters and Other Optimizations
 
 These will not be supported in the mvp but are worth being mentioned. For
