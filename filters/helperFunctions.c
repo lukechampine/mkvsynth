@@ -1,47 +1,87 @@
 #ifndef _datatypes_h_
 #define _datatypes_h_
 
+#include <pthread.h>
+#include <semaphore.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 typedef struct {
-	// Number of frames allowed in the buffer
-	// More will make mkvsynth faster, but take more ram
-	// Diminishing returns apply
-	int maxBufferSize;
-
-	// How full is the buffer?
-	int framesInBuffer;
-
-	// How many filters are using this buffer as input
-	int outputBreadth;
-
-	// width portion of the resolution
 	int width;
-
-	// height portion of the resolution
 	int height;
-
-	// how many bits deep the colorspace is
 	int colorDepth;
-
-	// numerical identifier for the colorspace
-	// eventually, global defines will be used, like in other video programs
 	int colorSpace;
+	int payloadBytes;
 
-	// points to the most recently output frame
-	mkvsythFrame *mostRecentFrame;
-} mkvsynthControlNode;
+	pthread_mutux_t bufferLock;
+	sem_t *remainingBuffer; // an array outputBreadth long
+	sem_t *consumedBuffer;  // an array outputBreadth long
+
+	int outputBreadth;
+	MkvsynthFrame *recentFrame;
+
+} MkvsynthControlNode;
 
 typedef struct {
-	// pointer to the first byte of a frame, which exists in dynamic memory
-	uint8_t *data;
-
-	// how many filters need to read this frame before the memory can be freed?
+	uint8_t *payload;
 	int filtersRemaining;
 
-	// a negative number indicates that this is the last frame
-	int frameNumber;
+	MkvsynthFrame *nextFrame;
 
-	// points to the next frame in the stream
-	mkvsynthFrame *nextFrame;
-} mkvsynthFrame;
+} MkvsynthFrame;
+
+typedef struct {
+	MkvsynthFrame *currentFrame;
+	int payloadBytes;
+
+	pthread_mutex_t *bufferLock;
+	sem_t *remainingBuffer;
+	sem_t *consumedBuffer;
+
+} MkvsynthGetParams;
+
+MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
+	MkvsynthFrame *newFrame = malloc(sizeof(MkvsynthFrame));
+
+	sem_wait(params->remainingBuffer);
+	pthread_mutex_lock(params->bufferLock);
+
+	if(params->currentFrame->filtersRemaining > 1) {
+		params->currentFrame->filtersRemaining--;
+		newFrame->payload = malloc(params->payloadBytes);
+		*newFrame->payload = *params->currentFrame->payload;
+	} else {
+		newFrame = params->currentFrame;
+	}
+
+	newFrame->filtersRemaining = 0;
+
+	pthread_mutex_unlock(params.bufferLock);
+	sem_post(&consumedBuffer);
+
+	return newFrame;
+}
+
+void putFrame(MkvsynthControlNode *params, MkvsynthFrame *newFrame) {
+	int i;
+	for(i = 0; i < params->outputBreadth; i++)
+		sem_wait(params->consumedBuffer + sizeof(sem_t) * i);
+
+	newFrame->nextFrame = NULL;
+	params->recentFrame->nextFrame = newFrame;
+	params->recentFrame = newFrame;
+
+	for(i = 0; i < params->outputBreadth; i++)
+		sem_post(params->remainingBuffer + sizeof(sem_t) * i);
+}
+
+void clearFrame(MkvsynthFrame *usedFrame) {
+	if(usedFrame->filtersRemaining == 0) {
+		free(usedFrame->payload);
+		free(usedFrame);
+	} else {
+		// complicated process, still need to think about it
+	}
+}
 
 #endif
