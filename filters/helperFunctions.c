@@ -13,7 +13,6 @@ typedef struct {
 	int colorSpace;
 	int payloadBytes;
 
-	pthread_mutux_t bufferLock;
 	sem_t *remainingBuffer; // an array outputBreadth long
 	sem_t *consumedBuffer;  // an array outputBreadth long
 
@@ -24,9 +23,12 @@ typedef struct {
 
 typedef struct {
 	uint8_t *payload;
+
 	int filtersRemaining;
 
 	MkvsynthFrame *nextFrame;
+
+	pthread_mutex_t lock;
 
 } MkvsynthFrame;
 
@@ -34,7 +36,6 @@ typedef struct {
 	MkvsynthFrame *currentFrame;
 	int payloadBytes;
 
-	pthread_mutex_t *bufferLock;
 	sem_t *remainingBuffer;
 	sem_t *consumedBuffer;
 
@@ -44,7 +45,7 @@ MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
 	MkvsynthFrame *newFrame = malloc(sizeof(MkvsynthFrame));
 
 	sem_wait(params->remainingBuffer);
-	pthread_mutex_lock(params->bufferLock);
+	pthread_mutex_lock(params->lock);
 
 	if(params->currentFrame->filtersRemaining > 1) {
 		params->currentFrame->filtersRemaining--;
@@ -54,9 +55,11 @@ MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
 		newFrame = params->currentFrame;
 	}
 
+	params->currentFrame = params->currentFrame->nextFrame;
+
 	newFrame->filtersRemaining = 0;
 
-	pthread_mutex_unlock(params.bufferLock);
+	pthread_mutex_unlock(params.lock);
 	sem_post(&consumedBuffer);
 
 	return newFrame;
@@ -71,16 +74,22 @@ void putFrame(MkvsynthControlNode *params, MkvsynthFrame *newFrame) {
 	params->recentFrame->nextFrame = newFrame;
 	params->recentFrame = newFrame;
 
+	if(pthread_mutex_init(&newFrame->lock, NULL) != 0) {
+		// Mutex creation fail error
+	}
+
 	for(i = 0; i < params->outputBreadth; i++)
 		sem_post(params->remainingBuffer + sizeof(sem_t) * i);
 }
 
 void clearFrame(MkvsynthFrame *usedFrame) {
 	if(usedFrame->filtersRemaining == 0) {
+		pthread_mutex_destroy(usedFrame->lock);
 		free(usedFrame->payload);
 		free(usedFrame);
 	} else {
-		// complicated process, still need to think about it
+		// Was created by getReadOnlyFrame
+		// which doesn't exist yet so error
 	}
 }
 
