@@ -45,7 +45,7 @@ MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
 	MkvsynthFrame *newFrame = malloc(sizeof(MkvsynthFrame));
 
 	sem_wait(params->remainingBuffer);
-	pthread_mutex_lock(params->lock);
+	pthread_mutex_lock(params->currentFrame->lock);
 
 	if(params->currentFrame->filtersRemaining > 1) {
 		params->currentFrame->filtersRemaining--;
@@ -59,7 +59,7 @@ MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
 
 	newFrame->filtersRemaining = 0;
 
-	pthread_mutex_unlock(params.lock);
+	pthread_mutex_unlock(params->currentFrame->lock);
 	sem_post(&consumedBuffer);
 
 	return newFrame;
