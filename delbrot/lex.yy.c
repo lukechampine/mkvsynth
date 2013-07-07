@@ -8,7 +8,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 35
+#define YY_FLEX_SUBMINOR_VERSION 37
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -141,15 +141,7 @@ typedef unsigned int flex_uint32_t;
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
-#ifdef __ia64__
-/* On IA-64, the buffer size is 16k, not 8k.
- * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
- * Ditto for the __ia64__ case accordingly.
- */
-#define YY_BUF_SIZE 32768
-#else
 #define YY_BUF_SIZE 16384
-#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -161,7 +153,12 @@ typedef unsigned int flex_uint32_t;
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 #endif
 
-extern int yyleng;
+#ifndef YY_TYPEDEF_YY_SIZE_T
+#define YY_TYPEDEF_YY_SIZE_T
+typedef size_t yy_size_t;
+#endif
+
+extern yy_size_t yyleng;
 
 extern FILE *yyin, *yyout;
 
@@ -187,11 +184,6 @@ extern FILE *yyin, *yyout;
 
 #define unput(c) yyunput( c, (yytext_ptr)  )
 
-#ifndef YY_TYPEDEF_YY_SIZE_T
-#define YY_TYPEDEF_YY_SIZE_T
-typedef size_t yy_size_t;
-#endif
-
 #ifndef YY_STRUCT_YY_BUFFER_STATE
 #define YY_STRUCT_YY_BUFFER_STATE
 struct yy_buffer_state
@@ -209,7 +201,7 @@ struct yy_buffer_state
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
 	 */
-	int yy_n_chars;
+	yy_size_t yy_n_chars;
 
 	/* Whether we "own" the buffer - i.e., we know we created it,
 	 * and can realloc() it to grow it, and should free() it to
@@ -279,8 +271,8 @@ static YY_BUFFER_STATE * yy_buffer_stack = 0; /**< Stack as an array. */
 
 /* yy_hold_char holds the character lost when yytext is formed. */
 static char yy_hold_char;
-static int yy_n_chars;		/* number of characters read into yy_ch_buf */
-int yyleng;
+static yy_size_t yy_n_chars;		/* number of characters read into yy_ch_buf */
+yy_size_t yyleng;
 
 /* Points to current character in buffer. */
 static char *yy_c_buf_p = (char *) 0;
@@ -308,7 +300,7 @@ static void yy_init_buffer (YY_BUFFER_STATE b,FILE *file  );
 
 YY_BUFFER_STATE yy_scan_buffer (char *base,yy_size_t size  );
 YY_BUFFER_STATE yy_scan_string (yyconst char *yy_str  );
-YY_BUFFER_STATE yy_scan_bytes (yyconst char *bytes,int len  );
+YY_BUFFER_STATE yy_scan_bytes (yyconst char *bytes,yy_size_t len  );
 
 void *yyalloc (yy_size_t  );
 void *yyrealloc (void *,yy_size_t  );
@@ -340,7 +332,7 @@ void yyfree (void *  );
 
 /* Begin user sect3 */
 
-#define yywrap(n) 1
+#define yywrap() 1
 #define YY_SKIP_YYWRAP
 
 typedef unsigned char YY_CHAR;
@@ -493,7 +485,7 @@ char *yytext;
     void yyerror(char *);
     int linenumber = 1;
 /* don't keep scanning after EOF */
-#line 497 "lex.yy.c"
+#line 489 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -532,7 +524,7 @@ FILE *yyget_out (void );
 
 void yyset_out  (FILE * out_str  );
 
-int yyget_leng (void );
+yy_size_t yyget_leng (void );
 
 char *yyget_text (void );
 
@@ -574,12 +566,7 @@ static int input (void );
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
-#ifdef __ia64__
-/* On IA-64, the buffer size is 16k, not 8k */
-#define YY_READ_BUF_SIZE 16384
-#else
 #define YY_READ_BUF_SIZE 8192
-#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -684,7 +671,7 @@ YY_DECL
 
 
     /* keyword, function, or variable */
-#line 688 "lex.yy.c"
+#line 675 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -775,7 +762,7 @@ YY_RULE_SETUP
                         if (resWord(yytext))
                             return resWord(yytext);
                         /* variable or function */
-                        yylval.str = strdup(yytext);
+                        yylval = mkIdNode(yytext);
                         return IDENTIFIER;
 
                     }
@@ -785,7 +772,7 @@ case 2:
 YY_RULE_SETUP
 #line 25 "delbrot.l"
 {
-                        yylval.val = atof(yytext);
+                        yylval = mkValNode(atof(yytext));
                         return CONSTANT;
                     }
 	YY_BREAK
@@ -795,123 +782,120 @@ case 3:
 YY_RULE_SETUP
 #line 30 "delbrot.l"
 { //"
+                        /* TODO: add check for newlines */
                         /* don't include surrounding quotation marks */
-                        yylval.str = strdup(yytext+1);
-                        yylval.str[yyleng-2] = 0;
-                        /* check for newlines */
-                        int i;
-                        for (i = 0; yylval.str[i] != '\0'; i++)
-                            if (yylval.str[i] == '\n')
-                                yyerror("improperly terminated string!");
+                        char *str = strdup(yytext+1);
+                        str[yyleng-2] = 0;
+                        yylval = mkStrNode(str);
                         return STRING_LITERAL;
                     }
 	YY_BREAK
 /* increment/decrement -- these are preincrements! Post increments are not supported! */
 case 4:
 YY_RULE_SETUP
-#line 42 "delbrot.l"
+#line 39 "delbrot.l"
 return INC;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 43 "delbrot.l"
+#line 40 "delbrot.l"
 return DEC;
 	YY_BREAK
 /* comparator or boolean operator */
 case 6:
 YY_RULE_SETUP
-#line 46 "delbrot.l"
+#line 43 "delbrot.l"
 return GE;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 47 "delbrot.l"
+#line 44 "delbrot.l"
 return LE;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 48 "delbrot.l"
+#line 45 "delbrot.l"
 return EQ;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 49 "delbrot.l"
+#line 46 "delbrot.l"
 return NE;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 50 "delbrot.l"
+#line 47 "delbrot.l"
 return LAND;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 51 "delbrot.l"
+#line 48 "delbrot.l"
 return LOR;
 	YY_BREAK
 /* arithmetic assignment operator */
 case 12:
 YY_RULE_SETUP
-#line 54 "delbrot.l"
+#line 51 "delbrot.l"
 return ADDEQ;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 55 "delbrot.l"
+#line 52 "delbrot.l"
 return SUBEQ;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 56 "delbrot.l"
+#line 53 "delbrot.l"
 return MULEQ;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 57 "delbrot.l"
+#line 54 "delbrot.l"
 return DIVEQ;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 58 "delbrot.l"
+#line 55 "delbrot.l"
 return MODEQ;
 	YY_BREAK
 /* miscellaneous character */
 case 17:
 YY_RULE_SETUP
-#line 61 "delbrot.l"
+#line 58 "delbrot.l"
 return *yytext;
 	YY_BREAK
 /* comment */
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 64 "delbrot.l"
+#line 61 "delbrot.l"
 ; 
 	YY_BREAK
 /* ignore whitespace (2D languages are pig disgusting) */
 case 19:
 YY_RULE_SETUP
-#line 67 "delbrot.l"
+#line 64 "delbrot.l"
 ; 
 	YY_BREAK
 /* used for error messages */
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 70 "delbrot.l"
+#line 67 "delbrot.l"
 linenumber++; 
 	YY_BREAK
 /* anything else is an error */
 case 21:
 YY_RULE_SETUP
-#line 73 "delbrot.l"
+#line 70 "delbrot.l"
 yyerror("Unknown character");
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 75 "delbrot.l"
+#line 72 "delbrot.l"
 ECHO;
 	YY_BREAK
-#line 915 "lex.yy.c"
+#line 899 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1097,21 +1081,21 @@ static int yy_get_next_buffer (void)
 
 	else
 		{
-			int num_to_read =
+			yy_size_t num_to_read =
 			YY_CURRENT_BUFFER_LVALUE->yy_buf_size - number_to_move - 1;
 
 		while ( num_to_read <= 0 )
 			{ /* Not enough room in the buffer - grow it. */
 
 			/* just a shorter name for the current buffer */
-			YY_BUFFER_STATE b = YY_CURRENT_BUFFER;
+			YY_BUFFER_STATE b = YY_CURRENT_BUFFER_LVALUE;
 
 			int yy_c_buf_p_offset =
 				(int) ((yy_c_buf_p) - b->yy_ch_buf);
 
 			if ( b->yy_is_our_buffer )
 				{
-				int new_size = b->yy_buf_size * 2;
+				yy_size_t new_size = b->yy_buf_size * 2;
 
 				if ( new_size <= 0 )
 					b->yy_buf_size += b->yy_buf_size / 8;
@@ -1142,7 +1126,7 @@ static int yy_get_next_buffer (void)
 
 		/* Read in more data. */
 		YY_INPUT( (&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move]),
-			(yy_n_chars), (size_t) num_to_read );
+			(yy_n_chars), num_to_read );
 
 		YY_CURRENT_BUFFER_LVALUE->yy_n_chars = (yy_n_chars);
 		}
@@ -1237,7 +1221,7 @@ static int yy_get_next_buffer (void)
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 	yy_is_jam = (yy_current_state == 46);
 
-	return yy_is_jam ? 0 : yy_current_state;
+		return yy_is_jam ? 0 : yy_current_state;
 }
 
     static void yyunput (int c, register char * yy_bp )
@@ -1252,7 +1236,7 @@ static int yy_get_next_buffer (void)
 	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
 		{ /* need to shift things up to make room */
 		/* +2 for EOB chars. */
-		register int number_to_move = (yy_n_chars) + 2;
+		register yy_size_t number_to_move = (yy_n_chars) + 2;
 		register char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
 					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
 		register char *source =
@@ -1301,7 +1285,7 @@ static int yy_get_next_buffer (void)
 
 		else
 			{ /* need more input */
-			int offset = (yy_c_buf_p) - (yytext_ptr);
+			yy_size_t offset = (yy_c_buf_p) - (yytext_ptr);
 			++(yy_c_buf_p);
 
 			switch ( yy_get_next_buffer(  ) )
@@ -1461,10 +1445,6 @@ static void yy_load_buffer_state  (void)
 	yyfree((void *) b  );
 }
 
-#ifndef __cplusplus
-extern int isatty (int );
-#endif /* __cplusplus */
-    
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
  * such as during a yyrestart() or at EOF.
@@ -1577,7 +1557,7 @@ void yypop_buffer_state (void)
  */
 static void yyensure_buffer_stack (void)
 {
-	int num_to_alloc;
+	yy_size_t num_to_alloc;
     
 	if (!(yy_buffer_stack)) {
 
@@ -1674,7 +1654,7 @@ YY_BUFFER_STATE yy_scan_string (yyconst char * yystr )
  * 
  * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, int  _yybytes_len )
+YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len )
 {
 	YY_BUFFER_STATE b;
 	char *buf;
@@ -1761,7 +1741,7 @@ FILE *yyget_out  (void)
 /** Get the length of the current token.
  * 
  */
-int yyget_leng  (void)
+yy_size_t yyget_leng  (void)
 {
         return yyleng;
 }
@@ -1909,17 +1889,26 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 75 "delbrot.l"
+#line 72 "delbrot.l"
 
 
 
 int resWord(char *str) {
+    /* blocks */
     if      (!strcmp(str, "if"))
         return IF;
     else if (!strcmp(str, "else"))
         return ELSE;
     else if (!strcmp(str, "while"))
         return WHILE;
+    /* types */
+    else if (!strcmp(str, "int"))
+        return T_INT;
+    else if (!strcmp(str, "double"))
+        return T_DOUBLE;
+    else if (!strcmp(str, "string"))
+        return T_STRING;
+    /* not a reserved word */
     else
         return 0;
 }

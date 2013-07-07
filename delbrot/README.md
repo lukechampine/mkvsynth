@@ -5,7 +5,8 @@ This is the current implementation of delbrot, the MkvSynth script interpreter.
 At present, delbrot is essentially a glorified calculator. It only has support for doubles and strings. But already it showcases a level of sophistication greater than any previous implementation. Control structures like if statements and while loops are fully supported, and expressions are evaluated recursively before being passed to functions. As a simple example, here is Project Euler problem 1:
 
 ```perl
-x = y = 0;
+int x = 0;
+int y = 0;
 while (x < 1000) {
     if (!(x % 3 && x % 5))
         y += x;

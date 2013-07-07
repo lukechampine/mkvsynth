@@ -1,10 +1,8 @@
+/* A Bison parser, made by GNU Bison 2.7.12-4996.  */
 
-/* A Bison parser, made by GNU Bison 2.4.1.  */
-
-/* Skeleton interface for Bison's Yacc-like parsers in C
+/* Bison interface for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,6 +30,15 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+#ifndef YY_YY_Y_TAB_H_INCLUDED
+# define YY_YY_Y_TAB_H_INCLUDED
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+#if YYDEBUG
+extern int yydebug;
+#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -39,73 +46,68 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     CONSTANT = 258,
-     STRING_LITERAL = 259,
-     IDENTIFIER = 260,
-     IFX = 261,
-     ELSE = 262,
-     LOR = 263,
-     LAND = 264,
-     NEG = 265,
-     DEC = 266,
-     INC = 267,
-     LE = 268,
-     GE = 269,
-     EQ = 270,
-     NE = 271,
-     ADDEQ = 272,
-     SUBEQ = 273,
-     MULEQ = 274,
-     DIVEQ = 275,
-     MODEQ = 276,
-     IF = 277,
-     WHILE = 278,
-     FNCT = 279
+     T_INT = 258,
+     T_DOUBLE = 259,
+     T_STRING = 260,
+     CONSTANT = 261,
+     STRING_LITERAL = 262,
+     IDENTIFIER = 263,
+     LE = 264,
+     GE = 265,
+     EQ = 266,
+     NE = 267,
+     ADDEQ = 268,
+     SUBEQ = 269,
+     MULEQ = 270,
+     DIVEQ = 271,
+     MODEQ = 272,
+     IF = 273,
+     ELSE = 274,
+     WHILE = 275,
+     FNCT = 276,
+     FNDEF = 277,
+     VARDEF = 278,
+     IFX = 279,
+     LOR = 280,
+     LAND = 281,
+     NEG = 282,
+     DEC = 283,
+     INC = 284
    };
 #endif
 /* Tokens.  */
-#define CONSTANT 258
-#define STRING_LITERAL 259
-#define IDENTIFIER 260
-#define IFX 261
-#define ELSE 262
-#define LOR 263
-#define LAND 264
-#define NEG 265
-#define DEC 266
-#define INC 267
-#define LE 268
-#define GE 269
-#define EQ 270
-#define NE 271
-#define ADDEQ 272
-#define SUBEQ 273
-#define MULEQ 274
-#define DIVEQ 275
-#define MODEQ 276
-#define IF 277
-#define WHILE 278
-#define FNCT 279
-
+#define T_INT 258
+#define T_DOUBLE 259
+#define T_STRING 260
+#define CONSTANT 261
+#define STRING_LITERAL 262
+#define IDENTIFIER 263
+#define LE 264
+#define GE 265
+#define EQ 266
+#define NE 267
+#define ADDEQ 268
+#define SUBEQ 269
+#define MULEQ 270
+#define DIVEQ 271
+#define MODEQ 272
+#define IF 273
+#define ELSE 274
+#define WHILE 275
+#define FNCT 276
+#define FNDEF 277
+#define VARDEF 278
+#define IFX 279
+#define LOR 280
+#define LAND 281
+#define NEG 282
+#define DEC 283
+#define INC 284
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE
-{
-
-/* Line 1676 of yacc.c  */
-#line 22 "delbrot.y"
-
-    ASTnode *ASTptr; /* pointer to node in the AST */
-    double val;      /* a constant */
-    char *str;       /* a string, variable, or function */
-
-
-
-/* Line 1676 of yacc.c  */
-#line 108 "y.tab.h"
-} YYSTYPE;
+typedef int YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -113,4 +115,18 @@ typedef union YYSTYPE
 
 extern YYSTYPE yylval;
 
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void *YYPARSE_PARAM);
+#else
+int yyparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void);
+#else
+int yyparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
+#endif /* !YY_YY_Y_TAB_H_INCLUDED  */

@@ -15,6 +15,7 @@ typedef struct {
 } opNode;
 
 /* a generic node in the AST */
+/* TOOD: add line number field for error messages */
 typedef struct var var;
 struct ASTnode {
     nodeType type;          /* type of node */
@@ -29,9 +30,21 @@ struct ASTnode {
     struct ASTnode *next;   /* used for argument linked lists */
 };
 
+#define YYSTYPE ASTnode*
+
+/* ASTnode prototypes */
+ASTnode *mkIdNode(char *);
+ASTnode *mkValNode(double);
+ASTnode *mkStrNode(char *);
+ASTnode *mkTypeNode(int);
+ASTnode *mkOpNode(int, int, ...);
+ASTnode *mkParamNode(ASTnode *, ASTnode *);
+ASTnode *appendArg(ASTnode *, ASTnode *);
+
 /* a variable  */
 struct var {
     char *name;             /* variable name */
+    int type;               /* variable type */
     ASTnode *value;         /* ASTnode it references */
     struct var *next;       /* link field */
 };
@@ -54,3 +67,5 @@ ASTnode* modvar(ASTnode *, ASTnode *, char, double);
 /* mkvsynth function prototypes */
 ASTnode* ffmpegDecode(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);
+
+

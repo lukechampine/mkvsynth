@@ -5,27 +5,48 @@
 #include "delbrot.h"
 #include "y.tab.h"
 
+/* define a variable */
+void define(int type, ASTnode *ident, ASTnode *valueNode) {
+    if (ident->type == typeVar) {
+        if (type != valueNode->type)
+            yyerror("failed to instantiate variable (type mismatch)");
+        memcpy(ident->varPtr->value, valueNode, sizeof(ASTnode));
+        ident->varPtr->type = type;
+        return;
+    }
+    if (ident->type != typeId)
+        yyerror("can't assign to a constant value");
+    if (type != valueNode->type)
+        yyerror("failed to instantiate variable (type mismatch)");
+    /* allocate new node */
+    ASTnode *p;
+    if ((p = malloc(sizeof(ASTnode))) == NULL)
+        yyerror("out of memory");
+    p->type = typeVar;
+    p->varPtr = putVar(ident->id);
+    p->varPtr->type = type;
+    memcpy(p->varPtr->value, valueNode, sizeof(ASTnode));
+}
+
 /* assign a variable */
 ASTnode *assign(ASTnode *p, ASTnode *c1, ASTnode *c2) {
-    /* existing variable */
-    if (c1->type == typeVar)
-        return memcpy(c1->varPtr->value, c2, sizeof(ASTnode));
-    /* new variable */
-    else if (c1->type == typeId) {
-        c1->type = typeVar;
-        c1->varPtr = putVar(c1->id);
-        return memcpy(c1->varPtr->value, c2, sizeof(ASTnode));
-    }
-    else
+    if (c1->type == typeId)
+        yyerror("can't assign to undefined variable");
+    if (c1->type != typeVar)
         yyerror("can't assign to a constant value");
+    if (c1->varPtr->type != c2->type)
+        yyerror("failed to assign variable (type mismatch)");
+    p = memcpy(c1->varPtr->value, c2, sizeof(ASTnode));
+    return p;
 }
 
 /* dereference a variable */
 ASTnode *dereference(ASTnode *p) {
     if (p->type != typeVar)
         yyerror("dereference called on non-variable");
-    
+    ASTnode *next = p->next;
     memcpy(p, p->varPtr->value, sizeof(ASTnode));
+    p->next = next;
     return p;
 }
 
@@ -38,7 +59,6 @@ ASTnode *fnctCall(ASTnode *p, ASTnode *node, ASTnode *args) {
     }
     if (node->type != typeFn)
         yyerror("expected function name before '('");
-
     p = (*(node->fnPtr))(p, args);
     return p;
 }
@@ -63,6 +83,8 @@ ASTnode* ex(ASTnode *n) {
         case typeOp:
             p->type = typeVal; /* this is almost always the case. For special cases it can be redefined. */
             switch(n->op.oper) {
+                /* declarations */
+                case VARDEF: define(child[0]->type, child[1], ex(child[2])); return NULL;
                 /* keywords */
                 case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); return NULL;
                 case WHILE: while (ex(child[0])->val) ex(child[1]); return NULL;
@@ -130,11 +152,11 @@ ASTnode* checkArgs(char *funcName, ASTnode *args, int numArgs) {
     root = ex(root);
     traverse = root->next;
     for (i = 1; i < numArgs; i++) {
-        traverse = ex(traverse);
         if (traverse->type == typeId) {
             sprintf(errorMsg, "reference to uninitialized variable %s", args->id);
             yyerror(errorMsg);
         }
+        traverse = ex(traverse);
         traverse = traverse->next;
     }
     return root;
@@ -170,6 +192,7 @@ ASTnode* modvar(ASTnode *p, ASTnode *c1, char op, double mod) {
 }
 
 /* helper function to get optional arguments in a function call */
+/* TODO: add type checking */
 ASTnode* getOptArg(ASTnode *args, char *name) {
     ASTnode *traverse = args;
     for (traverse = args; traverse != NULL; traverse = traverse->next)

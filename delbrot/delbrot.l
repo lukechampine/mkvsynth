@@ -17,21 +17,22 @@
                         if (resWord(yytext))
                             return resWord(yytext);
                         /* variable or function */
-                        yylval.str = strdup(yytext);
+                        yylval = mkIdNode(yytext);
                         return IDENTIFIER;
 
                     }
     /* number, with optional decimal */
 [0-9]+(\.[0-9]+)?   {
-                        yylval.val = atof(yytext);
+                        yylval = mkValNode(atof(yytext));
                         return CONSTANT;
                     }
     /* string literal */
-    /* TODO: switch to using string states for better error handling */
 \"([^\\\"]|\\.)*\"  { //"
+                        /* TODO: add check for newlines */
                         /* don't include surrounding quotation marks */
-                        yylval.str = strdup(yytext+1);
-                        yylval.str[yyleng-2] = 0;
+                        char *str = strdup(yytext+1);
+                        str[yyleng-2] = 0;
+                        yylval = mkStrNode(str);
                         return STRING_LITERAL;
                     }
     /* increment/decrement -- these are preincrements! Post increments are not supported! */
@@ -71,12 +72,21 @@
 %%
 
 int resWord(char *str) {
+    /* blocks */
     if      (!strcmp(str, "if"))
         return IF;
     else if (!strcmp(str, "else"))
         return ELSE;
     else if (!strcmp(str, "while"))
         return WHILE;
+    /* types */
+    else if (!strcmp(str, "int"))
+        return T_INT;
+    else if (!strcmp(str, "double"))
+        return T_DOUBLE;
+    else if (!strcmp(str, "string"))
+        return T_STRING;
+    /* not a reserved word */
     else
         return 0;
 }
