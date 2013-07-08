@@ -32,13 +32,14 @@
 //	
 //		outputBreadth - how many filters are using the buffer as input
 // 		reamainingBuffer - an array of semaphores indicating on a per-filter
-// 												basis how many frames are in the buffer but have
-// 												not been read by the input filter
+// 			basis how many frames are in the buffer but have
+// 			not been read by the input filter
 // 		consumedBuffer - an array of semaphores indicating on a per-filter basis
-// 												how many empty spaces are in the buffer, so that the
-// 												output filter knows if the buffer has room for more
-// 												output. The output buffer must wait until every
-// 												input filter has at least 1 empty space for a frame
+// 			how many empty spaces are in the buffer, so that the
+// 			output filter knows if the buffer has room for more
+// 			output. The output buffer must wait until every
+// 			input filter has at least 1 empty space for a frame
+//
 //	MOST RECENT OUTPUT FRAME
 //		each frame keeps its own pointer to the next frame, but the output filter
 //		needs to know which frame doesn't have a next frame, so that it can keep
@@ -94,9 +95,6 @@ typedef struct {
 //		to be sure that only 1 thread has access to the value at a time. Multiple
 //		filters can be accessing the payload at a time, however.
 //
-//		I'm not sure if the way I'm doing the mutexes and semaphores is the best,
-//		but I'll keep thinking about it and trying to make it faster
-//
 //	NEXT FRAME
 //		videos are just a stream of frames, and mkvsynth keeps track of the frames
 //		through a linked list. The list is maintained within the MkvsynthFrame
@@ -145,6 +143,8 @@ typedef struct {
 
 // getFrame should probably only be returning a payload, just like putFrame
 // only takes a payload as input
+
+//getFrame allocates a new
 MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
 	MkvsynthFrame *newFrame = malloc(sizeof(MkvsynthFrame));
 
@@ -155,19 +155,16 @@ MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
 		params->currentFrame->filtersRemaining--;
 		newFrame->payload = malloc(params->payloadBytes);
 		*newFrame->payload = *params->currentFrame->payload;
+		newFrame->nextFrame = params->currentFrame->nextFrame;
+		newFrame->filtersRemaining = 0;
 	} else {
-		newFrame = params->currentFrame;
+		params->currentFrame->filtersRemaining = 0;
+		return params->currentFrame;
 	}
 
-	// there may be some way to adjust the mutexes so that the struct does not
-	// need to be locked down while the function copies the payload from one
-	// place to another. The important part is that filtersRemaining is free
-	// from multiple things reading/modifying it at the same time - the copying
-	// is not the issue.
-
-	params->currentFrame = params->currentFrame->nextFrame;
-
-	newFrame->filtersRemaining = 0;
+	// Because this function is copying frames over, and all cores share
+	// memory, the program will not be made faster by allowing multiple
+	// threads/cores to access the data for copying at the same time.
 
 	pthread_mutex_unlock(params->currentFrame->lock);
 	sem_post(&consumedBuffer);
@@ -198,6 +195,9 @@ void putFrame(MkvsynthControlNode *params, uint8_t *payload) {
 		sem_post(params->remainingBuffer + sizeof(sem_t) * i);
 }
 
+// Sometimes when clear is called, the whole frame needs to be deleted.
+// Other times however, it was a readOnly frame and only needs to be
+// 	deleted under certain conditions.
 void clearFrame(MkvsynthFrame *usedFrame) {
 	if(usedFrame->filtersRemaining == 0) {
 		pthread_mutex_destroy(usedFrame->lock);
