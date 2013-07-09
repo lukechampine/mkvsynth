@@ -7,17 +7,17 @@
     /* prototypes */
     void freeNode(ASTnode *);         /* destroy a node in the AST */
     ASTnode *ex(ASTnode *);           /* execute a section of the AST */
-    void yyerror(char *);
+    void yyerror(char *, ...);
     extern int linenumber;
     #define YYDEBUG 1
 %}
 
 %token T_INT T_DOUBLE T_STRING
-%token CONSTANT STRING_LITERAL IDENTIFIER
+%token CONSTANT IDENTIFIER
 %token LE GE EQ NE
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ
 %token IF ELSE WHILE
-%token FNCT FNDEF VARDEF
+%token FNCT FNDEF
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
 %nonassoc ELSE
@@ -38,29 +38,14 @@ program
     ;
 
 item
-    : declaration
+    : function_declaration
     | stmt
     ;
 
-declaration
-    : function_declaration
-    | variable_declaration
-    ;
-
+    /* TODO: make function definitions more Haskell-like */
 function_declaration
-    : type primary_expr '(' param_list ')' '{' stmt_list '}' { $$ = mkOpNode(FNDEF, 4, $1, $2, $4, $7);  }
-    | type primary_expr '(' param_list ')' ';'               { $$ = mkOpNode(FNDEF, 3, $1, $2, $4);      }
-    ;
-
-variable_declaration
-    : type primary_expr '=' expr ';'                         { $$ = mkOpNode(VARDEF, 3, $1, $2, $4);     }
-    | type primary_expr ';'                                  /* TODO: make this work */
-    ;
-
-type
-    : T_INT                                                  { $$ = mkTypeNode(typeVal);                 }
-    | T_DOUBLE                                               { $$ = mkTypeNode(typeVal);                 }
-    | T_STRING                                               { $$ = mkTypeNode(typeStr);                 }
+    : 'fn' primary_expr '(' param_list ')' '{' item_list '}' { $$ = mkOpNode(FNDEF, 4, $1, $2, $4, $6);  }
+    | 'fn' primary_expr '(' param_list ')' ';'               { $$ = mkOpNode(FNDEF, 3, $1, $2, $4);      }
     ;
 
 param_list
@@ -74,15 +59,15 @@ param_decl
     | type
     ;
 
-stmt_list
-    : stmt
-    | stmt_list stmt                                         { $$ = mkOpNode(';', 2, $1, $2);            }
+type
+    : T_INT                                                  { $$ = mkTypeNode(typeVal);                 }
+    | T_DOUBLE                                               { $$ = mkTypeNode(typeVal);                 }
+    | T_STRING                                               { $$ = mkTypeNode(typeStr);                 }
     ;
 
 stmt
     : expression_stmt
-    | selection_stmt    
-    | iteration_stmt
+    | selection_stmt
     | increment_stmt
     ;
 
@@ -92,17 +77,18 @@ expression_stmt
     ;
 
 selection_stmt
-    : IF '(' expr ')' comp_stmt %prec IFX                    { $$ = mkOpNode(IF, 2, $3, $5);             }
-    | IF '(' expr ')' comp_stmt ELSE comp_stmt               { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
+    : IF '(' expr ')' block %prec IFX                        { $$ = mkOpNode(IF, 2, $3, $5);             }
+    | IF '(' expr ')' block ELSE block                       { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
     ;
 
-iteration_stmt
-    : WHILE '(' expr ')' comp_stmt                           { $$ = mkOpNode(WHILE, 2, $3, $5);          }
+block
+    : item
+    | '{' item_list '}'                                      { $$ = $2;                                  }
     ;
 
-comp_stmt
-    : stmt
-    | '{' stmt_list '}'                                      { $$ = $2;                                  }
+item_list
+    : item
+    | item_list item                                         { $$ = mkOpNode(';', 2, $1, $2);            }
     ;
 
 increment_stmt
@@ -154,7 +140,7 @@ function_expr
 arg_list
     : /* empty */                                            { $$ = NULL;                                }
     | function_arg                                           { $$ = $1;                                  }
-    | arg_list ',' function_arg                              { $$ = appendArg($1, $3);                   }
+    | arg_list ',' function_arg                              { $$ = append($1, $3);                      }
     ;
 
 function_arg
@@ -171,19 +157,23 @@ prefix_expr
 primary_expr
     : IDENTIFIER
     | CONSTANT
-    | STRING_LITERAL
     | '(' expr ')'                                           { $$ = $2;                                  }
     ;
 
 %% /* end of grammar */
 
-/* create a value node in the AST */
-ASTnode *mkValNode(double val) {
+/* allocate space for a new node */
+ASTnode *newNode() {
     ASTnode *p;
-    /* allocate node */
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
-    /* copy information */
+    else
+        return p;
+}
+
+/* create a value node in the AST */
+ASTnode *mkValNode(double val) {
+    ASTnode *p = newNode();
     p->type = typeVal;
     p->val = val;
     return p;
@@ -191,11 +181,7 @@ ASTnode *mkValNode(double val) {
 
 /* create a string node in the AST */
 ASTnode *mkStrNode(char *str) {
-    ASTnode *p;
-    /* allocate node */
-    if ((p = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
-    /* copy information */
+    ASTnode *p = newNode();
     p->type = typeStr;
     p->str = strdup(str);
     return p;
@@ -203,10 +189,7 @@ ASTnode *mkStrNode(char *str) {
 
 /* create a variable or function node in the AST */
 ASTnode *mkIdNode(char *ident) {
-    ASTnode *p;
-    /* allocate node */
-    if ((p = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
+    ASTnode *p = newNode();
     /* look up identifier in variable and function tables */
     var *v; func f;
     if ((f = getFn(ident)) != NULL) {
@@ -228,39 +211,29 @@ ASTnode *mkIdNode(char *ident) {
 /* create a param node in the AST */
 /* reuse the var struct, it's close enough */
 ASTnode *mkParamNode(ASTnode *ident, ASTnode *node) {
-    ASTnode *p;
-    /* allocate node */
-    if ((p = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
+    ASTnode *p = newNode();
+    /* allocate space for var */
     if ((p->varPtr = malloc(sizeof(var))) == NULL)
         yyerror("out of memory");
     /* copy information */
     p->type = typeParam;
     p->varPtr->name = ident->str;
-    p->varPtr->type = node->type;
     p->varPtr->value = node;
     return p;
 }
 
 ASTnode *mkTypeNode(int type) {
-    ASTnode *p;
-    /* allocate node */
-    if ((p = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
-    /* copy information */
+    ASTnode *p = newNode();
     p->type = type;
     return p;
 }
 
 /* create an operation node in the AST */
 ASTnode *mkOpNode(int oper, int nops, ...) {
-    ASTnode *p;
-    /* allocate node */
-    if ((p = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
+    ASTnode *p = newNode();
+    /* allocate space for ops */
     if ((p->op.ops = malloc(nops * sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
-    /* copy information */
     p->type = typeOp;
     p->op.oper = oper;
     p->op.nops = nops;
@@ -287,8 +260,8 @@ void freeNode(ASTnode *p) {
     }
 }
 
-/* add an AST node to the end of a linked list of arguments */
-ASTnode *appendArg(ASTnode *root, ASTnode *node) {
+/* add an ASTnode to the end of a linked list of arguments */
+ASTnode *append(ASTnode *root, ASTnode *node) {
     ASTnode *traverse;
     for (traverse = root; traverse->next != NULL; traverse = traverse->next);
     traverse->next = node;
@@ -342,12 +315,17 @@ var *getVar(char const *varName) {
 }
 
 /* Called by yyparse on error. */
-void yyerror(char *s) {
-    fprintf(stderr, "delbrot:%d error: %s\n", linenumber, s);
+void yyerror(char *error, ...) {
+    fprintf(stderr, "delbrot:%d error: ", linenumber);
+    va_list arglist;
+    va_start(arglist, error);
+    vfprintf(stderr, error, arglist);
+    va_end(arglist);
+    fprintf(stderr, "\n");
     exit(1);
 }
 
 int main () {
-    //yydebug = 1;
+    // yydebug = 1;
     return yyparse();
 }

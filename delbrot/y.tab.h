@@ -1,8 +1,10 @@
-/* A Bison parser, made by GNU Bison 2.7.12-4996.  */
 
-/* Bison interface for Yacc-like parsers in C
+/* A Bison parser, made by GNU Bison 2.4.1.  */
+
+/* Skeleton interface for Bison's Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,15 +32,6 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_Y_TAB_H_INCLUDED
-# define YY_YY_Y_TAB_H_INCLUDED
-/* Enabling traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
-#if YYDEBUG
-extern int yydebug;
-#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -50,29 +43,27 @@ extern int yydebug;
      T_DOUBLE = 259,
      T_STRING = 260,
      CONSTANT = 261,
-     STRING_LITERAL = 262,
-     IDENTIFIER = 263,
-     LE = 264,
-     GE = 265,
-     EQ = 266,
-     NE = 267,
-     ADDEQ = 268,
-     SUBEQ = 269,
-     MULEQ = 270,
-     DIVEQ = 271,
-     MODEQ = 272,
-     IF = 273,
-     ELSE = 274,
-     WHILE = 275,
-     FNCT = 276,
-     FNDEF = 277,
-     VARDEF = 278,
-     IFX = 279,
-     LOR = 280,
-     LAND = 281,
-     NEG = 282,
-     DEC = 283,
-     INC = 284
+     IDENTIFIER = 262,
+     LE = 263,
+     GE = 264,
+     EQ = 265,
+     NE = 266,
+     ADDEQ = 267,
+     SUBEQ = 268,
+     MULEQ = 269,
+     DIVEQ = 270,
+     MODEQ = 271,
+     IF = 272,
+     ELSE = 273,
+     WHILE = 274,
+     FNCT = 275,
+     FNDEF = 276,
+     IFX = 277,
+     LOR = 278,
+     LAND = 279,
+     NEG = 280,
+     DEC = 281,
+     INC = 282
    };
 #endif
 /* Tokens.  */
@@ -80,29 +71,28 @@ extern int yydebug;
 #define T_DOUBLE 259
 #define T_STRING 260
 #define CONSTANT 261
-#define STRING_LITERAL 262
-#define IDENTIFIER 263
-#define LE 264
-#define GE 265
-#define EQ 266
-#define NE 267
-#define ADDEQ 268
-#define SUBEQ 269
-#define MULEQ 270
-#define DIVEQ 271
-#define MODEQ 272
-#define IF 273
-#define ELSE 274
-#define WHILE 275
-#define FNCT 276
-#define FNDEF 277
-#define VARDEF 278
-#define IFX 279
-#define LOR 280
-#define LAND 281
-#define NEG 282
-#define DEC 283
-#define INC 284
+#define IDENTIFIER 262
+#define LE 263
+#define GE 264
+#define EQ 265
+#define NE 266
+#define ADDEQ 267
+#define SUBEQ 268
+#define MULEQ 269
+#define DIVEQ 270
+#define MODEQ 271
+#define IF 272
+#define ELSE 273
+#define WHILE 274
+#define FNCT 275
+#define FNDEF 276
+#define IFX 277
+#define LOR 278
+#define LAND 279
+#define NEG 280
+#define DEC 281
+#define INC 282
+
 
 
 
@@ -115,18 +105,4 @@ typedef int YYSTYPE;
 
 extern YYSTYPE yylval;
 
-#ifdef YYPARSE_PARAM
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void *YYPARSE_PARAM);
-#else
-int yyparse ();
-#endif
-#else /* ! YYPARSE_PARAM */
-#if defined __STDC__ || defined __cplusplus
-int yyparse (void);
-#else
-int yyparse ();
-#endif
-#endif /* ! YYPARSE_PARAM */
 
-#endif /* !YY_YY_Y_TAB_H_INCLUDED  */

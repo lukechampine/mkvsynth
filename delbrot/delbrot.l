@@ -33,7 +33,7 @@
                         char *str = strdup(yytext+1);
                         str[yyleng-2] = 0;
                         yylval = mkStrNode(str);
-                        return STRING_LITERAL;
+                        return CONSTANT;
                     }
     /* increment/decrement -- these are preincrements! Post increments are not supported! */
 "++"                    return INC;

@@ -5,45 +5,24 @@
 #include "delbrot.h"
 #include "y.tab.h"
 
-/* define a variable */
-void define(int type, ASTnode *ident, ASTnode *valueNode) {
-    if (ident->type == typeVar) {
-        if (type != valueNode->type)
-            yyerror("failed to instantiate variable (type mismatch)");
-        memcpy(ident->varPtr->value, valueNode, sizeof(ASTnode));
-        ident->varPtr->type = type;
-        return;
-    }
+/* assign a variable */
+ASTnode* assign(ASTnode *ident, ASTnode *valueNode) {
+    /* existing variable */
+    if (ident->type == typeVar)
+        return memcpy(ident->varPtr->value, valueNode, sizeof(ASTnode));
+
+    /* new variable */
     if (ident->type != typeId)
         yyerror("can't assign to a constant value");
-    if (type != valueNode->type)
-        yyerror("failed to instantiate variable (type mismatch)");
-    /* allocate new node */
-    ASTnode *p;
-    if ((p = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
+    ASTnode *p = newNode();
     p->type = typeVar;
     p->varPtr = putVar(ident->id);
-    p->varPtr->type = type;
     memcpy(p->varPtr->value, valueNode, sizeof(ASTnode));
-}
-
-/* assign a variable */
-ASTnode *assign(ASTnode *p, ASTnode *c1, ASTnode *c2) {
-    if (c1->type == typeId)
-        yyerror("can't assign to undefined variable");
-    if (c1->type != typeVar)
-        yyerror("can't assign to a constant value");
-    if (c1->varPtr->type != c2->type)
-        yyerror("failed to assign variable (type mismatch)");
-    p = memcpy(c1->varPtr->value, c2, sizeof(ASTnode));
     return p;
 }
 
 /* dereference a variable */
 ASTnode *dereference(ASTnode *p) {
-    if (p->type != typeVar)
-        yyerror("dereference called on non-variable");
     ASTnode *next = p->next;
     memcpy(p, p->varPtr->value, sizeof(ASTnode));
     p->next = next;
@@ -52,11 +31,8 @@ ASTnode *dereference(ASTnode *p) {
 
 /* handle function calls */
 ASTnode *fnctCall(ASTnode *p, ASTnode *node, ASTnode *args) {
-    char errorMsg[128];
-    if (node->type == typeId) {
-        sprintf(errorMsg, "reference to undefined function \"%s\"", node->id);
-        yyerror(errorMsg);
-    }
+    if (node->type == typeId)
+        yyerror("reference to undefined function \"%s\"", node->id);
     if (node->type != typeFn)
         yyerror("expected function name before '('");
     p = (*(node->fnPtr))(p, args);
@@ -64,49 +40,41 @@ ASTnode *fnctCall(ASTnode *p, ASTnode *node, ASTnode *args) {
 }
 
 /* execute a section of the AST */
-ASTnode* ex(ASTnode *n) {
-    if (!n)
+ASTnode* ex(ASTnode *p) {
+    if (!p)
         return NULL;
-
-    /* allocate new node to return */
-    ASTnode *p;
-    if ((p = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
-    /* copy information */
-    memcpy(p, n, sizeof(ASTnode));
 
     /* for convenience/readability */
     ASTnode **child = p->op.ops;
-
-    switch(n->type) {
+ 
+    switch(p->type) {
         case typeVar: return dereference(p);
         case typeOp:
             p->type = typeVal; /* this is almost always the case. For special cases it can be redefined. */
-            switch(n->op.oper) {
+            switch(p->op.oper) {
                 /* declarations */
-                case VARDEF: define(child[0]->type, child[1], ex(child[2])); return NULL;
+                case FNDEF: return NULL;
                 /* keywords */
                 case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); return NULL;
-                case WHILE: while (ex(child[0])->val) ex(child[1]); return NULL;
                 /* functions */
                 case FNCT:  return fnctCall(p, child[0], ex(child[1]));
                 /* assignment */
-                case '=':   return assign(p, child[0], ex(child[1])); 
-                case ADDEQ: return modvar(p, child[0], '+', ex(child[1])->val);
-                case SUBEQ: return modvar(p, child[0], '-', ex(child[1])->val);
-                case MULEQ: return modvar(p, child[0], '*', ex(child[1])->val);
-                case DIVEQ: return modvar(p, child[0], '/', ex(child[1])->val);
-                case MODEQ: return modvar(p, child[0], '%', ex(child[1])->val);
+                case '=':   return assign(child[0], ex(child[1])); 
+                case ADDEQ: return modvar(child[0], '+', ex(child[1])->val);
+                case SUBEQ: return modvar(child[0], '-', ex(child[1])->val);
+                case MULEQ: return modvar(child[0], '*', ex(child[1])->val);
+                case DIVEQ: return modvar(child[0], '/', ex(child[1])->val);
+                case MODEQ: return modvar(child[0], '%', ex(child[1])->val);
+                case INC:   return modvar(child[0], '+', 1);
+                case DEC:   return modvar(child[0], '-', 1);
                 /* arithmetic operators */
                 case '%':   p->val = (int) ex(child[0])->val % (int) ex(child[1])->val; return p;
                 case '^':   p->val = pow(ex(child[0])->val, ex(child[1])->val); return p;
-                case '*':   p->val = ex(child[0])->val * ex(child[1])->val; return p;
-                case '/':   p->val = ex(child[0])->val / ex(child[1])->val; return p;
-                case '+':   p->val = ex(child[0])->val + ex(child[1])->val; return p;
-                case '-':   p->val = ex(child[0])->val - ex(child[1])->val; return p;
-                case NEG:   p->val = -(ex(child[0])->val);                  return p;
-                case INC:   return modvar(p, child[0], '+', 1);
-                case DEC:   return modvar(p, child[0], '-', 1);
+                case '*':   p->val = ex(child[0])->val * ex(child[1])->val;  return p;
+                case '/':   p->val = ex(child[0])->val / ex(child[1])->val;  return p;
+                case '+':   p->val = ex(child[0])->val + ex(child[1])->val;  return p;
+                case '-':   p->val = ex(child[0])->val - ex(child[1])->val;  return p;
+                case NEG:   p->val = -(ex(child[0])->val);                   return p;
                 /* boolean operators */
                 case '!':   p->val = !ex(child[0])->val;                     return p;
                 case '>':   p->val = ex(child[0])->val > ex(child[1])->val;  return p;
@@ -128,15 +96,13 @@ ASTnode* ex(ASTnode *n) {
 /* helper function to ensure that a function call is valid. Also calls ex() on each argument */
 /* TODO: use ... to allow type checking */
 ASTnode* checkArgs(char *funcName, ASTnode *args, int numArgs) {
-    char errorMsg[128];
     int i;
     ASTnode *root = args;
     ASTnode *traverse = args;
     /* check for missing arguments */
     for (i = 0; i < numArgs; i++) {
         if (traverse == NULL) {
-            sprintf(errorMsg, "%s expected %d arguments, got %d", funcName, numArgs, i);
-            yyerror(errorMsg);
+            yyerror("%s expected %d arguments, got %d", funcName, numArgs, i);
             break;
         }
         traverse = traverse->next;
@@ -144,18 +110,15 @@ ASTnode* checkArgs(char *funcName, ASTnode *args, int numArgs) {
     /* check for excess arguments */
     if (traverse != NULL && traverse->type != typeParam) {
         while ((traverse = traverse->next) != NULL) i++;
-        sprintf(errorMsg, "%s expected %d arguments, got %d", funcName, numArgs, ++i);
-        yyerror(errorMsg);
+        yyerror("%s expected %d arguments, got %d", funcName, numArgs, ++i);
     }
     /* evaluate each argument */
     /* gross, fix this */
     root = ex(root);
     traverse = root->next;
     for (i = 1; i < numArgs; i++) {
-        if (traverse->type == typeId) {
-            sprintf(errorMsg, "reference to uninitialized variable %s", args->id);
-            yyerror(errorMsg);
-        }
+        if (traverse->type == typeId)
+            yyerror("reference to uninitialized variable %s", args->id);
         traverse = ex(traverse);
         traverse = traverse->next;
     }
@@ -169,26 +132,22 @@ ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1); p->val = 
 ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = sqrt(args->val); return p; }
 
 /* modify the value of a variable */
-ASTnode* modvar(ASTnode *p, ASTnode *c1, char op, double mod) {
-    if(c1->type == typeId) {
-        char errorMsg[128];
-        sprintf(errorMsg, "reference to uninitialized variable %s", p->id);
-        yyerror(errorMsg);
-    }
-    if(c1->type != typeVar)
+ASTnode* modvar(ASTnode *varNode, char op, double mod) {
+    if(varNode->type == typeId)
+        yyerror("reference to uninitialized variable \"%s\"", varNode->id);
+    if(varNode->type != typeVar)
         yyerror("can't modify constant");
-    if(c1->varPtr->value->type != typeVal)
-        yyerror("can't modify non-numeric variable");
+    if(varNode->varPtr->value->type != typeVal)
+        yyerror("can't modify non-numeric variable \"%s\"", varNode->id);
 
     switch (op) {
-        case '+': c1->varPtr->value->val += mod; break;
-        case '-': c1->varPtr->value->val -= mod; break;
-        case '*': c1->varPtr->value->val *= mod; break;
-        case '/': c1->varPtr->value->val /= mod; break;
-        case '%': c1->varPtr->value->val = (double)((int)c1->varPtr->value->val % (int)mod); break;
+        case '+': varNode->varPtr->value->val += mod; break;
+        case '-': varNode->varPtr->value->val -= mod; break;
+        case '*': varNode->varPtr->value->val *= mod; break;
+        case '/': varNode->varPtr->value->val /= mod; break;
+        case '%': varNode->varPtr->value->val = ((int)varNode->varPtr->value->val % (int)mod); break;
     }
-    p = ex(c1);
-    return p;
+    return ex(varNode);
 }
 
 /* helper function to get optional arguments in a function call */
@@ -213,7 +172,7 @@ char* unesc(char* str) {
                 case '\\':str[i] = '\\'; break;
                 case '\'':str[i] = '\''; break;
                 case '\"':str[i] = '\"'; break;
-                default: yyerror("unknown literal");
+                default: yyerror("unknown literal \"\\%c\"", str[i+1]);
             }
             for (j = i + 1; str[j] != '\0'; j++)
                 str[j] = str[j+1];
@@ -227,11 +186,8 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
     while(args) {
         /* reduce any unevaluated arguments */
         args = ex(args);
-        if (args->type == typeId) {
-            char errorMsg[128];
-            sprintf(errorMsg, "reference to uninitialized variable %s", args->id);
-            yyerror(errorMsg);
-        }
+        if (args->type == typeId)
+            yyerror("reference to uninitialized variable \"%s\"", args->id);
         /* print according to argument type */
         if (args->type == typeVal)
             printf("%.10g ", args->val);

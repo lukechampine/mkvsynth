@@ -33,18 +33,19 @@ struct ASTnode {
 #define YYSTYPE ASTnode*
 
 /* ASTnode prototypes */
+ASTnode *newNode();
 ASTnode *mkIdNode(char *);
 ASTnode *mkValNode(double);
 ASTnode *mkStrNode(char *);
 ASTnode *mkTypeNode(int);
 ASTnode *mkOpNode(int, int, ...);
 ASTnode *mkParamNode(ASTnode *, ASTnode *);
-ASTnode *appendArg(ASTnode *, ASTnode *);
+ASTnode *append(ASTnode *, ASTnode *);
+ASTnode *ex(ASTnode *);
 
 /* a variable  */
 struct var {
     char *name;             /* variable name */
-    int type;               /* variable type */
     ASTnode *value;         /* ASTnode it references */
     struct var *next;       /* link field */
 };
@@ -62,10 +63,8 @@ ASTnode* nsin(ASTnode *, ASTnode *);
 ASTnode* ncos(ASTnode *, ASTnode *);
 ASTnode* nlog(ASTnode *, ASTnode *);
 ASTnode* nsqrt(ASTnode *, ASTnode *);
-ASTnode* modvar(ASTnode *, ASTnode *, char, double);
+ASTnode* modvar(ASTnode *, char, double);
 
 /* mkvsynth function prototypes */
 ASTnode* ffmpegDecode(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);
-
-
