@@ -134,7 +134,12 @@ arithmetic_expr
 
 function_expr
     : prefix_expr
-    | function_expr '(' arg_list ')'                         { $$ = mkOpNode(FNCT, 2, $1, $3);           }
+    | function_composition '(' arg_list ')'                  { $$ = mkOpNode(FNCT, 2, $1, $3);           }
+    ;
+
+function_composition
+    : prefix_expr
+    | function_composition '.' prefix_expr                   { $$ = append($3, $1);                      }
     ;
 
 arg_list

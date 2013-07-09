@@ -30,12 +30,18 @@ ASTnode *dereference(ASTnode *p) {
 }
 
 /* handle function calls */
-ASTnode *fnctCall(ASTnode *p, ASTnode *node, ASTnode *args) {
-    if (node->type == typeId)
-        yyerror("reference to undefined function \"%s\"", node->id);
-    if (node->type != typeFn)
+ASTnode *fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
+    if (fnNode->type == typeId)
+        yyerror("reference to undefined function \"%s\"", fnNode->id);
+    if (fnNode->type != typeFn)
         yyerror("expected function name before '('");
-    p = (*(node->fnPtr))(p, args);
+
+    p = (*(fnNode->fnPtr))(p, args);
+    /* composed function call */
+    while (fnNode->next) {
+        fnNode = fnNode->next;
+        p = (*(fnNode->fnPtr))(p, p);
+    }
     return p;
 }
 
