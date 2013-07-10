@@ -1,3 +1,6 @@
+// There should probably be error checking statements around all of the mallocs(), frees(), and inits()
+// And probably some decent way to handle errors needs to be added to the whole system.
+
 #ifndef _datatypes_h_
 #define _datatypes_h_
 
@@ -52,7 +55,6 @@ typedef struct {
 	int height;
 	int colorDepth;
 	int colorSpace;
-	int payloadBytes;
 
 	int outputBreadth;
 	sem_t *remainingBuffer;
@@ -141,55 +143,131 @@ typedef struct {
 
 } MkvsynthGetParams;
 
-// getFrame should probably only be returning a payload, just like putFrame
-// only takes a payload as input
+///////////////////////////////////////
+// getFrame(MkvsynthGetParams *params)
+// 	
+//	PARAMS
+//		getFrame() uses the params struct to keep track of the current frame, and
+//		and to know which semaphore in the control node array is the correct semaphore.
+//		getFrame() also needs to know how many bytes the payload is so it can call
+//		malloc()
+//
+//	MUTEXES AND SEMAPHORES
+//		Due to potential race conditions, getFrame() must first wait until it's respective
+//		putFrame() has signaled that the next frame is ready. That's why sem_wait() is called
+//		first. Once it recieves a signal, it needs exlusive access to the value filtersRemaining,
+//		so it locks the semaphore associated with the frame delivered by putFrame(). 
+//
+//		Because mkvsynth assumes that all cores share RAM, there is no benefit to having multiple
+//		threads copy the payload at the same time, so the mutex is kept locked just to make life
+//		easier.
+//
+//		When all modifications are complete, the frame is unlocked so that other threads may
+//		have access. A sem_post is then placed to indicate to the respective putFrame() that
+//		there is additional room in the buffer for a new frame.
+//
+//	COPYING FRAMES OVER
+//		getFrame assumes that the calling filter will use the memory allocated for the payload
+//		as a workspace, and thus gives each input filter its own copy of the data. The goal is
+//		for each copied frame to be a working replacement of the original frame. 
+//			1. Two things must be allocated: the frame itself and then space for the payload. 
+//			2. The payload needs to be copied from the original frame to the new frame.
+//			3. filtersRemaining is set to 0 because no other filters will see the new frame.
+//			4. The mutex gets initialized because an initialized mutex is part of an mkvsynthFrame
+//			5. nextFrame points to NULL, because this frame is in a 'dead' stream -> no output
+//				filter will ever concatenate to it. Maybe one future feature will be tweaking
+//				these functions such that as getFrame() pulls more frames, it also links them
+//				together so that they form their own proper chain. But right now the idea is
+//				making my head spin because in order for that chain to be proper, it will need
+//				a control node and semaphores.
+//		to be copied from the original frame to the new frame. Then filtersRemaining is set to
+//		0 because the only filter that needs to read the new frame already recieved it. Then
+//		the mutex needs to be initialized
+//
+//		If this filter is the last filter to request the frame, there is no reason to do all the copying.
+//		instead, newFrame is just pointed to the same location as params->currentFrame. filtersRemaining
+//		is set to 0 to acknowledge that every filter has seen and used the data.
+//
+//	FINISHING
+//		getFrame advances params->currentFrame so that it's pointing in the right place the next
+//		time that it gets called. Finally, it returns newFrame.
+//
+///////////////////////////////////////
 
-//getFrame allocates a new
 MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
-	MkvsynthFrame *newFrame = malloc(sizeof(MkvsynthFrame));
+	MkvsynthFrame *newFrame;
 
 	sem_wait(params->remainingBuffer);
-	pthread_mutex_lock(params->currentFrame->lock);
+	
+	// If the current frame is NULL after sem_wait, then we've reached the end of the video
+	if(params->currentFrame == NULL)
+		return NULL;
+
+	pthread_mutex_lock(&params->currentFrame->lock);
 
 	if(params->currentFrame->filtersRemaining > 1) {
-		params->currentFrame->filtersRemaining--;
+		newFrame = malloc(sizeof(MkvsynthFrame));
 		newFrame->payload = malloc(params->payloadBytes);
-		*newFrame->payload = *params->currentFrame->payload;
-		newFrame->nextFrame = params->currentFrame->nextFrame;
+		memcpy(newFrame->payload, params->currentFrame->payload, params->payloadBytes);
 		newFrame->filtersRemaining = 0;
+		pthread_mutex_init(&newFrame->lock, NULL);
+		newFrame->nextFrame = params->currentFrame->nextFrame;
+		
+		params->currentFrame->filtersRemaining--;
 	} else {
 		params->currentFrame->filtersRemaining = 0;
-		return params->currentFrame;
+		newFrame = params->currentFrame;
 	}
 
-	// Because this function is copying frames over, and all cores share
-	// memory, the program will not be made faster by allowing multiple
-	// threads/cores to access the data for copying at the same time.
-
-	pthread_mutex_unlock(params->currentFrame->lock);
-	sem_post(&consumedBuffer);
-
+	pthread_mutex_unlock(&params->currentFrame->lock);
+	sem_post(params->consumedBuffer);
+	
+	params->currentFrame = params->currentFrame->nextFrame;
 	return newFrame;
 }
 
-// input changed from a frame to just a payload; the filters should only
-// be worrying about the payload. Jarvis handles all of the other things
+///////////////////////////////////////
+// putFrame(MkvsynthControlNode *params, uint8_t *payload)
+// 	
+//	PARAMS
+//		putFrame() needs to access all of the semaphores related to its output buffer,
+//		as well as access to the number of frames that use the output as input
+//		(params->outputBreadth), as well as access to the frame that was most recently
+//		output so that it can modify the pointers correctly.
 //
-// it's late and I'm too tired to see this pointer math clearly, so I'm
-// going to update the function at a later date to reflect the fact that
-// the input was changed from a frame to just a pointer to a payload.
-void putFrame(MkvsynthControlNode *params, uint8_t *payload) {
+//	SEMAPHORES
+//		Because the buffer is shared between all filters that use the output,
+//		putFrame() cannot add a frame to the buffer until every single filter
+//		has said that there is room for it. Similarly, after it has created the
+//		frame it must alert every single input frame that a new frame has been
+//		added to the buffer, because each filter using the output has its own
+//		pair of semaphores.
+//
+//	FRAME CREATION
+//		putFrame() gets a payload, not a frame, because the job belongs to putFrame()
+//		to actually allocate and manage the frame.
+//			1. Allocate the frame in dynamic memory
+//			2. Point payload to the already-dynamically-allocated payload (filter did that)
+//			3. Correctly instantiate filtersRemaining to the outputBreadth
+//			4. Initialize the mutex, each frame has its own mutex
+//			5. The next frame has not been created, set it to null in the new frame.
+//			6. Point the previous frame at the new frame
+//			7. Update the most recent frame output to being the new frame.
+//
+///////////////////////////////////////
+
+void putFrame(MkvsynthControlNode *params, uint8_t *payload) {	
 	int i;
 	for(i = 0; i < params->outputBreadth; i++)
 		sem_wait(params->consumedBuffer + sizeof(sem_t) * i);
 
+	MkvsynthFrame *newFrame = malloc(sizeof(MkvsynthFrame));
+	newFrame->payload = payload;
+	newFrame->filtersRemaining = params->outputBreadth;
+	pthread_mutex_init(&newFrame->lock, NULL);
 	newFrame->nextFrame = NULL;
 	params->recentFrame->nextFrame = newFrame;
 	params->recentFrame = newFrame;
-
-	if(pthread_mutex_init(&newFrame->lock, NULL) != 0) {
-		// Mutex creation fail error
-	}
 
 	for(i = 0; i < params->outputBreadth; i++)
 		sem_post(params->remainingBuffer + sizeof(sem_t) * i);
@@ -198,6 +276,7 @@ void putFrame(MkvsynthControlNode *params, uint8_t *payload) {
 // Sometimes when clear is called, the whole frame needs to be deleted.
 // Other times however, it was a readOnly frame and only needs to be
 // 	deleted under certain conditions.
+// getReadOnlyFrame() will also necessitate a sem_post()
 void clearFrame(MkvsynthFrame *usedFrame) {
 	if(usedFrame->filtersRemaining == 0) {
 		pthread_mutex_destroy(usedFrame->lock);
@@ -208,5 +287,7 @@ void clearFrame(MkvsynthFrame *usedFrame) {
 		// which doesn't exist yet so error
 	}
 }
+
+// There should probably be error checking statements around all of the mallocs(), frees(), and inits()
 
 #endif
