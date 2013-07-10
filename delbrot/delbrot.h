@@ -41,7 +41,7 @@ ASTnode *mkTypeNode(int);
 ASTnode *mkOpNode(int, int, ...);
 ASTnode *mkParamNode(ASTnode *, ASTnode *);
 ASTnode *append(ASTnode *, ASTnode *);
-ASTnode *ex(ASTnode *);
+ASTnode *ex(ASTnode *, int);
 
 /* a variable  */
 struct var {

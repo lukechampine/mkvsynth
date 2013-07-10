@@ -1925,6 +1925,9 @@ int resWord(char *str) {
         return T_DOUBLE;
     else if (!strcmp(str, "string"))
         return T_STRING;
+    /* function definition */
+    else if (!strcmp(str, "function"))
+        return FNDEF;
     /* not a reserved word */
     else
         return 0;

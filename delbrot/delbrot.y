@@ -6,7 +6,6 @@
     #include "delbrot.h"
     /* prototypes */
     void freeNode(ASTnode *);         /* destroy a node in the AST */
-    ASTnode *ex(ASTnode *);           /* execute a section of the AST */
     void yyerror(char *, ...);
     extern int linenumber;
     #define YYDEBUG 1
@@ -34,7 +33,7 @@
     /* TODO: consider delaying AST evaluation until it has been fully constructed */
 program
     : /* empty program */
-    | program item                                           { ex($2); /*freeNode($2);*/                 }
+    | program item                                           { ex($2,1); /*freeNode($2);*/                 }
     ;
 
 item
@@ -44,8 +43,8 @@ item
 
     /* TODO: make function definitions more Haskell-like */
 function_declaration
-    : 'fn' primary_expr '(' param_list ')' '{' item_list '}' { $$ = mkOpNode(FNDEF, 4, $1, $2, $4, $6);  }
-    | 'fn' primary_expr '(' param_list ')' ';'               { $$ = mkOpNode(FNDEF, 3, $1, $2, $4);      }
+    : FNDEF primary_expr '(' param_list ')' '{' item_list '}' { $$ = mkOpNode(FNDEF, 4, $1, $2, $4, $6);  }
+    | FNDEF primary_expr '(' param_list ')' ';'               { $$ = mkOpNode(FNDEF, 3, $1, $2, $4);      }
     ;
 
 param_list
@@ -55,8 +54,8 @@ param_list
 
     /* TODO: optional parameters? */
 param_decl
-    : type primary_expr
-    | type
+    : /* empty */
+    | type primary_expr
     ;
 
 type
@@ -68,6 +67,7 @@ type
 stmt
     : expression_stmt
     | selection_stmt
+    | iteration_stmt
     | increment_stmt
     ;
 
@@ -79,6 +79,10 @@ expression_stmt
 selection_stmt
     : IF '(' expr ')' block %prec IFX                        { $$ = mkOpNode(IF, 2, $3, $5);             }
     | IF '(' expr ')' block ELSE block                       { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
+    ;
+
+iteration_stmt
+    : WHILE '(' expr ')' block                               { $$ = mkOpNode(WHILE, 2, $3, $5);          }
     ;
 
 block
@@ -332,5 +336,7 @@ void yyerror(char *error, ...) {
 
 int main () {
     // yydebug = 1;
+    var *v = putVar("pi");
+    v->value->val = 3.141592653589793238462;
     return yyparse();
 }
