@@ -15,7 +15,7 @@
 %token CONSTANT IDENTIFIER
 %token LE GE EQ NE
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ
-%token IF ELSE WHILE
+%token IF ELSE FOR WHILE
 %token FNCT FNDEF
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
@@ -33,7 +33,7 @@
     /* TODO: consider delaying AST evaluation until it has been fully constructed */
 program
     : /* empty program */
-    | program item                                           { ex($2,1); /*freeNode($2);*/                 }
+    | program item                                            { ex($2); /*freeNode($2);*/                   }
     ;
 
 item
@@ -59,45 +59,46 @@ param_decl
     ;
 
 type
-    : T_INT                                                  { $$ = mkTypeNode(typeVal);                 }
-    | T_DOUBLE                                               { $$ = mkTypeNode(typeVal);                 }
-    | T_STRING                                               { $$ = mkTypeNode(typeStr);                 }
+    : T_INT                                                   { $$ = mkTypeNode(typeVal);                 }
+    | T_DOUBLE                                                { $$ = mkTypeNode(typeVal);                 }
+    | T_STRING                                                { $$ = mkTypeNode(typeStr);                 }
     ;
 
 stmt
     : expression_stmt
     | selection_stmt
-    | iteration_stmt
+    | iteration_stmt                                          { $1->readonly = 1; /* set readonly flag */ }
     | increment_stmt
     ;
 
 expression_stmt
-    : ';'                                                    { $$ = mkOpNode(';', 2, NULL, NULL);        }
-    | expr ';'                                               { $$ = $1;                                  }
+    : ';'                                                     { $$ = mkOpNode(';', 2, NULL, NULL);        }
+    | expr ';'                                                { $$ = $1;                                  }
     ;
 
 selection_stmt
-    : IF '(' expr ')' block %prec IFX                        { $$ = mkOpNode(IF, 2, $3, $5);             }
-    | IF '(' expr ')' block ELSE block                       { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
+    : IF '(' expr ')' block %prec IFX                         { $$ = mkOpNode(IF, 2, $3, $5);             }
+    | IF '(' expr ')' block ELSE block                        { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
     ;
 
 iteration_stmt
-    : WHILE '(' expr ')' block                               { $$ = mkOpNode(WHILE, 2, $3, $5);          }
+    : WHILE '(' expr ')' block                                { $$ = mkOpNode(WHILE, 2, $3, $5);          }
+    | FOR '(' expr ';' expr ';' expr ')' block                { $$ = mkOpNode(FOR, 4, $3, $5, $7, $9);    }
     ;
 
 block
     : item
-    | '{' item_list '}'                                      { $$ = $2;                                  }
+    | '{' item_list '}'                                       { $$ = $2;                                  }
     ;
 
 item_list
     : item
-    | item_list item                                         { $$ = mkOpNode(';', 2, $1, $2);            }
+    | item_list item                                          { $$ = mkOpNode(';', 2, $1, $2);            }
     ;
 
 increment_stmt
-    : primary_expr INC ';'                                   { $$ = mkOpNode(INC, 1, $1);                }
-    | primary_expr DEC ';'                                   { $$ = mkOpNode(DEC, 1, $1);                }
+    : primary_expr INC ';'                                    { $$ = mkOpNode(INC, 1, $1);                }
+    | primary_expr DEC ';'                                    { $$ = mkOpNode(DEC, 1, $1);                }
     ;
 
 expr
@@ -106,67 +107,67 @@ expr
 
 assignment_expr
     : boolean_expr
-    | primary_expr  '='  assignment_expr                     { $$ = mkOpNode('=',   2, $1, $3);          }
-    | primary_expr ADDEQ assignment_expr                     { $$ = mkOpNode(ADDEQ, 2, $1, $3);          }
-    | primary_expr SUBEQ assignment_expr                     { $$ = mkOpNode(SUBEQ, 2, $1, $3);          }
-    | primary_expr MULEQ assignment_expr                     { $$ = mkOpNode(MULEQ, 2, $1, $3);          }
-    | primary_expr DIVEQ assignment_expr                     { $$ = mkOpNode(DIVEQ, 2, $1, $3);          }
-    | primary_expr MODEQ assignment_expr                     { $$ = mkOpNode(MODEQ, 2, $1, $3);          }
+    | primary_expr  '='  assignment_expr                      { $$ = mkOpNode('=',   2, $1, $3);          }
+    | primary_expr ADDEQ assignment_expr                      { $$ = mkOpNode(ADDEQ, 2, $1, $3);          }
+    | primary_expr SUBEQ assignment_expr                      { $$ = mkOpNode(SUBEQ, 2, $1, $3);          }
+    | primary_expr MULEQ assignment_expr                      { $$ = mkOpNode(MULEQ, 2, $1, $3);          }
+    | primary_expr DIVEQ assignment_expr                      { $$ = mkOpNode(DIVEQ, 2, $1, $3);          }
+    | primary_expr MODEQ assignment_expr                      { $$ = mkOpNode(MODEQ, 2, $1, $3);          }
     ;
 
 boolean_expr
     : arithmetic_expr
-    | boolean_expr EQ arithmetic_expr                        { $$ = mkOpNode(EQ,  2, $1, $3);            }
-    | boolean_expr NE arithmetic_expr                        { $$ = mkOpNode(NE,  2, $1, $3);            }
-    | boolean_expr GE arithmetic_expr                        { $$ = mkOpNode(GE,  2, $1, $3);            }
-    | boolean_expr LE arithmetic_expr                        { $$ = mkOpNode(LE,  2, $1, $3);            }
-    | boolean_expr '>' arithmetic_expr                       { $$ = mkOpNode('>', 2, $1, $3);            }
-    | boolean_expr '<' arithmetic_expr                       { $$ = mkOpNode('<', 2, $1, $3);            }
-    | boolean_expr LOR arithmetic_expr                       { $$ = mkOpNode(LOR, 2, $1, $3);            }
-    | boolean_expr LAND arithmetic_expr                      { $$ = mkOpNode(LAND,2, $1, $3);            }
+    | boolean_expr EQ arithmetic_expr                         { $$ = mkOpNode(EQ,  2, $1, $3);            }
+    | boolean_expr NE arithmetic_expr                         { $$ = mkOpNode(NE,  2, $1, $3);            }
+    | boolean_expr GE arithmetic_expr                         { $$ = mkOpNode(GE,  2, $1, $3);            }
+    | boolean_expr LE arithmetic_expr                         { $$ = mkOpNode(LE,  2, $1, $3);            }
+    | boolean_expr '>' arithmetic_expr                        { $$ = mkOpNode('>', 2, $1, $3);            }
+    | boolean_expr '<' arithmetic_expr                        { $$ = mkOpNode('<', 2, $1, $3);            }
+    | boolean_expr LOR arithmetic_expr                        { $$ = mkOpNode(LOR, 2, $1, $3);            }
+    | boolean_expr LAND arithmetic_expr                       { $$ = mkOpNode(LAND,2, $1, $3);            }
     ;
 
 arithmetic_expr
     : function_expr
-    | arithmetic_expr '+' function_expr                      { $$ = mkOpNode('+', 2, $1, $3);            }
-    | arithmetic_expr '-' function_expr                      { $$ = mkOpNode('-', 2, $1, $3);            }
-    | arithmetic_expr '*' function_expr                      { $$ = mkOpNode('*', 2, $1, $3);            }
-    | arithmetic_expr '/' function_expr                      { $$ = mkOpNode('/', 2, $1, $3);            }
-    | arithmetic_expr '^' function_expr                      { $$ = mkOpNode('^', 2, $1, $3);            }
-    | arithmetic_expr '%' function_expr                      { $$ = mkOpNode('%', 2, $1, $3);            }
+    | arithmetic_expr '+' function_expr                       { $$ = mkOpNode('+', 2, $1, $3);            }
+    | arithmetic_expr '-' function_expr                       { $$ = mkOpNode('-', 2, $1, $3);            }
+    | arithmetic_expr '*' function_expr                       { $$ = mkOpNode('*', 2, $1, $3);            }
+    | arithmetic_expr '/' function_expr                       { $$ = mkOpNode('/', 2, $1, $3);            }
+    | arithmetic_expr '^' function_expr                       { $$ = mkOpNode('^', 2, $1, $3);            }
+    | arithmetic_expr '%' function_expr                       { $$ = mkOpNode('%', 2, $1, $3);            }
     ;
 
 function_expr
     : prefix_expr
-    | function_composition '(' arg_list ')'                  { $$ = mkOpNode(FNCT, 2, $1, $3);           }
+    | function_composition '(' arg_list ')'                   { $$ = mkOpNode(FNCT, 2, $1, $3);           }
     ;
 
 function_composition
     : prefix_expr
-    | function_composition '.' prefix_expr                   { $$ = append($3, $1);                      }
+    | function_composition '.' prefix_expr                    { $$ = append($3, $1);                      }
     ;
 
 arg_list
-    : /* empty */                                            { $$ = NULL;                                }
-    | function_arg                                           { $$ = $1;                                  }
-    | arg_list ',' function_arg                              { $$ = append($1, $3);                      }
+    : /* empty */                                             { $$ = NULL;                                }
+    | function_arg                                            { $$ = $1;                                  }
+    | arg_list ',' function_arg                               { $$ = append($1, $3);                      }
     ;
 
 function_arg
     : expr
-    | primary_expr ':' expr                                  { $$ = mkParamNode($1, $3);                 }
+    | primary_expr ':' expr                                   { $$ = mkParamNode($1, $3);                 }
     ;
 
 prefix_expr
     : primary_expr
-    | '-' prefix_expr                                        { $$ = mkOpNode(NEG, 1, $2);                }
-    | '!' prefix_expr                                        { $$ = mkOpNode('!', 1, $2);                }
+    | '-' prefix_expr                                         { $$ = mkOpNode(NEG, 1, $2);                }
+    | '!' prefix_expr                                         { $$ = mkOpNode('!', 1, $2);                }
     ;
 
 primary_expr
     : IDENTIFIER
     | CONSTANT
-    | '(' expr ')'                                           { $$ = $2;                                  }
+    | '(' expr ')'                                            { $$ = $2;                                  }
     ;
 
 %% /* end of grammar */

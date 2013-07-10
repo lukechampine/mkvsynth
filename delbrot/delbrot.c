@@ -46,17 +46,21 @@ ASTnode *fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
 }
 
 /* execute a section of the AST */
-ASTnode* ex(ASTnode *n, int r) {
+ASTnode* ex(ASTnode *n) {
     if (!n)
         return NULL;
 
-    ASTnode *p;
-    if (r)
-        p = n;
-    else {
+    ASTnode *p = n;
+    if (n->readonly) {
         /* don't reduce node */
         p = newNode();
         memcpy(p, n, sizeof(ASTnode));
+        /* propagate flag to any children */
+        if (p->type == typeOp) {
+            int i;
+            for (i = 0; i < p->op.nops; i++)
+                p->op.ops[i]->readonly = p->readonly;
+        }
     }
 
     /* only nodes with children should be evaluated */
@@ -71,41 +75,42 @@ ASTnode* ex(ASTnode *n, int r) {
 
     switch(p->op.oper) {
         /* declarations */
-        case FNDEF: printf("hi mom\n"); return NULL;
+        case FNDEF: /* not implemented yet */ return NULL;
         /* keywords */
-        case IF:    if (ex(child[0],0)->val) ex(child[1],0); else if (p->op.nops > 2) ex(child[2],0); return NULL;
-        case WHILE: while(ex(child[0],0)->val) ex(child[1],0); return NULL;
+        case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); return NULL;
+        case WHILE: while(ex(child[0])->val) ex(child[1]); return NULL;
+        case FOR:   for(ex(child[0]); ex(child[1])->val; ex(child[2])) ex(child[3]); return NULL;
         /* functions */
         case FNCT:  return fnctCall(p, child[0], child[1]);
         /* assignment */
-        case '=':   return assign(child[0], ex(child[1],r)); 
-        case ADDEQ: return ex(modvar(child[0], '+', ex(child[1],r)->val),r);
-        case SUBEQ: return ex(modvar(child[0], '-', ex(child[1],r)->val),r);
-        case MULEQ: return ex(modvar(child[0], '*', ex(child[1],r)->val),r);
-        case DIVEQ: return ex(modvar(child[0], '/', ex(child[1],r)->val),r);
-        case MODEQ: return ex(modvar(child[0], '%', ex(child[1],r)->val),r);
-        case INC:   return ex(modvar(child[0], '+', 1),r);
-        case DEC:   return ex(modvar(child[0], '-', 1),r);
+        case '=':   return assign(child[0], ex(child[1])); 
+        case ADDEQ: return ex(modvar(child[0], '+', ex(child[1])->val));
+        case SUBEQ: return ex(modvar(child[0], '-', ex(child[1])->val));
+        case MULEQ: return ex(modvar(child[0], '*', ex(child[1])->val));
+        case DIVEQ: return ex(modvar(child[0], '/', ex(child[1])->val));
+        case MODEQ: return ex(modvar(child[0], '%', ex(child[1])->val));
+        case INC:   return ex(modvar(child[0], '+', 1));
+        case DEC:   return ex(modvar(child[0], '-', 1));
         /* arithmetic operators */
-        case '%':   p->val = (int) ex(child[0],r)->val % (int) ex(child[1],r)->val; return p;
-        case '^':   p->val = pow(ex(child[0],r)->val, ex(child[1],r)->val); return p;
-        case '*':   p->val = ex(child[0],r)->val * ex(child[1],r)->val;  return p;
-        case '/':   p->val = ex(child[0],r)->val / ex(child[1],r)->val;  return p;
-        case '+':   p->val = ex(child[0],r)->val + ex(child[1],r)->val;  return p;
-        case '-':   p->val = ex(child[0],r)->val - ex(child[1],r)->val;  return p;
-        case NEG:   p->val = -(ex(child[0],r)->val);                     return p;
+        case '%':   p->val = (int) ex(child[0])->val % (int) ex(child[1])->val; return p;
+        case '^':   p->val = pow(ex(child[0])->val, ex(child[1])->val); return p;
+        case '*':   p->val = ex(child[0])->val * ex(child[1])->val;  return p;
+        case '/':   p->val = ex(child[0])->val / ex(child[1])->val;  return p;
+        case '+':   p->val = ex(child[0])->val + ex(child[1])->val;  return p;
+        case '-':   p->val = ex(child[0])->val - ex(child[1])->val;  return p;
+        case NEG:   p->val = -(ex(child[0])->val);                     return p;
         /* boolean operators */
-        case '!':   p->val = !ex(child[0],r)->val;                       return p;
-        case '>':   p->val = ex(child[0],r)->val > ex(child[1],r)->val;  return p;
-        case '<':   p->val = ex(child[0],r)->val < ex(child[1],r)->val;  return p;
-        case GE:    p->val = ex(child[0],r)->val >= ex(child[1],r)->val; return p;
-        case LE:    p->val = ex(child[0],r)->val <= ex(child[1],r)->val; return p;
-        case EQ:    p->val = ex(child[0],r)->val == ex(child[1],r)->val; return p;
-        case NE:    p->val = ex(child[0],r)->val != ex(child[1],r)->val; return p;
-        case LOR:   p->val = ex(child[0],r)->val || ex(child[1],r)->val; return p;
-        case LAND:  p->val = ex(child[0],r)->val && ex(child[1],r)->val; return p;
+        case '!':   p->val = !ex(child[0])->val;                       return p;
+        case '>':   p->val = ex(child[0])->val > ex(child[1])->val;  return p;
+        case '<':   p->val = ex(child[0])->val < ex(child[1])->val;  return p;
+        case GE:    p->val = ex(child[0])->val >= ex(child[1])->val; return p;
+        case LE:    p->val = ex(child[0])->val <= ex(child[1])->val; return p;
+        case EQ:    p->val = ex(child[0])->val == ex(child[1])->val; return p;
+        case NE:    p->val = ex(child[0])->val != ex(child[1])->val; return p;
+        case LOR:   p->val = ex(child[0])->val || ex(child[1])->val; return p;
+        case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
         /* misc operations */
-        case ';':   ex(child[0],r); p = ex(child[1],r); return p;  
+        case ';':   ex(child[0]); p = ex(child[1]); return p;  
     }
     /* should never wind up here */
     yyerror("Unknown operator");
@@ -132,12 +137,12 @@ ASTnode* checkArgs(char *funcName, ASTnode *args, int numArgs) {
     }
     /* evaluate each argument */
     /* gross, fix this */
-    root = ex(root,1);
+    root = ex(root);
     traverse = root->next;
     for (i = 1; i < numArgs; i++) {
         if (traverse->type == typeId)
             yyerror("reference to uninitialized variable %s", args->id);
-        traverse = ex(traverse,1);
+        traverse = ex(traverse);
         traverse = traverse->next;
     }
     return root;
@@ -206,7 +211,7 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
         if (args->type == typeId)
             yyerror("reference to uninitialized variable \"%s\"", args->id);
         if (args->type == typeVar || args->type == typeOp)
-            args = ex(args,0);
+            args = ex(args);
         /* printable types */
         switch(args->type) {
             case typeVal: printf("%.10g ", args->val); break;
@@ -232,7 +237,7 @@ ASTnode* ffmpegDecode(ASTnode *p, ASTnode *args) {
     // get arguments
     char *str = args->str;
     double frames = getOptArg(args, "frames")
-                  ? ex(getOptArg(args, "frames"),1)->val
+                  ? ex(getOptArg(args, "frames"))->val
                   : -1; /* default value */
     // main function body
     ffmpegDecodeFinal(str, (int) frames);

@@ -1918,6 +1918,8 @@ int resWord(char *str) {
         return ELSE;
     else if (!strcmp(str, "while"))
         return WHILE;
+    else if (!strcmp(str, "for"))
+        return FOR;
     /* types */
     else if (!strcmp(str, "int"))
         return T_INT;

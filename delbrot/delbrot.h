@@ -19,6 +19,7 @@ typedef struct {
 typedef struct var var;
 struct ASTnode {
     nodeType type;          /* type of node */
+    int readonly;           /* determines whether ex() will consume node */
     union {
         double  val;        /* value */
         char   *str;        /* string */
@@ -41,7 +42,7 @@ ASTnode *mkTypeNode(int);
 ASTnode *mkOpNode(int, int, ...);
 ASTnode *mkParamNode(ASTnode *, ASTnode *);
 ASTnode *append(ASTnode *, ASTnode *);
-ASTnode *ex(ASTnode *, int);
+ASTnode *ex(ASTnode *);
 
 /* a variable  */
 struct var {

@@ -55,15 +55,16 @@
      MODEQ = 271,
      IF = 272,
      ELSE = 273,
-     WHILE = 274,
-     FNCT = 275,
-     FNDEF = 276,
-     IFX = 277,
-     LOR = 278,
-     LAND = 279,
-     NEG = 280,
-     DEC = 281,
-     INC = 282
+     FOR = 274,
+     WHILE = 275,
+     FNCT = 276,
+     FNDEF = 277,
+     IFX = 278,
+     LOR = 279,
+     LAND = 280,
+     NEG = 281,
+     DEC = 282,
+     INC = 283
    };
 #endif
 /* Tokens.  */
@@ -83,15 +84,16 @@
 #define MODEQ 271
 #define IF 272
 #define ELSE 273
-#define WHILE 274
-#define FNCT 275
-#define FNDEF 276
-#define IFX 277
-#define LOR 278
-#define LAND 279
-#define NEG 280
-#define DEC 281
-#define INC 282
+#define FOR 274
+#define WHILE 275
+#define FNCT 276
+#define FNDEF 277
+#define IFX 278
+#define LOR 279
+#define LAND 280
+#define NEG 281
+#define DEC 282
+#define INC 283
 
 
 
