@@ -226,46 +226,28 @@ MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
 // 	
 //	PARAMS
 //		putFrame() needs to access all of the semaphores related to its output buffer,
+//		as well as access to the number of frames that use the output as input
+//		(params->outputBreadth), as well as access to the frame that was most recently
+//		output so that it can modify the pointers correctly.
 //
-//	MUTEXES AND SEMAPHORES
-//		Due to potential race conditions, getFrame() must first wait until it's respective
-//		putFrame() has signaled that the next frame is ready. That's why sem_wait() is called
-//		first. Once it recieves a signal, it needs exlusive access to the value filtersRemaining,
-//		so it locks the semaphore associated with the frame delivered by putFrame(). 
+//	SEMAPHORES
+//		Because the buffer is shared between all filters that use the output,
+//		putFrame() cannot add a frame to the buffer until every single filter
+//		has said that there is room for it. Similarly, after it has created the
+//		frame it must alert every single input frame that a new frame has been
+//		added to the buffer, because each filter using the output has its own
+//		pair of semaphores.
 //
-//		Because mkvsynth assumes that all cores share RAM, there is no benefit to having multiple
-//		threads copy the payload at the same time, so the mutex is kept locked just to make life
-//		easier.
-//
-//		When all modifications are complete, the frame is unlocked so that other threads may
-//		have access. A sem_post is then placed to indicate to the respective putFrame() that
-//		there is additional room in the buffer for a new frame.
-//
-//	COPYING FRAMES OVER
-//		getFrame assumes that the calling filter will use the memory allocated for the payload
-//		as a workspace, and thus gives each input filter its own copy of the data. The goal is
-//		for each copied frame to be a working replacement of the original frame. 
-//			1. Two things must be allocated: the frame itself and then space for the payload. 
-//			2. The payload needs to be copied from the original frame to the new frame.
-//			3. filtersRemaining is set to 0 because no other filters will see the new frame.
-//			4. The mutex gets initialized because an initialized mutex is part of an mkvsynthFrame
-//			5. nextFrame points to NULL, because this frame is in a 'dead' stream -> no output
-//				filter will ever concatenate to it. Maybe one future feature will be tweaking
-//				these functions such that as getFrame() pulls more frames, it also links them
-//				together so that they form their own proper chain. But right now the idea is
-//				making my head spin because in order for that chain to be proper, it will need
-//				a control node and semaphores.
-//		to be copied from the original frame to the new frame. Then filtersRemaining is set to
-//		0 because the only filter that needs to read the new frame already recieved it. Then
-//		the mutex needs to be initialized
-//
-//		If this filter is the last filter to request the frame, there is no reason to do all the copying.
-//		instead, newFrame is just pointed to the same location as params->currentFrame. filtersRemaining
-//		is set to 0 to acknowledge that every filter has seen and used the data.
-//
-//	FINISHING
-//		getFrame advances params->currentFrame so that it's pointing in the right place the next
-//		time that it gets called. Finally, it returns newFrame.
+//	FRAME CREATION
+//		putFrame() gets a payload, not a frame, because the job belongs to putFrame()
+//		to actually allocate and manage the frame.
+//			1. Allocate the frame in dynamic memory
+//			2. Point payload to the already-dynamically-allocated payload (filter did that)
+//			3. Correctly instantiate filtersRemaining to the outputBreadth
+//			4. Initialize the mutex, each frame has its own mutex
+//			5. The next frame has not been created, set it to null in the new frame.
+//			6. Point the previous frame at the new frame
+//			7. Update the most recent frame output to being the new frame.
 //
 ///////////////////////////////////////
 
