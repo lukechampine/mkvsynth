@@ -12,7 +12,7 @@
 %}
 
 %token T_INT T_DOUBLE T_STRING
-%token CONSTANT IDENTIFIER
+%token CONSTANT IDENTIFIER PARAM
 %token LE GE EQ NE
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ
 %token IF ELSE FOR WHILE
@@ -155,7 +155,7 @@ arg_list
 
 function_arg
     : expr
-    | primary_expr ':' expr                                   { $$ = mkParamNode($1, $3);                 }
+    | PARAM expr                                              { $1->varPtr->value = $2;                   }
     ;
 
 prefix_expr
@@ -200,35 +200,35 @@ ASTnode *mkStrNode(char *str) {
 /* create a variable or function node in the AST */
 ASTnode *mkIdNode(char *ident) {
     ASTnode *p = newNode();
-    /* look up identifier in variable and function tables */
     var *v; func f;
+    /* function */
     if ((f = getFn(ident)) != NULL) {
         p->type = typeFn;
         p->fnPtr = f;
     }
+    /* existing variable */
     else if ((v = getVar(ident)) != NULL) {
         p->type = typeVar;
         p->varPtr = v;
     }
-    /* could be a new variable or a parameter, so don't do anything yet */
+    /* new variable */
     else {
-        p->type = typeId;
-        p->id = strdup(ident);
+        p->type = typeVar;
+        p->varPtr = putVar(ident);
     }
     return p;
 }
 
 /* create a param node in the AST */
 /* reuse the var struct, it's close enough */
-ASTnode *mkParamNode(ASTnode *ident, ASTnode *node) {
+ASTnode *mkParamNode(char *name) {
     ASTnode *p = newNode();
     /* allocate space for var */
     if ((p->varPtr = malloc(sizeof(var))) == NULL)
         yyerror("out of memory");
     /* copy information */
     p->type = typeParam;
-    p->varPtr->name = ident->str;
-    p->varPtr->value = node;
+    p->varPtr->name = name;
     return p;
 }
 

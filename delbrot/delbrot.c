@@ -5,20 +5,15 @@
 #include "delbrot.h"
 #include "y.tab.h"
 
-/* assign a variable */
-ASTnode* assign(ASTnode *ident, ASTnode *valueNode) {
-    /* existing variable */
-    if (ident->type == typeVar)
-        return memcpy(ident->varPtr->value, valueNode, sizeof(ASTnode));
+#define UNDEFINED(n) n->type == typeVar && n->varPtr->value == NULL
 
-    /* new variable */
-    if (ident->type != typeId)
+/* assign a variable */
+ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
+    /* existing variable */
+    if (varNode->type == typeVar)
+        return memcpy(varNode->varPtr->value, valueNode, sizeof(ASTnode));
+    else
         yyerror("can't assign to a constant value");
-    ASTnode *p = newNode();
-    p->type = typeVar;
-    p->varPtr = putVar(ident->id);
-    memcpy(p->varPtr->value, valueNode, sizeof(ASTnode));
-    return p;
 }
 
 /* dereference a variable */
@@ -31,7 +26,7 @@ ASTnode *dereference(ASTnode *p) {
 
 /* handle function calls */
 ASTnode *fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
-    if (fnNode->type == typeId)
+    if (UNDEFINED(fnNode))
         yyerror("reference to undefined function \"%s\"", fnNode->id);
     if (fnNode->type != typeFn)
         yyerror("expected function name before '('");
@@ -58,8 +53,13 @@ ASTnode* ex(ASTnode *n) {
         /* propagate flag to any children */
         if (p->type == typeOp) {
             int i;
-            for (i = 0; i < p->op.nops; i++)
-                p->op.ops[i]->readonly = p->readonly;
+            for (i = 0; i < p->op.nops; i++) {
+                ASTnode *traverse = p->op.ops[i];
+                while (traverse) {
+                    traverse->readonly = p->readonly;
+                    traverse = traverse->next;
+                }
+            }                   
         }
     }
 
@@ -98,9 +98,9 @@ ASTnode* ex(ASTnode *n) {
         case '/':   p->val = ex(child[0])->val / ex(child[1])->val;  return p;
         case '+':   p->val = ex(child[0])->val + ex(child[1])->val;  return p;
         case '-':   p->val = ex(child[0])->val - ex(child[1])->val;  return p;
-        case NEG:   p->val = -(ex(child[0])->val);                     return p;
+        case NEG:   p->val = -(ex(child[0])->val);                   return p;
         /* boolean operators */
-        case '!':   p->val = !ex(child[0])->val;                       return p;
+        case '!':   p->val = !ex(child[0])->val;                     return p;
         case '>':   p->val = ex(child[0])->val > ex(child[1])->val;  return p;
         case '<':   p->val = ex(child[0])->val < ex(child[1])->val;  return p;
         case GE:    p->val = ex(child[0])->val >= ex(child[1])->val; return p;
@@ -140,7 +140,7 @@ ASTnode* checkArgs(char *funcName, ASTnode *args, int numArgs) {
     root = ex(root);
     traverse = root->next;
     for (i = 1; i < numArgs; i++) {
-        if (traverse->type == typeId)
+        if (UNDEFINED(traverse))
             yyerror("reference to uninitialized variable %s", args->id);
         traverse = ex(traverse);
         traverse = traverse->next;
@@ -156,7 +156,7 @@ ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = 
 
 /* modify the value of a variable */
 ASTnode* modvar(ASTnode *varNode, char op, double mod) {
-    if(varNode->type == typeId)
+    if(UNDEFINED(varNode))
         yyerror("reference to uninitialized variable \"%s\"", varNode->id);
     if(varNode->type != typeVar)
         yyerror("can't modify constant");
@@ -178,7 +178,7 @@ ASTnode* modvar(ASTnode *varNode, char op, double mod) {
 ASTnode* getOptArg(ASTnode *args, char *name) {
     ASTnode *traverse = args;
     for (traverse = args; traverse != NULL; traverse = traverse->next)
-        if (traverse->type == typeParam && !(strcmp(traverse->varPtr->name,name)))
+        if (traverse->type == typeParam && !(strncmp(traverse->varPtr->name,name,strlen(name))))
             return traverse->varPtr->value;
     return NULL;
 }
@@ -206,9 +206,9 @@ char* unesc(char* str) {
 
 /* generalized print function; will print any number of args */
 ASTnode* print(ASTnode *p, ASTnode *args) {
-    while(args) {
+    while(args) { 
         /* unreduced/unprintable types */
-        if (args->type == typeId)
+        if (UNDEFINED(args))
             yyerror("reference to uninitialized variable \"%s\"", args->id);
         if (args->type == typeVar || args->type == typeOp)
             args = ex(args);

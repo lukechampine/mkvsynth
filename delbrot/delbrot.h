@@ -1,5 +1,5 @@
 /* types */
-typedef enum { typeVal, typeStr, typeId, typeFn, typeVar, typeParam, typeOp } nodeType;
+typedef enum { typeVal, typeStr, typeFn, typeVar, typeParam, typeOp } nodeType;
 
 /* a function */
 /* arg1 is passed by reference, and will contain result of the function */
@@ -40,7 +40,7 @@ ASTnode *mkValNode(double);
 ASTnode *mkStrNode(char *);
 ASTnode *mkTypeNode(int);
 ASTnode *mkOpNode(int, int, ...);
-ASTnode *mkParamNode(ASTnode *, ASTnode *);
+ASTnode *mkParamNode(char *);
 ASTnode *append(ASTnode *, ASTnode *);
 ASTnode *ex(ASTnode *);
 

@@ -19,7 +19,11 @@
                         /* variable or function */
                         yylval = mkIdNode(yytext);
                         return IDENTIFIER;
-
+                    }
+    /* optional function parameter */
+[a-zA-Z]+:          {
+                        yylval = mkParamNode(yytext);
+                        return PARAM;
                     }
     /* number, with optional decimal */
 [0-9]+(\.[0-9]+)?   {

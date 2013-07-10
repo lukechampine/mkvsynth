@@ -5,11 +5,20 @@ This is the current implementation of delbrot, the MkvSynth script interpreter.
 At present, delbrot is essentially a glorified calculator. It only has support for doubles and strings. But already it showcases a level of sophistication greater than any previous implementation. Expressions are evaluated recursively, functions can be composed, and optional parameters are supported:
 
 ```perl
-ffmpegDecode("example.mkv"); # prints "decoded example.mkv"
-if ((x = cos . sin(0)) == 1)
-    ffmpegDecode("example.mkv", frames:10*x); # prints "decoded 10 frames of example.mkv"
-```
+# Project Euler problem 1
+total = 0;
+for(x = 0; x < 1000; x += 1)
+    if (!(x % 3 && x % 5))
+	total += x;
+print(total); # prints "233168"
 
+# function composition
+print . cos . sin(0); # equivalent to print(cos(sin(0))), prints "1"
+
+# optional arguments
+ffmpegDecode("example.mkv");            # prints "decoded example.mkv"
+ffmpegDecode("example.mkv", frames:10); # prints "decoded 10 frames of example.mkv"
+```
 
 ## syntax ##
 The syntax of delbrot has fluctuated wildly over the course of its development, so it is unknown at this point what the final syntax of the language will look like. However, one goal of the language is to avoid diverging significantly from what people are used to, i.e. AviSynth's scripting language.
