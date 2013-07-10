@@ -198,6 +198,11 @@ MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
 	MkvsynthFrame *newFrame;
 
 	sem_wait(params->remainingBuffer);
+	
+	// If the current frame is NULL after sem_wait, then we've reached the end of the video
+	if(params->currentFrame == NULL)
+		return NULL;
+
 	pthread_mutex_lock(&params->currentFrame->lock);
 
 	if(params->currentFrame->filtersRemaining > 1) {
