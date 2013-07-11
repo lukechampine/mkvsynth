@@ -20,6 +20,8 @@ ffmpegDecode("example.mkv");            # prints "decoded example.mkv"
 ffmpegDecode("example.mkv", frames:10); # prints "decoded 10 frames of example.mkv"
 ```
 
+There is also some rudimentary support for plugins now, so users can define their own filters/functions using the provided tools and integrate them into the parser without recompiling.
+
 ## syntax ##
 The syntax of delbrot has fluctuated wildly over the course of its development, so it is unknown at this point what the final syntax of the language will look like. However, one goal of the language is to avoid diverging significantly from what people are used to, i.e. AviSynth's scripting language.
 
