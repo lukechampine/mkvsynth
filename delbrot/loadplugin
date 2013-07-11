@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# insert definitions
+sed -i "3i\ASTnode* $1_AST(ASTnode *p, ASTnode *args);" plugins.c
+sed -i "s/0, 0, 0, 0/\"$1\", $1_AST, 0, 0,\n\t0, 0, 0, 0/" plugins.c
+
+# compile/link
