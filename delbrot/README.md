@@ -8,8 +8,8 @@ At present, delbrot is essentially a glorified calculator. It only has support f
 # Project Euler problem 1
 total = 0;
 for(x = 0; x < 1000; x += 1)
-    if (!(x % 3 && x % 5))
-	total += x;
+	if (!(x % 3 && x % 5))
+		total += x;
 print(total); # prints "233168"
 
 # function composition
