@@ -5,37 +5,41 @@
 #include "delbrot.h"
 #include "y.tab.h"
 
-#define UNDEFINED(n) n->type == typeVar && n->varPtr->value == NULL
+#define UNDEFINED(n) n->type == typeVar && n->var->value == NULL
 
 /* assign a variable */
 ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
     /* existing variable */
     if (varNode->type == typeVar)
-        return memcpy(varNode->varPtr->value, valueNode, sizeof(ASTnode));
+        return memcpy(varNode->var->value, valueNode, sizeof(ASTnode));
     else
         yyerror("can't assign to a constant value");
 }
 
 /* dereference a variable */
-ASTnode *dereference(ASTnode *p) {
+ASTnode* dereference(ASTnode *p) {
     ASTnode *next = p->next;
-    memcpy(p, p->varPtr->value, sizeof(ASTnode));
+    memcpy(p, p->var->value, sizeof(ASTnode));
     p->next = next;
     return p;
 }
 
 /* handle function calls */
-ASTnode *fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
+ASTnode* fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     if (UNDEFINED(fnNode))
         yyerror("reference to undefined function \"%s\"", fnNode->id);
     if (fnNode->type != typeFn)
         yyerror("expected function name before '('");
 
-    p = (*(fnNode->fnPtr))(p, args);
+    /* standard function call */
+    p = (*(fnNode->fn->ptr))(p, args);
+
     /* composed function call */
-    while (fnNode->next) {
-        fnNode = fnNode->next;
-        p = (*(fnNode->fnPtr))(p, p);
+    while (fnNode->fn->comp) {
+        funcRec *next = fnNode->fn->comp;
+        p = (*(next->ptr))(p, p);
+        fnNode->fn->comp = NULL;
+        fnNode->fn = next;
     }
     return p;
 }
@@ -110,22 +114,21 @@ ASTnode* ex(ASTnode *n) {
         case LOR:   p->val = ex(child[0])->val || ex(child[1])->val; return p;
         case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
         /* misc operations */
-        case ';':   ex(child[0]); p = ex(child[1]); return p;  
+        case ';':   ex(child[0]); return ex(child[1]);
     }
     /* should never wind up here */
     yyerror("Unknown operator");
 }
 
-/* helper function to ensure that a function call is valid. Also calls ex() on each argument */
+/* helper function to ensure that a function call is valid */
 /* TODO: use ... to allow type checking */
-ASTnode* checkArgs(char *funcName, ASTnode *args, int numArgs) {
+void checkArgs(char *funcName, ASTnode *args, int numArgs) {
     int i;
-    ASTnode *root = args;
     ASTnode *traverse = args;
     /* check for missing arguments */
     for (i = 0; i < numArgs; i++) {
         if (traverse == NULL) {
-            yyerror("%s expected %d arguments, got %d", funcName, numArgs, i);
+            yyerror("%s expected %d argument(s), got %d", funcName, numArgs, i);
             break;
         }
         traverse = traverse->next;
@@ -133,26 +136,15 @@ ASTnode* checkArgs(char *funcName, ASTnode *args, int numArgs) {
     /* check for excess arguments */
     if (traverse != NULL && traverse->type != typeParam) {
         while ((traverse = traverse->next) != NULL) i++;
-        yyerror("%s expected %d arguments, got %d", funcName, numArgs, ++i);
+        yyerror("%s expected %d argument(s), got %d", funcName, numArgs, ++i);
     }
-    /* evaluate each argument */
-    /* gross, fix this */
-    root = ex(root);
-    traverse = root->next;
-    for (i = 1; i < numArgs; i++) {
-        if (UNDEFINED(traverse))
-            yyerror("reference to uninitialized variable %s", args->id);
-        traverse = ex(traverse);
-        traverse = traverse->next;
-    }
-    return root;
 }
 
 /* standard mathematical functions, modified to use ASTnode */
-ASTnode* nsin (ASTnode *p, ASTnode *args) { checkArgs("sin", args, 1); p->val = sin(args->val);  return p; }
-ASTnode* ncos (ASTnode *p, ASTnode *args) { checkArgs("cos", args, 1); p->val = cos(args->val);  return p; }
-ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1); p->val = log(args->val);  return p; }
-ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = sqrt(args->val); return p; }
+ASTnode* nsin (ASTnode *p, ASTnode *args) { checkArgs("sin", args, 1); p->val = sin(ex(args)->val);  return p; }
+ASTnode* ncos (ASTnode *p, ASTnode *args) { checkArgs("cos", args, 1); p->val = cos(ex(args)->val);  return p; }
+ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1); p->val = log(ex(args)->val);  return p; }
+ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = sqrt(ex(args)->val); return p; }
 
 /* modify the value of a variable */
 ASTnode* modvar(ASTnode *varNode, char op, double mod) {
@@ -160,26 +152,31 @@ ASTnode* modvar(ASTnode *varNode, char op, double mod) {
         yyerror("reference to uninitialized variable \"%s\"", varNode->id);
     if(varNode->type != typeVar)
         yyerror("can't modify constant");
-    if(varNode->varPtr->value->type != typeVal)
+    if(varNode->var->value->type != typeVal)
         yyerror("can't modify non-numeric variable \"%s\"", varNode->id);
 
     switch (op) {
-        case '+': varNode->varPtr->value->val += mod; break;
-        case '-': varNode->varPtr->value->val -= mod; break;
-        case '*': varNode->varPtr->value->val *= mod; break;
-        case '/': varNode->varPtr->value->val /= mod; break;
-        case '%': varNode->varPtr->value->val = ((int)varNode->varPtr->value->val % (int)mod); break;
+        case '+': varNode->var->value->val += mod; break;
+        case '-': varNode->var->value->val -= mod; break;
+        case '*': varNode->var->value->val *= mod; break;
+        case '/': varNode->var->value->val /= mod; break;
+        case '%': varNode->var->value->val = ((int)varNode->var->value->val % (int)mod); break;
     }
     return varNode;
 }
 
 /* helper function to get optional arguments in a function call */
 /* TODO: add type checking */
-ASTnode* getOptArg(ASTnode *args, char *name) {
+void* getOptArg(ASTnode *args, char *name, int type) {
     ASTnode *traverse = args;
     for (traverse = args; traverse != NULL; traverse = traverse->next)
-        if (traverse->type == typeParam && !(strncmp(traverse->varPtr->name,name,strlen(name))))
-            return traverse->varPtr->value;
+        if (traverse->type == typeParam && !(strncmp(traverse->var->name,name,strlen(name)))) {
+            ASTnode *value = ex(traverse->var->value);
+            switch (type) {
+                case typeVal: return &value->val;
+                case typeStr: return value->str;
+            }
+        }
     return NULL;
 }
 
@@ -216,6 +213,7 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
         switch(args->type) {
             case typeVal: printf("%.10g ", args->val); break;
             case typeStr: printf("%s ", unesc(args->str)); break;
+            default: /* should never wind up here */ break;
         }
         args = args->next;
     }
@@ -233,14 +231,12 @@ void ffmpegDecodeFinal(char *filename, int numFrames) {
 /* ffmpeg decoding function, showcasing optional arguments */
 ASTnode* ffmpegDecode(ASTnode *p, ASTnode *args) {
     // check that (mandatory) arguments are valid
-    args = checkArgs("ffmpegDecode", args, 1);
+    checkArgs("ffmpegDecode", args, 1);
     // get arguments
     char *str = args->str;
-    double frames = getOptArg(args, "frames")
-                  ? ex(getOptArg(args, "frames"))->val
-                  : -1; /* default value */
+    double frames = OPTVAL("frames", -1);
     // main function body
-    ffmpegDecodeFinal(str, (int) frames);
+    ffmpegDecodeFinal(str, frames);
     // return value
     p->type = typeVal;
     p->val = 0;

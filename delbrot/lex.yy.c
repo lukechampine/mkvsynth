@@ -491,9 +491,10 @@ char *yytext;
     #include "delbrot.h"
     #include "y.tab.h"
     void yyerror(char *);
+    int resWord(char *);
     int linenumber = 1;
 /* don't keep scanning after EOF */
-#line 497 "lex.yy.c"
+#line 498 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -680,11 +681,11 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 12 "delbrot.l"
+#line 13 "delbrot.l"
 
 
     /* keyword, function, or variable */
-#line 688 "lex.yy.c"
+#line 689 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -769,7 +770,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 15 "delbrot.l"
+#line 16 "delbrot.l"
 {
                         /* reserved word */
                         if (resWord(yytext))
@@ -782,7 +783,7 @@ YY_RULE_SETUP
 /* optional function parameter */
 case 2:
 YY_RULE_SETUP
-#line 24 "delbrot.l"
+#line 25 "delbrot.l"
 {
                         yylval = mkParamNode(yytext);
                         return PARAM;
@@ -791,7 +792,7 @@ YY_RULE_SETUP
 /* number, with optional decimal */
 case 3:
 YY_RULE_SETUP
-#line 29 "delbrot.l"
+#line 30 "delbrot.l"
 {
                         yylval = mkValNode(atof(yytext));
                         return CONSTANT;
@@ -801,7 +802,7 @@ YY_RULE_SETUP
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 34 "delbrot.l"
+#line 35 "delbrot.l"
 { //"
                         /* TODO: add check for newlines */
                         /* don't include surrounding quotation marks */
@@ -814,109 +815,109 @@ YY_RULE_SETUP
 /* increment/decrement -- these are preincrements! Post increments are not supported! */
 case 5:
 YY_RULE_SETUP
-#line 43 "delbrot.l"
+#line 44 "delbrot.l"
 return INC;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 44 "delbrot.l"
+#line 45 "delbrot.l"
 return DEC;
 	YY_BREAK
 /* comparator or boolean operator */
 case 7:
 YY_RULE_SETUP
-#line 47 "delbrot.l"
+#line 48 "delbrot.l"
 return GE;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 48 "delbrot.l"
+#line 49 "delbrot.l"
 return LE;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 49 "delbrot.l"
+#line 50 "delbrot.l"
 return EQ;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 50 "delbrot.l"
+#line 51 "delbrot.l"
 return NE;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 51 "delbrot.l"
+#line 52 "delbrot.l"
 return LAND;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 52 "delbrot.l"
+#line 53 "delbrot.l"
 return LOR;
 	YY_BREAK
 /* arithmetic assignment operator */
 case 13:
 YY_RULE_SETUP
-#line 55 "delbrot.l"
+#line 56 "delbrot.l"
 return ADDEQ;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 56 "delbrot.l"
+#line 57 "delbrot.l"
 return SUBEQ;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 57 "delbrot.l"
+#line 58 "delbrot.l"
 return MULEQ;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 58 "delbrot.l"
+#line 59 "delbrot.l"
 return DIVEQ;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 59 "delbrot.l"
+#line 60 "delbrot.l"
 return MODEQ;
 	YY_BREAK
 /* miscellaneous character */
 case 18:
 YY_RULE_SETUP
-#line 62 "delbrot.l"
+#line 63 "delbrot.l"
 return *yytext;
 	YY_BREAK
 /* comment */
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 65 "delbrot.l"
+#line 66 "delbrot.l"
 ; 
 	YY_BREAK
 /* ignore whitespace (2D languages are pig disgusting) */
 case 20:
 YY_RULE_SETUP
-#line 68 "delbrot.l"
+#line 69 "delbrot.l"
 ; 
 	YY_BREAK
 /* used for error messages */
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 71 "delbrot.l"
+#line 72 "delbrot.l"
 linenumber++; 
 	YY_BREAK
 /* anything else is an error */
 case 22:
 YY_RULE_SETUP
-#line 74 "delbrot.l"
+#line 75 "delbrot.l"
 yyerror("Unknown character");
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 76 "delbrot.l"
+#line 77 "delbrot.l"
 ECHO;
 	YY_BREAK
-#line 920 "lex.yy.c"
+#line 921 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1914,7 +1915,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 76 "delbrot.l"
+#line 77 "delbrot.l"
 
 
 

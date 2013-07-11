@@ -4,6 +4,7 @@
     #include "delbrot.h"
     #include "y.tab.h"
     void yyerror(char *);
+    int resWord(char *);
     int linenumber = 1;
 %}
     /* don't keep scanning after EOF */

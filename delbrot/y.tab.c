@@ -1776,7 +1776,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 147 "delbrot.y"
-    { (yyval) = append((yyvsp[(3) - (3)]), (yyvsp[(1) - (3)]));                      }
+    { (yyval) = compose((yyvsp[(3) - (3)]), (yyvsp[(1) - (3)]));                     }
     break;
 
   case 59:
@@ -1804,7 +1804,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 158 "delbrot.y"
-    { (yyvsp[(1) - (2)])->varPtr->value = (yyvsp[(2) - (2)]);                   }
+    { (yyvsp[(1) - (2)])->var->value = (yyvsp[(2) - (2)]);                      }
     break;
 
   case 65:
@@ -2051,8 +2051,7 @@ ASTnode *newNode() {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
-    else
-        return p;
+    return p;
 }
 
 /* create a value node in the AST */
@@ -2074,21 +2073,21 @@ ASTnode *mkStrNode(char *str) {
 /* create a variable or function node in the AST */
 ASTnode *mkIdNode(char *ident) {
     ASTnode *p = newNode();
-    var *v; func f;
+    varRec *v; funcRec *f;
     /* function */
     if ((f = getFn(ident)) != NULL) {
         p->type = typeFn;
-        p->fnPtr = f;
+        p->fn = f;
     }
     /* existing variable */
     else if ((v = getVar(ident)) != NULL) {
         p->type = typeVar;
-        p->varPtr = v;
+        p->var = v;
     }
     /* new variable */
     else {
         p->type = typeVar;
-        p->varPtr = putVar(ident);
+        p->var = putVar(ident);
     }
     return p;
 }
@@ -2098,11 +2097,11 @@ ASTnode *mkIdNode(char *ident) {
 ASTnode *mkParamNode(char *name) {
     ASTnode *p = newNode();
     /* allocate space for var */
-    if ((p->varPtr = malloc(sizeof(var))) == NULL)
+    if ((p->var = malloc(sizeof(varRec))) == NULL)
         yyerror("out of memory");
     /* copy information */
     p->type = typeParam;
-    p->varPtr->name = name;
+    p->var->name = name;
     return p;
 }
 
@@ -2152,35 +2151,38 @@ ASTnode *append(ASTnode *root, ASTnode *node) {
     return root;
 }
 
-/* map strings to their corresponding function pointers */
-static struct {
-    char const *fname;
-    func fnPtr;
-} coreFunctions[] = {
-    "ffmpegDecode", ffmpegDecode,
-    "print", print,
-    "sin", nsin,
-    "cos", ncos,
-    "ln", nlog,
-    "sqrt", nsqrt,
-    0, 0
-};
+/* compose two functions */
+ASTnode *compose(ASTnode *root, ASTnode *node) {
+    funcRec *traverse;
+    for (traverse = root->fn; traverse->comp != NULL; traverse = traverse->comp);
+    traverse->comp = node->fn;
+    return root;
+}
+
+/* the function table */
+funcRec *fnTable;
+
+funcRec *putFn(funcRec *fn) {
+    fn->next = fnTable;
+    fnTable = fn;
+    return fn;
+}
 
 /* look up a function name's corresponding pointer */
-func getFn(char const *fnName) {
-    int i;
-    for (i = 0; coreFunctions[i].fname != 0; i++)
-        if (strcmp (coreFunctions[i].fname,fnName) == 0)
-            return coreFunctions[i].fnPtr;
+funcRec *getFn(char const *fnName) {
+    funcRec *fn;
+    for (fn = fnTable; fn != NULL; fn = fn->next)
+        if (strcmp (fn->name,fnName) == 0)
+            return fn;
     return NULL;
 }
 
 /* the variable table */
-var *varTable;
+varRec *varTable;
 
 /* allocate a new variable */
-var *putVar(char const *varName) {
-    var *ptr = (var *) malloc(sizeof (var));
+varRec *putVar(char const *varName) {
+    varRec *ptr = (varRec *) malloc(sizeof (varRec));
     ptr->name = (char *) malloc(strlen (varName) + 1);
     strcpy(ptr->name,varName);
     ptr->value = (ASTnode *) malloc(sizeof (ASTnode)); /* allocate space for ASTnode */
@@ -2190,8 +2192,8 @@ var *putVar(char const *varName) {
 }
 
 /* look up a variable's corresponding ASTnode */
-var *getVar(char const *varName) {
-    var *ptr;
+varRec *getVar(char const *varName) {
+    varRec *ptr;
     for (ptr = varTable; ptr != NULL; ptr = ptr->next)
         if (strcmp (ptr->name,varName) == 0)
             return ptr;
@@ -2209,10 +2211,28 @@ void yyerror(char *error, ...) {
     exit(1);
 }
 
+/* built-in functions */
+static funcRec coreFunctions[] = {
+    "ffmpegDecode", ffmpegDecode, NULL, NULL,
+    "print", print, NULL, NULL,
+    "sin", nsin, NULL, NULL,
+    "cos", ncos, NULL, NULL,
+    "ln", nlog, NULL, NULL,
+    "sqrt", nsqrt, NULL, NULL,
+    0, 0, 0, 0
+};
+
 int main () {
     // yydebug = 1;
-    var *v = putVar("pi");
-    v->value->val = 3.141592653589793238462;
-    return yyparse();
+    /* initialize function table */
+    int i;
+    for(i = 0; coreFunctions[i].name != 0; i++)
+        putFn(&coreFunctions[i]);
+    for(i = 0; pluginFunctions[i].name != 0; i++)
+        putFn(&pluginFunctions[i]);
+    /* main parse loop */
+    yyparse();
+
+    return 0;
 }
 
