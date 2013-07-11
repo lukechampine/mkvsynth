@@ -4,12 +4,13 @@ Plugins are user-defined functions that live in their own .c file. Since the par
 As an example, let's examine the provided "myPlugin" plugin, specifically the `myPlugin_AST()` function.
 
 ```c
+#include "delbrot.h"
 ASTnode* myPlugin_AST(ASTnode *p, ASTnode *args) {
     /* check that (mandatory) arguments are valid */
     checkArgs("myPlugin", args, 1);
     ...
 ```
-First we call the example `checkArgs()` function, which ensures that the function received exactly one mandatory argument (later, type-checking will be added as well).
+The first crucial step is to include the delbrot.h header file. This file contains the definition of `ASTnode` and all its associated functions/macros. For most plugins, the first step should be to call the `checkArgs()` function, which ensures that the function received the correct number of mandatory arguments (later, type-checking will be added as well).
 
 ```c
     ...
@@ -20,7 +21,7 @@ First we call the example `checkArgs()` function, which ensures that the functio
     char *output  = OPTSTR("output", NULL);
     ...
 ```
-Then we can extract the arguments from `args`. Mandatory arguments are accessed directly. To get the next argument, use args->next->, args->next->next, etc. This method will probably be replaced with a macro at some point to simplify things.
+Then we can extract the arguments from `args`. Mandatory arguments are accessed directly. To get the next argument, use `args->next->`, `args->next->next->`, etc. This method will probably be replaced with a macro at some point to simplify things.
 
 Next come the optional arguments. A different macro must be called depending on the expected return value. Simply provide the name of the argument and the default value, and the macro will do the rest.
 
