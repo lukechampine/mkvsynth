@@ -31,17 +31,7 @@ ASTnode* fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     if (fnNode->type != typeFn)
         yyerror("expected function name before '('");
 
-    /* standard function call */
     p = (*(fnNode->fn->ptr))(p, args);
-
-    /* composed function call */
-    while (fnNode->fn->comp) {
-        funcRec *next = fnNode->fn->comp;
-        p = (*(next->ptr))(p, p);
-        fnNode->fn->comp = NULL;
-        fnNode->fn = next;
-    }
-    return p;
 }
 
 /* execute a section of the AST */
@@ -96,6 +86,7 @@ ASTnode* ex(ASTnode *n) {
         case INC:   return ex(modvar(child[0], '+', 1));
         case DEC:   return ex(modvar(child[0], '-', 1));
         /* arithmetic operators */
+        /* TODO: make these real function calls, complete with type checking */
         case '%':   p->val = (int) ex(child[0])->val % (int) ex(child[1])->val; return p;
         case '^':   p->val = pow(ex(child[0])->val, ex(child[1])->val); return p;
         case '*':   p->val = ex(child[0])->val * ex(child[1])->val;  return p;
@@ -115,6 +106,7 @@ ASTnode* ex(ASTnode *n) {
         case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
         /* misc operations */
         case ';':   ex(child[0]); return ex(child[1]);
+        case '.':   return fnctCall(p, child[0], ex(child[1]));
     }
     /* should never wind up here */
     yyerror("Unknown operator");

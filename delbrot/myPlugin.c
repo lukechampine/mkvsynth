@@ -20,7 +20,7 @@ ASTnode* myPlugin_AST(ASTnode *p, ASTnode *args) {
     /* check that (mandatory) arguments are valid */
     checkArgs("myPlugin", args, 1);
 
-    // get arguments
+    /* get arguments */
     char *str = args->str;
     /* get optional arguments */
     double frames = OPTVAL("frames", -1);

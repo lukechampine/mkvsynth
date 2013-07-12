@@ -47,7 +47,6 @@ typedef ASTnode * (*func) (ASTnode *, ASTnode *);
 struct funcRec {
     char *name;             /* function name */
     func ptr;               /* function pointer */
-    struct funcRec *comp;   /* next function in composition */
     struct funcRec *next;   /* link field */
 };
 
@@ -69,7 +68,6 @@ varRec* putVar(char const *);
 varRec* getVar(char const *);
 funcRec* putFn(funcRec *);
 funcRec* getFn(char const *);
-ASTnode* compose(ASTnode *, ASTnode *);
 void* getOptArg(ASTnode *args, char *name, int type);
 
 /* standard mathematical function prototypes */

@@ -128,23 +128,25 @@ boolean_expr
     ;
 
 arithmetic_expr
+    : prefix_expr
+    | arithmetic_expr '+' prefix_expr                       { $$ = mkOpNode('+', 2, $1, $3);            }
+    | arithmetic_expr '-' prefix_expr                       { $$ = mkOpNode('-', 2, $1, $3);            }
+    | arithmetic_expr '*' prefix_expr                       { $$ = mkOpNode('*', 2, $1, $3);            }
+    | arithmetic_expr '/' prefix_expr                       { $$ = mkOpNode('/', 2, $1, $3);            }
+    | arithmetic_expr '^' prefix_expr                       { $$ = mkOpNode('^', 2, $1, $3);            }
+    | arithmetic_expr '%' prefix_expr                       { $$ = mkOpNode('%', 2, $1, $3);            }
+    ;
+
+prefix_expr
     : function_expr
-    | arithmetic_expr '+' function_expr                       { $$ = mkOpNode('+', 2, $1, $3);            }
-    | arithmetic_expr '-' function_expr                       { $$ = mkOpNode('-', 2, $1, $3);            }
-    | arithmetic_expr '*' function_expr                       { $$ = mkOpNode('*', 2, $1, $3);            }
-    | arithmetic_expr '/' function_expr                       { $$ = mkOpNode('/', 2, $1, $3);            }
-    | arithmetic_expr '^' function_expr                       { $$ = mkOpNode('^', 2, $1, $3);            }
-    | arithmetic_expr '%' function_expr                       { $$ = mkOpNode('%', 2, $1, $3);            }
+    | '-' prefix_expr                                         { $$ = mkOpNode(NEG, 1, $2);                }
+    | '!' prefix_expr                                         { $$ = mkOpNode('!', 1, $2);                }
     ;
 
 function_expr
-    : prefix_expr
-    | function_composition '(' arg_list ')'                   { $$ = mkOpNode(FNCT, 2, $1, $3);           }
-    ;
-
-function_composition
-    : prefix_expr
-    | function_composition '.' prefix_expr                    { $$ = compose($3, $1);                     }
+    : primary_expr
+    | primary_expr '(' arg_list ')'                           { $$ = mkOpNode(FNCT, 2, $1, $3);           }
+    | primary_expr '.' function_expr                          { $$ = mkOpNode('.', 2, $1, $3);            }
     ;
 
 arg_list
@@ -156,12 +158,6 @@ arg_list
 function_arg
     : expr
     | PARAM expr                                              { $1->var->value = $2;                      }
-    ;
-
-prefix_expr
-    : primary_expr
-    | '-' prefix_expr                                         { $$ = mkOpNode(NEG, 1, $2);                }
-    | '!' prefix_expr                                         { $$ = mkOpNode('!', 1, $2);                }
     ;
 
 primary_expr
@@ -277,14 +273,6 @@ ASTnode *append(ASTnode *root, ASTnode *node) {
     return root;
 }
 
-/* compose two functions */
-ASTnode *compose(ASTnode *root, ASTnode *node) {
-    funcRec *traverse;
-    for (traverse = root->fn; traverse->comp != NULL; traverse = traverse->comp);
-    traverse->comp = node->fn;
-    return root;
-}
-
 /* the function table */
 funcRec *fnTable;
 
@@ -339,25 +327,25 @@ void yyerror(char *error, ...) {
 
 /* built-in functions */
 static funcRec coreFunctions[] = {
-    "ffmpegDecode", ffmpegDecode, NULL, NULL,
-    "print", print, NULL, NULL,
-    "sin", nsin, NULL, NULL,
-    "cos", ncos, NULL, NULL,
-    "ln", nlog, NULL, NULL,
-    "sqrt", nsqrt, NULL, NULL,
-    0, 0, 0, 0
+    "ffmpegDecode", ffmpegDecode, NULL,
+    "print", print, NULL,
+    "sin", nsin, NULL,
+    "cos", ncos, NULL,
+    "ln", nlog, NULL,
+    "sqrt", nsqrt, NULL,
+    0, 0, 0
 };
 
 int main () {
-    // yydebug = 1;
-    /* initialize function table */
     int i;
+    // yydebug = 1;
+
+    /* initialize function table */
     for(i = 0; coreFunctions[i].name != 0; i++)
         putFn(&coreFunctions[i]);
     for(i = 0; pluginFunctions[i].name != 0; i++)
         putFn(&pluginFunctions[i]);
-    /* main parse loop */
-    yyparse();
 
-    return 0;
+    /* main parse loop */
+    return yyparse();
 }
