@@ -5,18 +5,23 @@
 #include "delbrot.h"
 #include "y.tab.h"
 
-void freeDups();
-extern ASTnode *unfreedDups[8128];
-
 #define UNDEFINED(n) n->type == typeVar && n->var->value == NULL
 
 /* assign a variable */
 ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
-    /* existing variable */
-    if (varNode->type == typeVar)
-        return memcpy(varNode->var->value, valueNode, sizeof(ASTnode));
-    else
+    if (varNode->type != typeVar)
         yyerror("can't assign to a constant value");
+
+    /* new variable */
+    if (UNDEFINED(varNode)) {
+        /* allocate space for ASTnode */
+        /* don't use newNode() because we don't want this node to ever be freed */
+        if ((varNode->var->value = malloc(sizeof(ASTnode))) == NULL)
+            yyerror("out of memory");
+        
+    }
+    /* copy new value */
+    return memcpy(varNode->var->value, valueNode, sizeof(ASTnode));
 }
 
 /* dereference a variable */
@@ -30,7 +35,7 @@ ASTnode* dereference(ASTnode *p) {
 /* handle function calls */
 ASTnode* fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     if (UNDEFINED(fnNode))
-        yyerror("reference to undefined function \"%s\"", fnNode->id);
+        yyerror("reference to undefined function \"%s\"", fnNode->var->name);
     if (fnNode->type != typeFn)
         yyerror("expected function name before '('");
 
@@ -65,7 +70,7 @@ ASTnode* ex(ASTnode *n) {
         /* keywords */
         case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); return NULL;
         case WHILE: while(ex(child[0])->val) { ex(child[1]); freeNodes(1); } freeNodes(1); return NULL;
-        case FOR:   for(ex(child[0]); ex(child[1])->val; ex(child[2])) { ex(child[3]); freeNodes(1); } freeNodes(1); return NULL;
+        case FOR:   for(ex(child[0]); ex(child[1])->val; ex(child[2]), freeNodes(1)) ex(child[3]); freeNodes(1); return NULL;
         /* functions */
         case FNCT:  return fnctCall(p, child[0], child[1]);
         /* assignment */
@@ -108,8 +113,10 @@ ASTnode* ex(ASTnode *n) {
 void checkArgs(char *funcName, ASTnode *args, int numArgs) {
     int i;
     ASTnode *traverse = args;
-    /* check for missing arguments */
+    /* check for missing/uninitialized arguments */
     for (i = 0; i < numArgs; i++) {
+        if (UNDEFINED(traverse))
+            yyerror("reference to undefined variable \"%s\"", traverse->var->name);
         if (traverse == NULL) {
             yyerror("%s expected %d argument(s), got %d", funcName, numArgs, i);
             break;
@@ -132,11 +139,11 @@ ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = 
 /* modify the value of a variable */
 ASTnode* modvar(ASTnode *varNode, char op, double mod) {
     if(UNDEFINED(varNode))
-        yyerror("reference to uninitialized variable \"%s\"", varNode->id);
+        yyerror("reference to uninitialized variable \"%s\"", varNode->var->name);
     if(varNode->type != typeVar)
         yyerror("can't modify constant");
     if(varNode->var->value->type != typeVal)
-        yyerror("can't modify non-numeric variable \"%s\"", varNode->id);
+        yyerror("can't modify non-numeric variable \"%s\"", varNode->var->name);
 
     switch (op) {
         case '+': varNode->var->value->val += mod; break;
@@ -189,7 +196,7 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
     while(args) { 
         /* unreduced/unprintable types */
         if (UNDEFINED(args))
-            yyerror("reference to uninitialized variable \"%s\"", args->id);
+            yyerror("reference to uninitialized variable \"%s\"", args->var->name);
         if (args->type == typeVar || args->type == typeOp)
             args = ex(args);
         /* printable types */

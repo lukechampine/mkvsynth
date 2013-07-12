@@ -19,7 +19,6 @@ struct ASTnode {
     union {
         double  val;        /* value */
         char   *str;        /* string */
-        char    *id;        /* identifier */
         funcRec *fn;        /* function pointer */
         varRec *var;        /* variable */
         opNode   op;        /* operator */

@@ -2197,7 +2197,6 @@ varRec *putVar(char const *varName) {
     varRec *ptr = (varRec *) malloc(sizeof (varRec));
     ptr->name = (char *) malloc(strlen (varName) + 1);
     strcpy(ptr->name,varName);
-    ptr->value = (ASTnode *) malloc(sizeof (ASTnode)); /* allocate space for ASTnode */
     ptr->next = varTable;
     varTable = ptr;
     return ptr;
