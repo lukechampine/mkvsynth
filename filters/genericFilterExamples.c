@@ -33,7 +33,11 @@ void genericSourceFilter(GenericFilterParams *filterParams, MkvsynthMetaData *me
 
 void genericFilter(GenericFilterParams *filterParams, MkvsynthMetaData *metaData, MkvsynthGetParams *getParams, MkvsynthPutParams *putParams) {
 
-	// To start things off, you have to getFrame() at least once
+	// Before starting any frame processing, check the filterParams and metaData to make sure
+	// that the colorspace of the frame is supported, that the filterParams are all correct,
+	// and any other early-checking to minimize errors in the main loop.
+
+	// To start the main loop, you have to getFrame() at least once
 	MkvsynthFrame *workingFrame = getFrame(getParams);
 	
 	while(workingFrame != NULL) {
@@ -64,6 +68,10 @@ void genericReadOnlyFilter() {
 }
 
 void genericSinkFilter(GenericSinkFilterParams *filterParams, MkvsynthMetaData *metaData, MkvsynthGetParams *getParams) {
+
+	// Before starting any frame processing, check the filterParams and metaData to make sure
+	// that the colorspace of the frame is supported, that the filterParams are all correct,
+	// and any other early-checking to minimize errors in the main loop.
 
 	// To start things off, you have to getFrame() at least once
 	MkvsynthFrame *workingFrame = getFrame(getParams);
