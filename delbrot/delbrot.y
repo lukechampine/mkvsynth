@@ -5,9 +5,9 @@
     #include <stdarg.h>
     #include "delbrot.h"
     /* prototypes */
-    void freeNode(ASTnode *);         /* destroy a node in the AST */
     void yyerror(char *, ...);
     extern int linenumber;
+    ASTnode *unfreed[8192];
     #define YYDEBUG 1
 %}
 
@@ -33,7 +33,7 @@
     /* TODO: consider delaying AST evaluation until it has been fully constructed */
 program
     : /* empty program */
-    | program item                                            { ex($2); /*freeNode($2);*/                   }
+    | program item                                            { ex($2); freeNodes(0);                     }
     ;
 
 item
@@ -41,7 +41,6 @@ item
     | stmt
     ;
 
-    /* TODO: make function definitions more Haskell-like */
 function_declaration
     : FNDEF primary_expr '(' param_list ')' '{' item_list '}' { $$ = mkOpNode(FNDEF, 4, $1, $2, $4, $6);  }
     | FNDEF primary_expr '(' param_list ')' ';'               { $$ = mkOpNode(FNDEF, 3, $1, $2, $4);      }
@@ -67,7 +66,7 @@ type
 stmt
     : expression_stmt
     | selection_stmt
-    | iteration_stmt                                          { $1->readonly = 1; /* set readonly flag */ }
+    | iteration_stmt                                          { setReadOnly($1);                          }
     | increment_stmt
     ;
 
@@ -129,12 +128,12 @@ boolean_expr
 
 arithmetic_expr
     : prefix_expr
-    | arithmetic_expr '+' prefix_expr                       { $$ = mkOpNode('+', 2, $1, $3);            }
-    | arithmetic_expr '-' prefix_expr                       { $$ = mkOpNode('-', 2, $1, $3);            }
-    | arithmetic_expr '*' prefix_expr                       { $$ = mkOpNode('*', 2, $1, $3);            }
-    | arithmetic_expr '/' prefix_expr                       { $$ = mkOpNode('/', 2, $1, $3);            }
-    | arithmetic_expr '^' prefix_expr                       { $$ = mkOpNode('^', 2, $1, $3);            }
-    | arithmetic_expr '%' prefix_expr                       { $$ = mkOpNode('%', 2, $1, $3);            }
+    | arithmetic_expr '+' prefix_expr                         { $$ = mkOpNode('+', 2, $1, $3);            }
+    | arithmetic_expr '-' prefix_expr                         { $$ = mkOpNode('-', 2, $1, $3);            }
+    | arithmetic_expr '*' prefix_expr                         { $$ = mkOpNode('*', 2, $1, $3);            }
+    | arithmetic_expr '/' prefix_expr                         { $$ = mkOpNode('/', 2, $1, $3);            }
+    | arithmetic_expr '^' prefix_expr                         { $$ = mkOpNode('^', 2, $1, $3);            }
+    | arithmetic_expr '%' prefix_expr                         { $$ = mkOpNode('%', 2, $1, $3);            }
     ;
 
 prefix_expr
@@ -146,7 +145,7 @@ prefix_expr
 function_expr
     : primary_expr
     | primary_expr '(' arg_list ')'                           { $$ = mkOpNode(FNCT, 2, $1, $3);           }
-    | primary_expr '.' function_expr                          { $$ = mkOpNode('.', 2, $1, $3);            }
+    | primary_expr '.' function_expr                          { $$ = mkOpNode(FNCT, 2, $1, ex($3));       }
     ;
 
 arg_list
@@ -169,16 +168,19 @@ primary_expr
 %% /* end of grammar */
 
 /* allocate space for a new node */
-ASTnode *newNode() {
+ASTnode *newNode(int i) {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
+    /* seek to open slot (normal and duplicate nodes are interleaved) */
+    for (i; unfreed[i]; i += 2);
+    unfreed[i] = p;
     return p;
 }
 
 /* create a value node in the AST */
 ASTnode *mkValNode(double val) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     p->type = typeVal;
     p->val = val;
     return p;
@@ -186,7 +188,7 @@ ASTnode *mkValNode(double val) {
 
 /* create a string node in the AST */
 ASTnode *mkStrNode(char *str) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     p->type = typeStr;
     p->str = strdup(str);
     return p;
@@ -194,7 +196,7 @@ ASTnode *mkStrNode(char *str) {
 
 /* create a variable or function node in the AST */
 ASTnode *mkIdNode(char *ident) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     varRec *v; funcRec *f;
     /* function */
     if ((f = getFn(ident)) != NULL) {
@@ -217,7 +219,7 @@ ASTnode *mkIdNode(char *ident) {
 /* create a param node in the AST */
 /* reuse the var struct, it's close enough */
 ASTnode *mkParamNode(char *name) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     /* allocate space for var */
     if ((p->var = malloc(sizeof(varRec))) == NULL)
         yyerror("out of memory");
@@ -228,14 +230,14 @@ ASTnode *mkParamNode(char *name) {
 }
 
 ASTnode *mkTypeNode(int type) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     p->type = type;
     return p;
 }
 
 /* create an operation node in the AST */
 ASTnode *mkOpNode(int oper, int nops, ...) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     /* allocate space for ops */
     if ((p->op.ops = malloc(nops * sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
@@ -251,17 +253,23 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
     return p;
 }
 
-/* destroy a node in the AST */
-void freeNode(ASTnode *p) {
+/* propagate readonly flag to any children */
+void setReadOnly(ASTnode *p) {
     int i;
-    while(p) {
-        ASTnode* next = p->next;
-        if (p->type == typeOp)
-            for (i = 0; i < p->op.nops; i++)
-                freeNode(p->op.ops[i]);
-        if (p->type != typeVar)
-            free(p);
-        p = next; /* traverse linked list */
+    p->readonly = 1;
+    if (p->type == typeOp)
+        for (i = 0; i < p->op.nops; i++)
+            setReadOnly(p->op.ops[i]);
+
+    if (p->next)
+        setReadOnly(p->next);
+}
+
+/* destroy evaluated nodes in the AST */
+void freeNodes(int i) {
+    for (i; unfreed[i]; i += 2) {
+        free(unfreed[i]);
+        unfreed[i] = NULL;
     }
 }
 

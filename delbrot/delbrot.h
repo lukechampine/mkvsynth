@@ -30,7 +30,7 @@ struct ASTnode {
 #define YYSTYPE ASTnode*
 
 /* ASTnode prototypes */
-ASTnode* newNode();
+ASTnode* newNode(int);
 ASTnode* mkIdNode(char *);
 ASTnode* mkValNode(double);
 ASTnode* mkStrNode(char *);
@@ -39,6 +39,8 @@ ASTnode* mkOpNode(int, int, ...);
 ASTnode* mkParamNode(char *);
 ASTnode* append(ASTnode *, ASTnode *);
 ASTnode* ex(ASTnode *);
+void     freeNodes(int);
+void     setReadOnly(ASTnode *);
 
 /* a function */
 /* arg1 is passed by reference, and will contain result of the function */

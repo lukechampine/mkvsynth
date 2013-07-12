@@ -76,9 +76,9 @@
     #include <stdarg.h>
     #include "delbrot.h"
     /* prototypes */
-    void freeNode(ASTnode *);         /* destroy a node in the AST */
     void yyerror(char *, ...);
     extern int linenumber;
+    ASTnode *unfreed[8192];
     #define YYDEBUG 1
 
 
@@ -496,13 +496,13 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    34,    34,    36,    40,    41,    46,    47,    51,    52,
-      56,    58,    62,    63,    64,    68,    69,    70,    71,    75,
-      76,    80,    81,    85,    86,    90,    91,    95,    96,   100,
-     101,   105,   109,   110,   111,   112,   113,   114,   115,   119,
-     120,   121,   122,   123,   124,   125,   126,   127,   131,   132,
-     133,   134,   135,   136,   137,   141,   142,   143,   147,   148,
-     149,   153,   154,   155,   159,   160,   164,   165,   166
+       0,    34,    34,    36,    40,    41,    45,    46,    50,    51,
+      55,    57,    61,    62,    63,    67,    68,    69,    70,    74,
+      75,    79,    80,    84,    85,    89,    90,    94,    95,    99,
+     100,   104,   108,   109,   110,   111,   112,   113,   114,   118,
+     119,   120,   121,   122,   123,   124,   125,   126,   130,   131,
+     132,   133,   134,   135,   136,   140,   141,   142,   146,   147,
+     148,   152,   153,   154,   158,   159,   163,   164,   165
 };
 #endif
 
@@ -1516,321 +1516,321 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 36 "delbrot.y"
-    { ex((yyvsp[(2) - (2)])); /*freeNode($2);*/                   }
+    { ex((yyvsp[(2) - (2)])); freeNodes(0);                     }
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 46 "delbrot.y"
+#line 45 "delbrot.y"
     { (yyval) = mkOpNode(FNDEF, 4, (yyvsp[(1) - (8)]), (yyvsp[(2) - (8)]), (yyvsp[(4) - (8)]), (yyvsp[(6) - (8)]));  }
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 47 "delbrot.y"
+#line 46 "delbrot.y"
     { (yyval) = mkOpNode(FNDEF, 3, (yyvsp[(1) - (6)]), (yyvsp[(2) - (6)]), (yyvsp[(4) - (6)]));      }
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 62 "delbrot.y"
+#line 61 "delbrot.y"
     { (yyval) = mkTypeNode(typeVal);                 }
     break;
 
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 63 "delbrot.y"
+#line 62 "delbrot.y"
     { (yyval) = mkTypeNode(typeVal);                 }
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 64 "delbrot.y"
+#line 63 "delbrot.y"
     { (yyval) = mkTypeNode(typeStr);                 }
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 70 "delbrot.y"
-    { (yyvsp[(1) - (1)])->readonly = 1; /* set readonly flag */ }
+#line 69 "delbrot.y"
+    { setReadOnly((yyvsp[(1) - (1)]));                          }
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 75 "delbrot.y"
+#line 74 "delbrot.y"
     { (yyval) = mkOpNode(';', 2, NULL, NULL);        }
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 76 "delbrot.y"
+#line 75 "delbrot.y"
     { (yyval) = (yyvsp[(1) - (2)]);                                  }
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 80 "delbrot.y"
+#line 79 "delbrot.y"
     { (yyval) = mkOpNode(IF, 2, (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));             }
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 81 "delbrot.y"
+#line 80 "delbrot.y"
     { (yyval) = mkOpNode(IF, 3, (yyvsp[(3) - (7)]), (yyvsp[(5) - (7)]), (yyvsp[(7) - (7)]));         }
     break;
 
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 85 "delbrot.y"
+#line 84 "delbrot.y"
     { (yyval) = mkOpNode(WHILE, 2, (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));          }
     break;
 
   case 24:
 
 /* Line 1455 of yacc.c  */
-#line 86 "delbrot.y"
+#line 85 "delbrot.y"
     { (yyval) = mkOpNode(FOR, 4, (yyvsp[(3) - (9)]), (yyvsp[(5) - (9)]), (yyvsp[(7) - (9)]), (yyvsp[(9) - (9)]));    }
     break;
 
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 91 "delbrot.y"
+#line 90 "delbrot.y"
     { (yyval) = (yyvsp[(2) - (3)]);                                  }
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 96 "delbrot.y"
+#line 95 "delbrot.y"
     { (yyval) = mkOpNode(';', 2, (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));            }
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 100 "delbrot.y"
+#line 99 "delbrot.y"
     { (yyval) = mkOpNode(INC, 1, (yyvsp[(1) - (3)]));                }
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 101 "delbrot.y"
+#line 100 "delbrot.y"
     { (yyval) = mkOpNode(DEC, 1, (yyvsp[(1) - (3)]));                }
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 110 "delbrot.y"
+#line 109 "delbrot.y"
     { (yyval) = mkOpNode('=',   2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));          }
     break;
 
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 111 "delbrot.y"
+#line 110 "delbrot.y"
     { (yyval) = mkOpNode(ADDEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));          }
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 112 "delbrot.y"
+#line 111 "delbrot.y"
     { (yyval) = mkOpNode(SUBEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));          }
     break;
 
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 113 "delbrot.y"
+#line 112 "delbrot.y"
     { (yyval) = mkOpNode(MULEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));          }
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 114 "delbrot.y"
+#line 113 "delbrot.y"
     { (yyval) = mkOpNode(DIVEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));          }
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 115 "delbrot.y"
+#line 114 "delbrot.y"
     { (yyval) = mkOpNode(MODEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));          }
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 120 "delbrot.y"
+#line 119 "delbrot.y"
     { (yyval) = mkOpNode(EQ,  2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 121 "delbrot.y"
+#line 120 "delbrot.y"
     { (yyval) = mkOpNode(NE,  2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 122 "delbrot.y"
+#line 121 "delbrot.y"
     { (yyval) = mkOpNode(GE,  2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 123 "delbrot.y"
+#line 122 "delbrot.y"
     { (yyval) = mkOpNode(LE,  2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 124 "delbrot.y"
+#line 123 "delbrot.y"
     { (yyval) = mkOpNode('>', 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 125 "delbrot.y"
+#line 124 "delbrot.y"
     { (yyval) = mkOpNode('<', 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 126 "delbrot.y"
+#line 125 "delbrot.y"
     { (yyval) = mkOpNode(LOR, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 127 "delbrot.y"
+#line 126 "delbrot.y"
     { (yyval) = mkOpNode(LAND,2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 132 "delbrot.y"
+#line 131 "delbrot.y"
     { (yyval) = mkOpNode('+', 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 133 "delbrot.y"
+#line 132 "delbrot.y"
     { (yyval) = mkOpNode('-', 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 134 "delbrot.y"
+#line 133 "delbrot.y"
     { (yyval) = mkOpNode('*', 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 135 "delbrot.y"
+#line 134 "delbrot.y"
     { (yyval) = mkOpNode('/', 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 136 "delbrot.y"
+#line 135 "delbrot.y"
     { (yyval) = mkOpNode('^', 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 137 "delbrot.y"
+#line 136 "delbrot.y"
     { (yyval) = mkOpNode('%', 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
     break;
 
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 142 "delbrot.y"
+#line 141 "delbrot.y"
     { (yyval) = mkOpNode(NEG, 1, (yyvsp[(2) - (2)]));                }
     break;
 
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 143 "delbrot.y"
+#line 142 "delbrot.y"
     { (yyval) = mkOpNode('!', 1, (yyvsp[(2) - (2)]));                }
     break;
 
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 148 "delbrot.y"
+#line 147 "delbrot.y"
     { (yyval) = mkOpNode(FNCT, 2, (yyvsp[(1) - (4)]), (yyvsp[(3) - (4)]));           }
     break;
 
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 149 "delbrot.y"
-    { (yyval) = mkOpNode('.', 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));            }
+#line 148 "delbrot.y"
+    { (yyval) = mkOpNode(FNCT, 2, (yyvsp[(1) - (3)]), ex((yyvsp[(3) - (3)])));       }
     break;
 
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 153 "delbrot.y"
+#line 152 "delbrot.y"
     { (yyval) = NULL;                                }
     break;
 
   case 62:
 
 /* Line 1455 of yacc.c  */
-#line 154 "delbrot.y"
+#line 153 "delbrot.y"
     { (yyval) = (yyvsp[(1) - (1)]);                                  }
     break;
 
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 155 "delbrot.y"
+#line 154 "delbrot.y"
     { (yyval) = append((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));                      }
     break;
 
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 160 "delbrot.y"
+#line 159 "delbrot.y"
     { (yyvsp[(1) - (2)])->var->value = (yyvsp[(2) - (2)]);                      }
     break;
 
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 166 "delbrot.y"
+#line 165 "delbrot.y"
     { (yyval) = (yyvsp[(2) - (3)]);                                  }
     break;
 
@@ -2049,20 +2049,23 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 169 "delbrot.y"
+#line 168 "delbrot.y"
  /* end of grammar */
 
 /* allocate space for a new node */
-ASTnode *newNode() {
+ASTnode *newNode(int i) {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
+    /* seek to open slot (normal and duplicate nodes are interleaved) */
+    for (i; unfreed[i]; i += 2);
+    unfreed[i] = p;
     return p;
 }
 
 /* create a value node in the AST */
 ASTnode *mkValNode(double val) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     p->type = typeVal;
     p->val = val;
     return p;
@@ -2070,7 +2073,7 @@ ASTnode *mkValNode(double val) {
 
 /* create a string node in the AST */
 ASTnode *mkStrNode(char *str) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     p->type = typeStr;
     p->str = strdup(str);
     return p;
@@ -2078,7 +2081,7 @@ ASTnode *mkStrNode(char *str) {
 
 /* create a variable or function node in the AST */
 ASTnode *mkIdNode(char *ident) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     varRec *v; funcRec *f;
     /* function */
     if ((f = getFn(ident)) != NULL) {
@@ -2101,7 +2104,7 @@ ASTnode *mkIdNode(char *ident) {
 /* create a param node in the AST */
 /* reuse the var struct, it's close enough */
 ASTnode *mkParamNode(char *name) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     /* allocate space for var */
     if ((p->var = malloc(sizeof(varRec))) == NULL)
         yyerror("out of memory");
@@ -2112,14 +2115,14 @@ ASTnode *mkParamNode(char *name) {
 }
 
 ASTnode *mkTypeNode(int type) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     p->type = type;
     return p;
 }
 
 /* create an operation node in the AST */
 ASTnode *mkOpNode(int oper, int nops, ...) {
-    ASTnode *p = newNode();
+    ASTnode *p = newNode(0);
     /* allocate space for ops */
     if ((p->op.ops = malloc(nops * sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
@@ -2135,17 +2138,23 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
     return p;
 }
 
-/* destroy a node in the AST */
-void freeNode(ASTnode *p) {
+/* propagate readonly flag to any children */
+void setReadOnly(ASTnode *p) {
     int i;
-    while(p) {
-        ASTnode* next = p->next;
-        if (p->type == typeOp)
-            for (i = 0; i < p->op.nops; i++)
-                freeNode(p->op.ops[i]);
-        if (p->type != typeVar)
-            free(p);
-        p = next; /* traverse linked list */
+    p->readonly = 1;
+    if (p->type == typeOp)
+        for (i = 0; i < p->op.nops; i++)
+            setReadOnly(p->op.ops[i]);
+
+    if (p->next)
+        setReadOnly(p->next);
+}
+
+/* destroy evaluated nodes in the AST */
+void freeNodes(int i) {
+    for (i; unfreed[i]; i += 2) {
+        free(unfreed[i]);
+        unfreed[i] = NULL;
     }
 }
 

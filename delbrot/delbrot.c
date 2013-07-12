@@ -5,6 +5,9 @@
 #include "delbrot.h"
 #include "y.tab.h"
 
+void freeDups();
+extern ASTnode *unfreedDups[8128];
+
 #define UNDEFINED(n) n->type == typeVar && n->var->value == NULL
 
 /* assign a variable */
@@ -42,19 +45,8 @@ ASTnode* ex(ASTnode *n) {
     ASTnode *p = n;
     if (n->readonly) {
         /* don't reduce node */
-        p = newNode();
+        p = newNode(1);
         memcpy(p, n, sizeof(ASTnode));
-        /* propagate flag to any children */
-        if (p->type == typeOp) {
-            int i;
-            for (i = 0; i < p->op.nops; i++) {
-                ASTnode *traverse = p->op.ops[i];
-                while (traverse) {
-                    traverse->readonly = p->readonly;
-                    traverse = traverse->next;
-                }
-            }                   
-        }
     }
 
     /* only nodes with children should be evaluated */
@@ -72,19 +64,19 @@ ASTnode* ex(ASTnode *n) {
         case FNDEF: /* not implemented yet */ return NULL;
         /* keywords */
         case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); return NULL;
-        case WHILE: while(ex(child[0])->val) ex(child[1]); return NULL;
-        case FOR:   for(ex(child[0]); ex(child[1])->val; ex(child[2])) ex(child[3]); return NULL;
+        case WHILE: while(ex(child[0])->val) { ex(child[1]); freeNodes(1); } freeNodes(1); return NULL;
+        case FOR:   for(ex(child[0]); ex(child[1])->val; ex(child[2])) { ex(child[3]); freeNodes(1); } freeNodes(1); return NULL;
         /* functions */
         case FNCT:  return fnctCall(p, child[0], child[1]);
         /* assignment */
         case '=':   return assign(child[0], ex(child[1])); 
-        case ADDEQ: return ex(modvar(child[0], '+', ex(child[1])->val));
-        case SUBEQ: return ex(modvar(child[0], '-', ex(child[1])->val));
-        case MULEQ: return ex(modvar(child[0], '*', ex(child[1])->val));
-        case DIVEQ: return ex(modvar(child[0], '/', ex(child[1])->val));
-        case MODEQ: return ex(modvar(child[0], '%', ex(child[1])->val));
-        case INC:   return ex(modvar(child[0], '+', 1));
-        case DEC:   return ex(modvar(child[0], '-', 1));
+        case ADDEQ: return modvar(child[0], '+', ex(child[1])->val);
+        case SUBEQ: return modvar(child[0], '-', ex(child[1])->val);
+        case MULEQ: return modvar(child[0], '*', ex(child[1])->val);
+        case DIVEQ: return modvar(child[0], '/', ex(child[1])->val);
+        case MODEQ: return modvar(child[0], '%', ex(child[1])->val);
+        case INC:   return modvar(child[0], '+', 1);
+        case DEC:   return modvar(child[0], '-', 1);
         /* arithmetic operators */
         /* TODO: make these real function calls, complete with type checking */
         case '%':   p->val = (int) ex(child[0])->val % (int) ex(child[1])->val; return p;
@@ -104,9 +96,8 @@ ASTnode* ex(ASTnode *n) {
         case NE:    p->val = ex(child[0])->val != ex(child[1])->val; return p;
         case LOR:   p->val = ex(child[0])->val || ex(child[1])->val; return p;
         case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
-        /* misc operations */
+        /* compound statements */
         case ';':   ex(child[0]); return ex(child[1]);
-        case '.':   return fnctCall(p, child[0], ex(child[1]));
     }
     /* should never wind up here */
     yyerror("Unknown operator");
@@ -154,7 +145,7 @@ ASTnode* modvar(ASTnode *varNode, char op, double mod) {
         case '/': varNode->var->value->val /= mod; break;
         case '%': varNode->var->value->val = ((int)varNode->var->value->val % (int)mod); break;
     }
-    return varNode;
+    return ex(varNode);
 }
 
 /* helper function to get optional arguments in a function call */
