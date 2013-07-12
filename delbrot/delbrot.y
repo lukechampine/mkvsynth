@@ -255,14 +255,19 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
 
 /* propagate readonly flag to any children */
 void setReadOnly(ASTnode *p) {
-    int i;
+    if (!p)
+        return;
+
+    /* set flag on this node */
     p->readonly = 1;
-    if (p->type == typeOp)
+    /* recurse to child nodes */
+    if (p->type == typeOp) {
+        int i;
         for (i = 0; i < p->op.nops; i++)
             setReadOnly(p->op.ops[i]);
-
-    if (p->next)
-        setReadOnly(p->next);
+    }
+    /* recurse to linked node */
+    setReadOnly(p->next);
 }
 
 /* destroy evaluated nodes in the AST */
