@@ -9,6 +9,19 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+typedef struct {
+
+	int colorSpace;
+
+	int width;
+	int height;
+	int channels;
+	int depth;
+
+	int bytes;
+
+} MkvsynthMetaData;
+
 ///////////////////////////////////////
 // MkvsynthControlNode 
 // 	

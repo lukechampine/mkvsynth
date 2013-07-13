@@ -1,19 +1,3 @@
-// This particular file is not meant to be compiled
-
-// There are incosistencies between this file and the specification file, and also inconsistencies between
-// these structs and the structs found in the 'jarvis' folder. This is because, as I suspected, as I started
-// actually writing filters I realized more ways to make life easier for the filter writer. For the time being
-// I'm going to stop updating the 'jarvis' side of things (I had to first convince myself that it would work at all)
-// and just focus on making the generic filters, as well as on making a 'Crop' filter. Once all of that is done,
-// I'll fix up the jarvis side of things so that everything is consistent.
-
-// A struggle right now is figuring out how to deal with colorspaces and bit-data
-// that represents frames. Originally, I thought it would be sufficient to just have
-// an array of bytes that represented the pixel data, but I think it might be necessary
-// to include some sort of 3D array (width, height, channel) to let
-// filters access specific pixels and color values within those pixels.
-
-// As it were, I'm not sure what a good example for the source filter would be.
 
 void genericSourceFilter(GenericFilterParams *filterParams, MkvsynthMetaData *metaData, MkvsynthPutParams *putParams) {
 	
