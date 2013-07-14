@@ -9,8 +9,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// bytes can be calculated from the other information, but it's a datapoint
+// anyway to minimize the number of times it needs to be computed. Maybe it's
+// not actually needed.
 typedef struct {
-
 	int colorSpace;
 
 	int width;
@@ -19,7 +21,6 @@ typedef struct {
 	int depth;
 
 	int bytes;
-
 } MkvsynthMetaData;
 
 ///////////////////////////////////////
@@ -64,18 +65,13 @@ typedef struct {
 ///////////////////////////////////////
 
 typedef struct {
-	int width;
-	int height;
-	int colorDepth;
-	int colorSpace;
-
 	int outputBreadth;
 	sem_t *remainingBuffer;
 	sem_t *consumedBuffer;
 
 	MkvsynthFrame *recentFrame;
-
-} MkvsynthControlNode;
+	MkvsynthMetaData *metaData;
+} MkvsynthPutParams;
 
 ///////////////////////////////////////
 // MkvsynthFrame
@@ -124,7 +120,6 @@ typedef struct {
 	pthread_mutex_t lock;
 
 	MkvsynthFrame *nextFrame;
-
 } MkvsynthFrame;
 
 ///////////////////////////////////////
@@ -148,12 +143,11 @@ typedef struct {
 ///////////////////////////////////////
 
 typedef struct {
-	MkvsynthFrame *currentFrame;
-	int payloadBytes;
-
 	sem_t *remainingBuffer;
 	sem_t *consumedBuffer;
 
+	MkvsynthFrame *currentFrame;
+	MkvsynthMetaData *metaData;
 } MkvsynthGetParams;
 
 ///////////////////////////////////////

@@ -1,15 +1,18 @@
+// Ideally, the interpreter will be able to look at this struct and figure
+// out how to take the parameters input by the user and fill out the struct
+// for the filter.
+
+//! Mkvsynth Filter rgbCrop
 //# mandatory int left
 //# mandatory int top
 //# mandatory int right
 //# mandatory int bottom
 
 typedef struct {
-
   int left;
   int top;
   int right;
   int bottom;
-
 } RgbCropParams;
 
 void rgbCrop(RgbCropParams *filterParams, MkvsynthGetParams *getParams, MkvsynthPutParams *putParams) {
@@ -17,7 +20,6 @@ void rgbCrop(RgbCropParams *filterParams, MkvsynthGetParams *getParams, Mkvsynth
 	////////////////////
 	// Error Checking //
 	////////////////////
-
   if((filterParams->left + filterParams->right) > getParams->metaData->width)
     filterError("You cannot crop that many columns! Insufficient video width!");
    
@@ -27,11 +29,9 @@ void rgbCrop(RgbCropParams *filterParams, MkvsynthGetParams *getParams, Mkvsynth
   if(getParams->metaData->colorspace != PACKED_RGB && getParams->metaData->colorspace != STRICT_RGB)
     filterError("rgbCrop does not recognize the colorspace of the input video!");
 
-
 	///////////////
 	// Meta Data //
 	///////////////
-
   putParams->metaData->colorspace = getParams->metaData->colorspace;
 
   putParams->metaData->width = getParams->metaData->width - filterParams->left - filterParams->right;
@@ -51,19 +51,15 @@ void rgbCrop(RgbCropParams *filterParams, MkvsynthGetParams *getParams, Mkvsynth
  
   signalStartupCompletion(); 
 
-
 	/////////////////
 	// Filter Loop //
 	/////////////////
-
   MkvsynthFrame *workingFrame = getFrame(getParams);
 
   while(workingFrame != NULL) {
-
 		uint8_t *payload = malloc(putParams->metaData->bytes);
 
-		int i;
-		int j;
+		int i, j;
 		for(i = 0; i < putParams->metaData->height; i++) {
 			for(j = 0; j < putParams->metaData->width; j++) {
 				long long currentPixel = getPixel(getParams->metaData, workingFrame->payload, i+filterParams->top, j+filterParams->left);
