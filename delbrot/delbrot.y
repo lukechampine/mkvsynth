@@ -145,7 +145,7 @@ prefix_expr
 function_expr
     : primary_expr
     | primary_expr '(' arg_list ')'                           { $$ = mkOpNode(FNCT, 2, $1, $3);           }
-    | primary_expr '.' function_expr                          { $$ = mkOpNode(FNCT, 2, $1, ex($3));       }
+    | primary_expr '.' function_expr                          { $$ = mkOpNode('.',  2, $1, $3);           }
     ;
 
 arg_list
@@ -339,7 +339,7 @@ void yyerror(char *error, ...) {
 
 /* built-in functions */
 static funcRec coreFunctions[] = {
-    "ffmpegDecode", ffmpegDecode, NULL,
+    "ffmpegDecode", ffmpegDecode_AST, NULL,
     "print", print, NULL,
     "sin", nsin, NULL,
     "cos", ncos, NULL,

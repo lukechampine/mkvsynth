@@ -79,12 +79,15 @@ ASTnode* nsqrt(ASTnode *, ASTnode *);
 ASTnode* modvar(ASTnode *, char, double);
 
 /* mkvsynth function prototypes */
-ASTnode* ffmpegDecode(ASTnode *, ASTnode *);
+ASTnode* ffmpegDecode_AST(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);
 
 /* user-defined functions */
 extern funcRec pluginFunctions[];
 
 /* helpful plugin macros */
-#define OPTSTR(name, default) getOptArg(args, name, typeStr) ?     (char *) getOptArg(args, name, typeStr)  : default
 #define OPTVAL(name, default) getOptArg(args, name, typeVal) ? *((double *) getOptArg(args, name, typeVal)) : default
+#define OPTSTR(name, default) getOptArg(args, name, typeStr) ?     (char *) getOptArg(args, name, typeStr)  : default
+
+#define RETURNVAL(value) p->type = typeVal; p->val = value; return p
+#define RETURNSTR(str)   p->type = typeStr; p->str = str;   return p

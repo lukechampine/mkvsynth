@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <math.h>
 #include "delbrot.h"
@@ -62,7 +63,7 @@ ASTnode* ex(ASTnode *n) {
 
     /* for convenience/readability */
     ASTnode **child = p->op.ops;
-    p->type = typeVal; /* can be redefined later */
+    p->type = typeVal; /* can be redefined later if necessary */
 
     switch(p->op.oper) {
         /* declarations */
@@ -103,6 +104,7 @@ ASTnode* ex(ASTnode *n) {
         case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
         /* compound statements */
         case ';':   ex(child[0]); return ex(child[1]);
+        case '.':   return fnctCall(p, child[0], ex(child[1]));
     }
     /* should never wind up here */
     yyerror("Unknown operator");
@@ -110,19 +112,24 @@ ASTnode* ex(ASTnode *n) {
 
 /* helper function to ensure that a function call is valid */
 /* TODO: use ... to allow type checking */
-void checkArgs(char *funcName, ASTnode *args, int numArgs) {
+void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
+    char *typeNames[] = {"integer", "string", "function", "variable", "parameter", "operation"};
     int i;
+    va_list ap;
+    va_start(ap, numArgs);
     ASTnode *traverse = args;
-    /* check for missing/uninitialized arguments */
+    /* check for missing/uninitialized/mistyped arguments */
     for (i = 0; i < numArgs; i++) {
+        if (traverse == NULL)
+            yyerror("%s expected %d argument(s), got %d", funcName, numArgs, i);
         if (UNDEFINED(traverse))
             yyerror("reference to undefined variable \"%s\"", traverse->var->name);
-        if (traverse == NULL) {
-            yyerror("%s expected %d argument(s), got %d", funcName, numArgs, i);
-            break;
-        }
+        int argType = va_arg(ap, int);
+        if (ex(traverse)->type != argType)
+            yyerror("type mismatch in function call: arg %d expected %s, got %s", i+1, typeNames[argType], typeNames[traverse->type]);
         traverse = traverse->next;
     }
+    va_end(ap);
     /* check for excess arguments */
     if (traverse != NULL && traverse->type != typeParam) {
         while ((traverse = traverse->next) != NULL) i++;
@@ -131,10 +138,10 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs) {
 }
 
 /* standard mathematical functions, modified to use ASTnode */
-ASTnode* nsin (ASTnode *p, ASTnode *args) { checkArgs("sin", args, 1); p->val = sin(ex(args)->val);  return p; }
-ASTnode* ncos (ASTnode *p, ASTnode *args) { checkArgs("cos", args, 1); p->val = cos(ex(args)->val);  return p; }
-ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1); p->val = log(ex(args)->val);  return p; }
-ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1); p->val = sqrt(ex(args)->val); return p; }
+ASTnode* nsin (ASTnode *p, ASTnode *args) { checkArgs("sin", args, 1, typeVal); p->val = sin(ex(args)->val);  return p; }
+ASTnode* ncos (ASTnode *p, ASTnode *args) { checkArgs("cos", args, 1, typeVal); p->val = cos(ex(args)->val);  return p; }
+ASTnode* nlog (ASTnode *p, ASTnode *args) { checkArgs("log", args, 1, typeVal); p->val = log(ex(args)->val);  return p; }
+ASTnode* nsqrt(ASTnode *p, ASTnode *args) { checkArgs("sqrt",args, 1, typeVal); p->val = sqrt(ex(args)->val); return p; }
 
 /* modify the value of a variable */
 ASTnode* modvar(ASTnode *varNode, char op, double mod) {
@@ -211,24 +218,21 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
     return p;
 }
 
-void ffmpegDecodeFinal(char *filename, int numFrames) {
+void ffmpegDecode(char *filename, int numFrames) {
     if (numFrames != -1)
         printf("decoded %d frames of %s\n", numFrames, filename);
     else
         printf("decoded %s\n", filename);
 }
 
-/* ffmpeg decoding function, showcasing optional arguments */
-ASTnode* ffmpegDecode(ASTnode *p, ASTnode *args) {
-    // check that (mandatory) arguments are valid
-    checkArgs("ffmpegDecode", args, 1);
-    // get arguments
+/* toy ffmpeg decoding function, showcasing optional arguments */
+ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
+    checkArgs("ffmpegDecode", args, 1, typeStr);
+
     char *str = args->str;
     double frames = OPTVAL("frames", -1);
-    // main function body
-    ffmpegDecodeFinal(str, frames);
-    // return value
-    p->type = typeVal;
-    p->val = 0;
-    return p;
+
+    ffmpegDecode(str, frames);
+
+    RETURNVAL(0);
 }
