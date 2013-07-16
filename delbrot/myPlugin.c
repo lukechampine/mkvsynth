@@ -18,7 +18,7 @@ void myPlugin(char *filename, int numFrames, char *output) {
 /* ASTnode function definition */
 ASTnode* myPlugin_AST(ASTnode *p, ASTnode *args) {
     /* check that (mandatory) arguments are valid */
-    checkArgs("myPlugin", args, 1);
+    checkArgs("myPlugin", args, 1, typeStr);
 
     /* get arguments */
     char *str = args->str;
@@ -31,7 +31,5 @@ ASTnode* myPlugin_AST(ASTnode *p, ASTnode *args) {
     myPlugin(str, frames, output);
 
     /* return value */
-    p->type = typeVal;
-    p->val = 0;
-    return p;
+	RETURNVAL(0);
 }

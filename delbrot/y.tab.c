@@ -1796,7 +1796,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 148 "delbrot.y"
-    { (yyval) = mkOpNode(FNCT, 2, (yyvsp[(1) - (3)]), ex((yyvsp[(3) - (3)])));       }
+    { (yyval) = mkOpNode('.',  2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));           }
     break;
 
   case 61:
@@ -2224,7 +2224,7 @@ void yyerror(char *error, ...) {
 
 /* built-in functions */
 static funcRec coreFunctions[] = {
-    "ffmpegDecode", ffmpegDecode, NULL,
+    "ffmpegDecode", ffmpegDecode_AST, NULL,
     "print", print, NULL,
     "sin", nsin, NULL,
     "cos", ncos, NULL,
