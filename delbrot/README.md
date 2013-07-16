@@ -2,7 +2,7 @@
 This is the current implementation of delbrot, the MkvSynth script interpreter.
 
 ## features ##
-At present, delbrot is essentially a glorified calculator. It only has support for doubles and strings. But already it showcases a level of sophistication greater than any previous implementation. Expressions are evaluated recursively, functions can be composed, and optional parameters are supported:
+At present, delbrot is essentially a glorified calculator. It only has support for doubles and strings. But already it showcases a level of sophistication greater than any previous implementation. Expressions are evaluated recursively, method calls can be chained, and optional parameters are supported:
 
 ```perl
 # Project Euler problem 1
@@ -13,7 +13,7 @@ for(x = 0; x < 1000; x += 1)
 print(total); # prints "233168"
 
 # function composition
-print . cos . sin(0); # equivalent to print(cos(sin(0))), prints "1"
+0.sin.cos.print(); # equivalent to print(cos(sin(0))), prints "1"
 
 # optional arguments
 ffmpegDecode("example.mkv");            # prints "decoded example.mkv"
