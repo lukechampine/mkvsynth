@@ -1,7 +1,7 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 
-void ffmpegDecode(ASTParams *filterParams, MkvsynthMetaData *metaData, MkvsynthPutParams *putParams) {
+void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 	
 	char* filename = checkArgs(filterParams, "file", string);
 	
