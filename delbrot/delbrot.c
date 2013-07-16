@@ -74,6 +74,7 @@ ASTnode* ex(ASTnode *n) {
         case FOR:   for(ex(child[0]); ex(child[1])->val; ex(child[2]), freeNodes(1)) ex(child[3]); freeNodes(1); return NULL;
         /* functions */
         case FNCT:  return fnctCall(p, child[0], child[1]);
+        case '.':   child[0]->next = child[2]; return fnctCall(p, child[1], ex(child[0]));
         /* assignment */
         case '=':   return assign(child[0], ex(child[1])); 
         case ADDEQ: return modvar(child[0], '+', ex(child[1])->val);
@@ -91,7 +92,7 @@ ASTnode* ex(ASTnode *n) {
         case '/':   p->val = ex(child[0])->val / ex(child[1])->val;  return p;
         case '+':   p->val = ex(child[0])->val + ex(child[1])->val;  return p;
         case '-':   p->val = ex(child[0])->val - ex(child[1])->val;  return p;
-        case NEG:   p->val = -(ex(child[0])->val);                   return p;
+        case NEG:   p->val = -ex(child[0])->val;                     return p;
         /* boolean operators */
         case '!':   p->val = !ex(child[0])->val;                     return p;
         case '>':   p->val = ex(child[0])->val > ex(child[1])->val;  return p;
@@ -104,7 +105,6 @@ ASTnode* ex(ASTnode *n) {
         case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
         /* compound statements */
         case ';':   ex(child[0]); return ex(child[1]);
-        case '.':   return fnctCall(p, child[0], ex(child[1]));
     }
     /* should never wind up here */
     yyerror("Unknown operator");

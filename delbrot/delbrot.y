@@ -9,6 +9,7 @@
     extern int linenumber;
     ASTnode *unfreed[8192];
     #define YYDEBUG 1
+    #define YYERROR_VERBOSE 1
 %}
 
 %token T_INT T_DOUBLE T_STRING
@@ -145,7 +146,7 @@ prefix_expr
 function_expr
     : primary_expr
     | primary_expr '(' arg_list ')'                           { $$ = mkOpNode(FNCT, 2, $1, $3);           }
-    | primary_expr '.' function_expr                          { $$ = mkOpNode('.',  2, $1, $3);           }
+    | function_expr '.' primary_expr '(' arg_list ')'         { $$ = mkOpNode('.',  3, $1, $3, $5);       }
     ;
 
 arg_list
@@ -155,13 +156,13 @@ arg_list
     ;
 
 function_arg
-    : expr
+    : expr                                                    { $$ = $1;                                  }
     | PARAM expr                                              { $1->var->value = $2;                      }
     ;
 
 primary_expr
-    : IDENTIFIER
-    | CONSTANT
+    : IDENTIFIER                                              { $$ = $1;                                  }
+    | CONSTANT                                                { $$ = $1;                                  }
     | '(' expr ')'                                            { $$ = $2;                                  }
     ;
 
@@ -350,7 +351,7 @@ static funcRec coreFunctions[] = {
 
 int main () {
     int i;
-    // yydebug = 1;
+    //yydebug = 1;
 
     /* initialize function table */
     for(i = 0; coreFunctions[i].name != 0; i++)
