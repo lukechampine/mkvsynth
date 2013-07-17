@@ -21,6 +21,7 @@ typedef struct {
 	int depth;
 
 	int bytes;
+
 } MkvsynthMetaData;
 
 ///////////////////////////////////////

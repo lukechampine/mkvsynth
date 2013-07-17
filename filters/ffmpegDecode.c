@@ -3,8 +3,14 @@
 
 void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 	
+	///////////////////////
+	// Parameter Parsing //
+	///////////////////////
 	char* filename = checkArgs(filterParams, "file", string);
-	
+
+	//////////////////////////////////////
+	// Error Checking And Initializtion //
+	//////////////////////////////////////
 	AVFormatContext *formatContext = NULL;
 	AVCodecContext *codecContext = NULL;
 	AVCodec *codec = NULL;
@@ -56,6 +62,10 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 	if(openCodec < 0) {
 		// Error: failed to open codec
 	}
+
+	///////////////
+	// Meta Data //
+	///////////////
 	
 	AVFrame *frame = avcodec_alloc_frame();
 	int flag = 1
