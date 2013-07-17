@@ -13,7 +13,7 @@ for(x = 0; x < 1000; x += 1)
 print(total); # prints "233168"
 
 # function composition
-0.sin.cos.print(); # equivalent to print(cos(sin(0))), prints "1"
+0.sin().cos().print(); # equivalent to print(cos(sin(0))), prints "1"
 
 # optional arguments
 ffmpegDecode("example.mkv");            # prints "decoded example.mkv"
