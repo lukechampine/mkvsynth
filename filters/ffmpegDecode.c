@@ -77,7 +77,7 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 		}
 
 		if(flag != 0)
-			putFrame(payload); // I don't know yet how to extract the payload from an AVFrame
+			putFrame(frame->data);
 	}
 
 	// Indicate that you are done
