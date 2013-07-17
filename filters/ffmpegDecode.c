@@ -1,5 +1,6 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
 
 void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 	
@@ -62,16 +63,26 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 	if(openCodec < 0) {
 		// Error: failed to open codec
 	}
-
-	///////////////
-	// Meta Data //
-	///////////////
 	
+	///////////////////////
+	// Memory Allocation //
+	///////////////////////
 	AVFrame *frame = avcodec_alloc_frame();
-	int flag = 1
+	AVFrame *newFrame = avcodec_alloc_frame();
+	if(frame == NULL || newFrame == NULL) {
+		// Error!
+	}
 	
-	while(flag != 0) {
-		int flag = 0;
+	uint8_t *buffer;
+	struct SwsContext *resizeContext;
+	char memoryAllocated = 0;
+	
+	/////////////////
+	// Decode Loop //
+	/////////////////
+	char flag = 1
+	while(flag == 1) {
+		flag = 0;
 		while(av_read_frame(formatContext, &packet) >= 0) {
 			flag = 1;
 			if(packet.stream_index == videoStream) {
@@ -86,13 +97,60 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 			}
 		}
 
-		if(flag != 0)
-			putFrame(frame->data);
+		if(flag == 1) {
+			// Meta data was unknown until this point.
+			if(memoryAllocated == 0) {
+				//////////////////////////////////////////
+				// Meta Data and More Memory Allocation //
+				//////////////////////////////////////////
+				putParams->metaData->width = frame->width;
+				putParams->metaData->height = frame->height;
+				putParams->metaData->channels = 3;
+				putParams->metaData->depth = 8;
+				putParams->metaData->colorspace = GENERIC_RGB;
+				
+				int numBytes = avpicture_get_size(PIX_FMT_RGB24, frame->width, frame->height);
+				buffer = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
+				avpicture_fill((AVPicture *)newFrame, buffer, PIX_FMT_RGB24, frame->width, frame->height);
+				memoryAllocated = 1;
+	
+				resizeContext = sws_getContext (
+					frame->width,
+					frame->height,
+					frame->format,
+					frame->width,
+					frame->height,
+					PIX_FMT_RGB24,
+					SWS_SPLINE,
+					NULL,
+					NULL,
+					NULL);
+			}
+
+			sws_scale (
+				resizeContext,
+				(uint8_t const * const *)frame->data,
+				frame->linesize,
+				0,
+				frame->height,
+				newFrame->data,
+				newFrame->linesize);
+			
+			putFrame(newFrame->data);
+		}
 	}
 
-	// Indicate that you are done
+	////////////////////////
+	// Stream Termination //
+	////////////////////////
 	putFrame(NULL);
 	
+	/////////////////////////
+	// Memory Deallocation //
+	/////////////////////////
+	free(buffer);
+	av_free(frame);
+	av_free(newFrame);
 	avcodec_close(codecContext);
 	avformat_close_input(&formatContext);
 }
