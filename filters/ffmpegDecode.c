@@ -99,6 +99,8 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 					putParams->metaData->channels = 3;
 					putParams->metaData->depth = 8;
 					putParams->metaData->colorspace = GENERIC_RGB;
+					signalStartupCompletion();
+
 					
 					int numBytes = avpicture_get_size(PIX_FMT_RGB24, frame->width, frame->height);
 					buffer = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
