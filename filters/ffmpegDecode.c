@@ -112,7 +112,6 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 				int numBytes = avpicture_get_size(PIX_FMT_RGB24, frame->width, frame->height);
 				buffer = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
 				avpicture_fill((AVPicture *)newFrame, buffer, PIX_FMT_RGB24, frame->width, frame->height);
-				memoryAllocated = 1;
 	
 				resizeContext = sws_getContext (
 					frame->width,
@@ -125,6 +124,8 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 					NULL,
 					NULL,
 					NULL);
+					
+				memoryAllocated = 1;
 			}
 
 			sws_scale (
