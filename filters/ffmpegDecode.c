@@ -80,65 +80,59 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 	/////////////////
 	// Decode Loop //
 	/////////////////
-	char flag = 1
-	while(flag == 1) {
-		flag = 0;
-		while(av_read_frame(formatContext, &packet) >= 0) {
-			flag = 1;
-			if(packet.stream_index == videoStream) {
-				avcodec_decode_video2(
-					codecContext,
-					frame,
-					&frameFinished,
-					&packet);
+	while(av_read_frame(formatContext, &packet) >= 0) {
+		if(packet.stream_index == videoStream) {
+			avcodec_decode_video2(
+				codecContext,
+				frame,
+				&frameFinished,
+				&packet);
 
-				if(frameFinished)
-					break;
-			}
-		}
-
-		if(flag == 1) {
-			// Meta data was unknown until this point.
-			if(memoryAllocated == 0) {
-				//////////////////////////////////////////
-				// Meta Data and More Memory Allocation //
-				//////////////////////////////////////////
-				putParams->metaData->width = frame->width;
-				putParams->metaData->height = frame->height;
-				putParams->metaData->channels = 3;
-				putParams->metaData->depth = 8;
-				putParams->metaData->colorspace = GENERIC_RGB;
-				
-				int numBytes = avpicture_get_size(PIX_FMT_RGB24, frame->width, frame->height);
-				buffer = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
-				avpicture_fill((AVPicture *)newFrame, buffer, PIX_FMT_RGB24, frame->width, frame->height);
-	
-				resizeContext = sws_getContext (
-					frame->width,
-					frame->height,
-					frame->format,
-					frame->width,
-					frame->height,
-					PIX_FMT_RGB24,
-					SWS_SPLINE,
-					NULL,
-					NULL,
-					NULL);
+			if(frameFinished) {
+				// Meta data was unknown until this point.
+				if(memoryAllocated == 0) {
+					//////////////////////////////////////////
+					// Meta Data and More Memory Allocation //
+					//////////////////////////////////////////
+					putParams->metaData->width = frame->width;
+					putParams->metaData->height = frame->height;
+					putParams->metaData->channels = 3;
+					putParams->metaData->depth = 8;
+					putParams->metaData->colorspace = GENERIC_RGB;
 					
-				memoryAllocated = 1;
-			}
+					int numBytes = avpicture_get_size(PIX_FMT_RGB24, frame->width, frame->height);
+					buffer = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
+					avpicture_fill((AVPicture *)newFrame, buffer, PIX_FMT_RGB24, frame->width, frame->height);
+		
+					resizeContext = sws_getContext (
+						frame->width,
+						frame->height,
+						frame->format,
+						frame->width,
+						frame->height,
+						PIX_FMT_RGB24,
+						SWS_SPLINE,
+						NULL,
+						NULL,
+						NULL);
+					
+					memoryAllocated = 1;
+				}
 
-			sws_scale (
-				resizeContext,
-				(uint8_t const * const *)frame->data,
-				frame->linesize,
-				0,
-				frame->height,
-				newFrame->data,
-				newFrame->linesize);
+				sws_scale (
+					resizeContext,
+					(uint8_t const * const *)frame->data,
+					frame->linesize,
+					0,
+					frame->height,
+					newFrame->data,
+					newFrame->linesize);
 			
-			putFrame(newFrame->data);
+				putFrame(newFrame->data);
+			}
 		}
+		
+		av_free_packet(&packet);
 	}
 
 	////////////////////////
