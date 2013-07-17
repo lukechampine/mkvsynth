@@ -490,7 +490,7 @@ char *yytext;
     #include <stdio.h>
     #include "delbrot.h"
     #include "y.tab.h"
-    void yyerror(char *);
+    extern void yyerror(char *, ...);
     int resWord(char *);
     int linenumber = 1;
 /* don't keep scanning after EOF */
@@ -910,7 +910,7 @@ linenumber++;
 case 22:
 YY_RULE_SETUP
 #line 75 "delbrot.l"
-yyerror("Unknown character");
+yyerror("unknown character");
 	YY_BREAK
 case 23:
 YY_RULE_SETUP

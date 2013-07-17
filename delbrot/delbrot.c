@@ -38,7 +38,7 @@ ASTnode* fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     if (UNDEFINED(fnNode))
         yyerror("reference to undefined function \"%s\"", fnNode->var->name);
     if (fnNode->type != typeFn)
-        yyerror("expected function name before '('");
+        yyerror("expected function name before '(', got %d", fnNode->type);
 
     p = (*(fnNode->fn->ptr))(p, args);
 }
@@ -57,7 +57,7 @@ ASTnode* ex(ASTnode *n) {
 
     /* only nodes with children should be evaluated */
     if (p->type == typeVar)
-        return dereference(p);
+        return UNDEFINED(p) ? p : dereference(p);
     if (p->type != typeOp)
         return p;
 
@@ -69,9 +69,9 @@ ASTnode* ex(ASTnode *n) {
         /* declarations */
         case FNDEF: /* not implemented yet */ return NULL;
         /* keywords */
-        case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); return NULL;
-        case WHILE: while(ex(child[0])->val) { ex(child[1]); freeNodes(1); } freeNodes(1); return NULL;
-        case FOR:   for(ex(child[0]); ex(child[1])->val; ex(child[2]), freeNodes(1)) ex(child[3]); freeNodes(1); return NULL;
+        case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); p->type = typeOp; return p;
+        case WHILE: while(ex(child[0])->val) { ex(child[1]); freeNodes(1); } freeNodes(1); p->type = typeOp; return p;
+        case FOR:   for(ex(child[0]); ex(child[1])->val; ex(child[2]), freeNodes(1)) ex(child[3]); freeNodes(1); p->type = typeOp; return p;
         /* functions */
         case FNCT:  return fnctCall(p, child[0], child[1]);
         case '.':   child[0]->next = child[2]; return fnctCall(p, child[1], ex(child[0]));

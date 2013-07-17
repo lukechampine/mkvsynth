@@ -3,7 +3,7 @@
     #include <stdio.h>
     #include "delbrot.h"
     #include "y.tab.h"
-    void yyerror(char *);
+    extern void yyerror(char *, ...);
     int resWord(char *);
     int linenumber = 1;
 %}
@@ -72,7 +72,7 @@
 \n                      linenumber++; 
 
     /* anything else is an error */
-.                       yyerror("Unknown character");
+.                       yyerror("unknown character");
 
 %%
 

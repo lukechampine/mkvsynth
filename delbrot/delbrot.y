@@ -8,8 +8,8 @@
     void yyerror(char *, ...);
     extern int linenumber;
     ASTnode *unfreed[8192];
+    void showMem();
     #define YYDEBUG 1
-    #define YYERROR_VERBOSE 1
 %}
 
 %token T_INT T_DOUBLE T_STRING
@@ -43,7 +43,7 @@ item
     ;
 
 function_declaration
-    : FNDEF primary_expr '(' param_list ')' '{' item_list '}' { $$ = mkOpNode(FNDEF, 4, $1, $2, $4, $6);  }
+    : FNDEF primary_expr '(' param_list ')' '{' stmt_list '}' { $$ = mkOpNode(FNDEF, 4, $1, $2, $4, $6);  }
     | FNDEF primary_expr '(' param_list ')' ';'               { $$ = mkOpNode(FNDEF, 3, $1, $2, $4);      }
     ;
 
@@ -87,13 +87,13 @@ iteration_stmt
     ;
 
 block
-    : item
-    | '{' item_list '}'                                       { $$ = $2;                                  }
+    : stmt
+    | '{' stmt_list '}'                                       { $$ = $2;                                  }
     ;
 
-item_list
-    : item
-    | item_list item                                          { $$ = mkOpNode(';', 2, $1, $2);            }
+stmt_list
+    : stmt
+    | stmt_list stmt                                          { $$ = mkOpNode(';', 2, $1, $2);            }
     ;
 
 increment_stmt
@@ -274,7 +274,11 @@ void setReadOnly(ASTnode *p) {
 /* destroy evaluated nodes in the AST */
 void freeNodes(int i) {
     for (i; unfreed[i]; i += 2) {
-        free(unfreed[i]);
+        if(!unfreed[i + 2] /* ridiculous hack to prevent freeing of IF/ELSE resolving token */
+        || unfreed[i + 2]->type != typeOp
+        || unfreed[i + 2]->op.oper != IF
+        || unfreed[i + 2]->op.nops != 2)
+            free(unfreed[i]);
         unfreed[i] = NULL;
     }
 }
