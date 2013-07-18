@@ -97,6 +97,7 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 					putParams->metaData->channels = 3;
 					putParams->metaData->depth = 8;
 					putParams->metaData->colorspace = GENERIC_RGB;
+					putParams->metaData->bytes = 3*frame->width*frame->height;
 					signalStartupCompletion();
 					
 					uint8_t *payload = malloc(3*width*height);

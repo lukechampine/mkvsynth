@@ -24,6 +24,7 @@ void rgb24Resize(ASTParams *filterParams, MkvsynthGetParams *getParams, Mkvsynth
 	putParams->metaData->height = height;
 	putParams->metaData->channels = 3;
 	putParams->metaData->depth = 8;
+	putParams->metaData->bytes = 3*width*height;
 
 	signalStartupCompletion(); 
 

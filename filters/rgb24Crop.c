@@ -1,21 +1,12 @@
-// Ideally, the interpreter will be able to look at this struct and figure
-// out how to take the parameters input by the user and fill out the struct
-// for the filter.
+void rgbCrop(ASTParams *filterParams, MkvsynthGetParams *getParams, MkvsynthPutParams *putParams) {
 
-//! Mkvsynth Filter rgbCrop
-//# mandatory int left
-//# mandatory int top
-//# mandatory int right
-//# mandatory int bottom
-
-typedef struct {
-	int left;
-	int top;
-	int right;
-	int bottom;
-} RgbCropParams;
-
-void rgbCrop(RgbCropParams *filterParams, MkvsynthGetParams *getParams, MkvsynthPutParams *putParams) {
+	///////////////////////
+	// Parameter Parsing //
+	///////////////////////
+	int left = checkInt(filterParams, "left", int);
+	int top = checkInt(filterParams, "top", int);
+	int right = checkInt(filterParams, "right", int);
+	int bottom = checkInt(filterParams, "bottom", int);
 
 	////////////////////
 	// Error Checking //
@@ -33,22 +24,11 @@ void rgbCrop(RgbCropParams *filterParams, MkvsynthGetParams *getParams, Mkvsynth
 	// Meta Data //
 	///////////////
 	putParams->metaData->colorspace = getParams->metaData->colorspace;
-
 	putParams->metaData->width = getParams->metaData->width - filterParams->left - filterParams->right;
 	putParams->metaData->height = getParams->metaData->height - filterParams->top - filterParams->bottom;
 	putParams->metaData->channels = getParams->metaData->channels;
 	putParams->metaData->depth = getParams->metaData->channels;
-
-	int bits = putParams->metaData->width * 
-	           putParams->metaData->height * 
-	           putParams->metaData->channels * 
-	           putParams->metaData->depth;
-
-	putParams->metaData->bytes = bits / 8;
-
-	if(bits % 8 != 0)
-		putParams->metaData->bytes += 1;
- 
+	putParams->metaData->bytes = 3*putParams->metaData->width*putParams->metaData->height;
 	signalStartupCompletion(); 
 
 	/////////////////
@@ -61,16 +41,14 @@ void rgbCrop(RgbCropParams *filterParams, MkvsynthGetParams *getParams, Mkvsynth
 
 		int i, j;
 		for(i = 0; i < putParams->metaData->height; i++) {
-			for(j = 0; j < putParams->metaData->width; j++) {
-				long long currentPixel = getPixel(getParams->metaData, workingFrame->payload, i+filterParams->top, j+filterParams->left);
-				putPixel(putParams->metaData, payload, currentPixel);
-			}
+			int sourceOffset = i*3*getParams->width+left*3;
+			int destOffset = 3*i*width;
+			int offsetSize = 3*(width-left-right);
+			memcpy(payload[3*i*width], workingFrame->payload[startOffset], offsetSize);
 		}
  
 		clearFrame(workingFrame, NULL);
- 
 		putFrame(putParams, payload);
-
 		workingFrame = getFrame(getParams);
 	}
 
