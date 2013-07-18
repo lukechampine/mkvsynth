@@ -140,6 +140,7 @@ function_expr
     : primary_expr
     | primary_expr '(' arg_list ')'                           { $$ = mkOpNode(FNCT, 2, $1, $3);        }
     | function_expr '.' primary_expr '(' arg_list ')'         { $$ = mkOpNode('.',  3, $1, $3, $5);    }
+    | function_expr '.' primary_expr                          { $$ = mkOpNode('.',  3, $1, $3, NULL);  }
     ;
 
 arg_list
@@ -303,7 +304,7 @@ funcRec *getFn(char const *fnName) {
     return NULL;
 }
 
-/* the variable table */
+/* the global variable table */
 varRec *varTable;
 
 /* allocate a new variable */
