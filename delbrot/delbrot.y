@@ -8,16 +8,15 @@
     void yyerror(char *, ...);
     extern int linenumber;
     ASTnode *unfreed[8192];
-    void showMem();
     #define YYDEBUG 1
 %}
 
 %token T_INT T_DOUBLE T_STRING
-%token CONSTANT IDENTIFIER PARAM
+%token CONSTANT IDENTIFIER OPTARG
 %token LE GE EQ NE
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ
 %token IF ELSE FOR WHILE
-%token FNCT FNDEF
+%token FNCT FNDEF RETURN
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
 %nonassoc ELSE
@@ -34,7 +33,7 @@
     /* TODO: consider delaying AST evaluation until it has been fully constructed */
 program
     : /* empty program */
-    | program item                                            { ex($2); freeNodes(0);                     }
+    | program item                                            { ex($2); freeNodes(0);                  }
     ;
 
 item
@@ -43,62 +42,56 @@ item
     ;
 
 function_declaration
-    : FNDEF primary_expr '(' param_list ')' '{' stmt_list '}' { $$ = mkOpNode(FNDEF, 4, $1, $2, $4, $6);  }
-    | FNDEF primary_expr '(' param_list ')' ';'               { $$ = mkOpNode(FNDEF, 3, $1, $2, $4);      }
+    : FNDEF primary_expr '(' param_list ')' '{' stmt_list '}' { $$ = mkOpNode(FNDEF, 3, $2, $4, $7);   }
     ;
 
 param_list
-    : param_decl
-    | param_list ',' param_decl
+    : /* empty */                                             { $$ = NULL;                             }
+    | param                                                   { $$ = $1;                               }
+    | param_list ',' param                                    { $$ = append($1, $3);                   }
     ;
 
-    /* TODO: optional parameters? */
-param_decl
-    : /* empty */
-    | type primary_expr
-    ;
-
-type
-    : T_INT                                                   { $$ = mkTypeNode(typeVal);                 }
-    | T_DOUBLE                                                { $$ = mkTypeNode(typeVal);                 }
-    | T_STRING                                                { $$ = mkTypeNode(typeStr);                 }
+param
+    : T_INT primary_expr   
+    | T_DOUBLE primary_expr
+    | T_STRING primary_expr
     ;
 
 stmt
     : expression_stmt
     | selection_stmt
-    | iteration_stmt                                          { setReadOnly($1);                          }
+    | iteration_stmt                                          { setReadOnly($1);                       }
     | increment_stmt
     ;
 
 expression_stmt
-    : ';'                                                     { $$ = mkOpNode(';', 2, NULL, NULL);        }
-    | expr ';'                                                { $$ = $1;                                  }
+    : ';'                                                     { $$ = mkOpNode(';', 2, NULL, NULL);     }
+    | expr ';'                                                { $$ = $1;                               }
     ;
 
 selection_stmt
-    : IF '(' expr ')' block %prec IFX                         { $$ = mkOpNode(IF, 2, $3, $5);             }
-    | IF '(' expr ')' block ELSE block                        { $$ = mkOpNode(IF, 3, $3, $5, $7);         }
+    : IF '(' expr ')' block %prec IFX                         { $$ = mkOpNode(IF, 2, $3, $5);          }
+    | IF '(' expr ')' block ELSE block                        { $$ = mkOpNode(IF, 3, $3, $5, $7);      }
     ;
 
 iteration_stmt
-    : WHILE '(' expr ')' block                                { $$ = mkOpNode(WHILE, 2, $3, $5);          }
-    | FOR '(' expr ';' expr ';' expr ')' block                { $$ = mkOpNode(FOR, 4, $3, $5, $7, $9);    }
+    : WHILE '(' expr ')' block                                { $$ = mkOpNode(WHILE, 2, $3, $5);       }
+    | FOR '(' expr ';' expr ';' expr ')' block                { $$ = mkOpNode(FOR, 4, $3, $5, $7, $9); }
     ;
 
 block
     : stmt
-    | '{' stmt_list '}'                                       { $$ = $2;                                  }
+    | '{' stmt_list '}'                                       { $$ = $2;                               }
     ;
 
 stmt_list
     : stmt
-    | stmt_list stmt                                          { $$ = mkOpNode(';', 2, $1, $2);            }
+    | stmt_list stmt                                          { $$ = mkOpNode(';', 2, $1, $2);         }
     ;
 
 increment_stmt
-    : primary_expr INC ';'                                    { $$ = mkOpNode(INC, 1, $1);                }
-    | primary_expr DEC ';'                                    { $$ = mkOpNode(DEC, 1, $1);                }
+    : primary_expr INC ';'                                    { $$ = mkOpNode(INC, 1, $1);             }
+    | primary_expr DEC ';'                                    { $$ = mkOpNode(DEC, 1, $1);             }
     ;
 
 expr
@@ -107,63 +100,63 @@ expr
 
 assignment_expr
     : boolean_expr
-    | primary_expr  '='  assignment_expr                      { $$ = mkOpNode('=',   2, $1, $3);          }
-    | primary_expr ADDEQ assignment_expr                      { $$ = mkOpNode(ADDEQ, 2, $1, $3);          }
-    | primary_expr SUBEQ assignment_expr                      { $$ = mkOpNode(SUBEQ, 2, $1, $3);          }
-    | primary_expr MULEQ assignment_expr                      { $$ = mkOpNode(MULEQ, 2, $1, $3);          }
-    | primary_expr DIVEQ assignment_expr                      { $$ = mkOpNode(DIVEQ, 2, $1, $3);          }
-    | primary_expr MODEQ assignment_expr                      { $$ = mkOpNode(MODEQ, 2, $1, $3);          }
+    | primary_expr  '='  assignment_expr                      { $$ = mkOpNode('=',   2, $1, $3);       }
+    | primary_expr ADDEQ assignment_expr                      { $$ = mkOpNode(ADDEQ, 2, $1, $3);       }
+    | primary_expr SUBEQ assignment_expr                      { $$ = mkOpNode(SUBEQ, 2, $1, $3);       }
+    | primary_expr MULEQ assignment_expr                      { $$ = mkOpNode(MULEQ, 2, $1, $3);       }
+    | primary_expr DIVEQ assignment_expr                      { $$ = mkOpNode(DIVEQ, 2, $1, $3);       }
+    | primary_expr MODEQ assignment_expr                      { $$ = mkOpNode(MODEQ, 2, $1, $3);       }
     ;
 
 boolean_expr
     : arithmetic_expr
-    | boolean_expr EQ arithmetic_expr                         { $$ = mkOpNode(EQ,  2, $1, $3);            }
-    | boolean_expr NE arithmetic_expr                         { $$ = mkOpNode(NE,  2, $1, $3);            }
-    | boolean_expr GE arithmetic_expr                         { $$ = mkOpNode(GE,  2, $1, $3);            }
-    | boolean_expr LE arithmetic_expr                         { $$ = mkOpNode(LE,  2, $1, $3);            }
-    | boolean_expr '>' arithmetic_expr                        { $$ = mkOpNode('>', 2, $1, $3);            }
-    | boolean_expr '<' arithmetic_expr                        { $$ = mkOpNode('<', 2, $1, $3);            }
-    | boolean_expr LOR arithmetic_expr                        { $$ = mkOpNode(LOR, 2, $1, $3);            }
-    | boolean_expr LAND arithmetic_expr                       { $$ = mkOpNode(LAND,2, $1, $3);            }
+    | boolean_expr EQ arithmetic_expr                         { $$ = mkOpNode(EQ,  2, $1, $3);         }
+    | boolean_expr NE arithmetic_expr                         { $$ = mkOpNode(NE,  2, $1, $3);         }
+    | boolean_expr GE arithmetic_expr                         { $$ = mkOpNode(GE,  2, $1, $3);         }
+    | boolean_expr LE arithmetic_expr                         { $$ = mkOpNode(LE,  2, $1, $3);         }
+    | boolean_expr '>' arithmetic_expr                        { $$ = mkOpNode('>', 2, $1, $3);         }
+    | boolean_expr '<' arithmetic_expr                        { $$ = mkOpNode('<', 2, $1, $3);         }
+    | boolean_expr LOR arithmetic_expr                        { $$ = mkOpNode(LOR, 2, $1, $3);         }
+    | boolean_expr LAND arithmetic_expr                       { $$ = mkOpNode(LAND,2, $1, $3);         }
     ;
 
 arithmetic_expr
     : prefix_expr
-    | arithmetic_expr '+' prefix_expr                         { $$ = mkOpNode('+', 2, $1, $3);            }
-    | arithmetic_expr '-' prefix_expr                         { $$ = mkOpNode('-', 2, $1, $3);            }
-    | arithmetic_expr '*' prefix_expr                         { $$ = mkOpNode('*', 2, $1, $3);            }
-    | arithmetic_expr '/' prefix_expr                         { $$ = mkOpNode('/', 2, $1, $3);            }
-    | arithmetic_expr '^' prefix_expr                         { $$ = mkOpNode('^', 2, $1, $3);            }
-    | arithmetic_expr '%' prefix_expr                         { $$ = mkOpNode('%', 2, $1, $3);            }
+    | arithmetic_expr '+' prefix_expr                         { $$ = mkOpNode('+', 2, $1, $3);         }
+    | arithmetic_expr '-' prefix_expr                         { $$ = mkOpNode('-', 2, $1, $3);         }
+    | arithmetic_expr '*' prefix_expr                         { $$ = mkOpNode('*', 2, $1, $3);         }
+    | arithmetic_expr '/' prefix_expr                         { $$ = mkOpNode('/', 2, $1, $3);         }
+    | arithmetic_expr '^' prefix_expr                         { $$ = mkOpNode('^', 2, $1, $3);         }
+    | arithmetic_expr '%' prefix_expr                         { $$ = mkOpNode('%', 2, $1, $3);         }
     ;
 
 prefix_expr
     : function_expr
-    | '-' prefix_expr                                         { $$ = mkOpNode(NEG, 1, $2);                }
-    | '!' prefix_expr                                         { $$ = mkOpNode('!', 1, $2);                }
+    | '-' prefix_expr                                         { $$ = mkOpNode(NEG, 1, $2);             }
+    | '!' prefix_expr                                         { $$ = mkOpNode('!', 1, $2);             }
     ;
 
 function_expr
     : primary_expr
-    | primary_expr '(' arg_list ')'                           { $$ = mkOpNode(FNCT, 2, $1, $3);           }
-    | function_expr '.' primary_expr '(' arg_list ')'         { $$ = mkOpNode('.',  3, $1, $3, $5);       }
+    | primary_expr '(' arg_list ')'                           { $$ = mkOpNode(FNCT, 2, $1, $3);        }
+    | function_expr '.' primary_expr '(' arg_list ')'         { $$ = mkOpNode('.',  3, $1, $3, $5);    }
     ;
 
 arg_list
-    : /* empty */                                             { $$ = NULL;                                }
-    | function_arg                                            { $$ = $1;                                  }
-    | arg_list ',' function_arg                               { $$ = append($1, $3);                      }
+    : /* empty */                                             { $$ = NULL;                             }
+    | function_arg                                            { $$ = $1;                               }
+    | arg_list ',' function_arg                               { $$ = append($1, $3);                   }
     ;
 
 function_arg
-    : expr                                                    { $$ = $1;                                  }
-    | PARAM expr                                              { $1->var->value = $2;                      }
+    : expr                                                    { $$ = $1;                               }
+    | OPTARG expr                                             { $1->var->value = $2;                   }
     ;
 
 primary_expr
-    : IDENTIFIER                                              { $$ = $1;                                  }
-    | CONSTANT                                                { $$ = $1;                                  }
-    | '(' expr ')'                                            { $$ = $2;                                  }
+    : IDENTIFIER                                              { $$ = $1;                               }
+    | CONSTANT                                                { $$ = $1;                               }
+    | '(' expr ')'                                            { $$ = $2;                               }
     ;
 
 %% /* end of grammar */
@@ -196,6 +189,7 @@ ASTnode *mkStrNode(char *str) {
 }
 
 /* create a variable or function node in the AST */
+/* TODO: DELAY IDENTIFICATION. This has to be done to allow for recursion, and so that functions will only check their local var table */
 ASTnode *mkIdNode(char *ident) {
     ASTnode *p = newNode(0);
     varRec *v; funcRec *f;
@@ -217,15 +211,15 @@ ASTnode *mkIdNode(char *ident) {
     return p;
 }
 
-/* create a param node in the AST */
+/* create an optional argument node in the AST */
 /* reuse the var struct, it's close enough */
-ASTnode *mkParamNode(char *name) {
+ASTnode *mkOptArgNode(char *name) {
     ASTnode *p = newNode(0);
     /* allocate space for var */
     if ((p->var = malloc(sizeof(varRec))) == NULL)
         yyerror("out of memory");
     /* copy information */
-    p->type = typeParam;
+    p->type = typeOptArg;
     p->var->name = name;
     return p;
 }
@@ -344,13 +338,13 @@ void yyerror(char *error, ...) {
 
 /* built-in functions */
 static funcRec coreFunctions[] = {
-    "ffmpegDecode", ffmpegDecode_AST, NULL,
-    "print", print, NULL,
-    "sin", nsin, NULL,
-    "cos", ncos, NULL,
-    "ln", nlog, NULL,
-    "sqrt", nsqrt, NULL,
-    0, 0, 0
+    "ffmpegDecode", ffmpegDecode_AST, NULL, NULL, NULL, NULL,
+    "print", print, NULL, NULL, NULL, NULL,
+    "sin", nsin, NULL, NULL, NULL, NULL,
+    "cos", ncos, NULL, NULL, NULL, NULL,
+    "ln", nlog, NULL, NULL, NULL, NULL,
+    "sqrt", nsqrt, NULL, NULL, NULL, NULL,
+    0, 0, 0, 0, 0, 0
 };
 
 int main () {

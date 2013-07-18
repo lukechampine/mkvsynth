@@ -1,5 +1,5 @@
 /* types */
-typedef enum { typeVal, typeStr, typeFn, typeVar, typeParam, typeOp } nodeType;
+typedef enum { typeVal, typeStr, typeFn, typeVar, typeOptArg, typeOp } nodeType;
 
 /* an operator node */
 typedef struct ASTnode ASTnode;
@@ -35,7 +35,7 @@ ASTnode* mkValNode(double);
 ASTnode* mkStrNode(char *);
 ASTnode* mkTypeNode(int);
 ASTnode* mkOpNode(int, int, ...);
-ASTnode* mkParamNode(char *);
+ASTnode* mkOptArgNode(char *);
 ASTnode* append(ASTnode *, ASTnode *);
 ASTnode* ex(ASTnode *);
 void     freeNodes(int);
@@ -47,7 +47,10 @@ void     setReadOnly(ASTnode *);
 typedef ASTnode * (*func) (ASTnode *, ASTnode *);
 struct funcRec {
     char *name;             /* function name */
-    func ptr;               /* function pointer */
+    func ptr;               /* BUILT-IN: function pointer */
+    ASTnode *params;        /* USER-DEFINED: function parameters */
+    ASTnode *body;          /* USER-DEFINED: function body */
+    varRec *localVars;      /* USER-DEFINED: local variables */
     struct funcRec *next;   /* link field */
 };
 

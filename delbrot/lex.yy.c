@@ -780,13 +780,13 @@ YY_RULE_SETUP
                         return IDENTIFIER;
                     }
 	YY_BREAK
-/* optional function parameter */
+/* optional function argument */
 case 2:
 YY_RULE_SETUP
 #line 25 "delbrot.l"
 {
-                        yylval = mkParamNode(yytext);
-                        return PARAM;
+                        yylval = mkOptArgNode(yytext);
+                        return OPTARG;
                     }
 	YY_BREAK
 /* number, with optional decimal */
@@ -1939,6 +1939,8 @@ int resWord(char *str) {
     /* function definition */
     else if (!strcmp(str, "function"))
         return FNDEF;
+    else if (!strcmp(str, "return"))
+        return RETURN;
     /* not a reserved word */
     else
         return 0;

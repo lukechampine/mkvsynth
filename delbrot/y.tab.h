@@ -44,7 +44,7 @@
      T_STRING = 260,
      CONSTANT = 261,
      IDENTIFIER = 262,
-     PARAM = 263,
+     OPTARG = 263,
      LE = 264,
      GE = 265,
      EQ = 266,
@@ -60,12 +60,13 @@
      WHILE = 276,
      FNCT = 277,
      FNDEF = 278,
-     IFX = 279,
-     LOR = 280,
-     LAND = 281,
-     NEG = 282,
-     DEC = 283,
-     INC = 284
+     RETURN = 279,
+     IFX = 280,
+     LOR = 281,
+     LAND = 282,
+     NEG = 283,
+     DEC = 284,
+     INC = 285
    };
 #endif
 /* Tokens.  */
@@ -74,7 +75,7 @@
 #define T_STRING 260
 #define CONSTANT 261
 #define IDENTIFIER 262
-#define PARAM 263
+#define OPTARG 263
 #define LE 264
 #define GE 265
 #define EQ 266
@@ -90,12 +91,13 @@
 #define WHILE 276
 #define FNCT 277
 #define FNDEF 278
-#define IFX 279
-#define LOR 280
-#define LAND 281
-#define NEG 282
-#define DEC 283
-#define INC 284
+#define RETURN 279
+#define IFX 280
+#define LOR 281
+#define LAND 282
+#define NEG 283
+#define DEC 284
+#define INC 285
 
 
 

@@ -27,9 +27,63 @@ ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
 
 /* dereference a variable */
 ASTnode* dereference(ASTnode *p) {
+    if (UNDEFINED(p))
+        return p; 
     ASTnode *next = p->next;
     memcpy(p, p->var->value, sizeof(ASTnode));
     p->next = next;
+    return p;
+}
+
+ASTnode* allocateProtected(ASTnode *p) {
+    if (!p)
+        return NULL;
+
+    /* allocate new node outside of the garbage collection table */
+    ASTnode *dup;
+    if ((dup = malloc(sizeof(ASTnode))) == NULL)
+        yyerror("out of memory");
+
+    /* recurse to children, if any */
+    if (p->type == typeOp) {
+        int i;
+        for (i = 0; i < p->op.nops; i++)
+            p->op.ops[i] = allocateProtected(p->op.ops[i]);
+    }
+
+    memcpy(dup, p, sizeof(ASTnode));
+    dup->next = allocateProtected(dup->next);
+    dup->readonly = 1;
+    return dup;
+}
+
+void funcDefine(ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
+    if (nameNode->type != typeVar || nameNode->var->value != NULL)
+        yyerror("function name \"%s\" is already in use", nameNode->var->name);
+
+    /* create new function table entry */
+    funcRec *fn;
+    if ((fn = malloc(sizeof(funcRec))) == NULL)
+        yyerror("out of memory");
+    fn->name = nameNode->var->name;
+    fn->params = allocateProtected(paramNode);
+    fn->body = allocateProtected(bodyNode);
+    /* define local variables */
+    while(paramNode) {
+        varRec *ptr = (varRec *) malloc(sizeof (varRec));
+        ptr->name = (char *) malloc(strlen (paramNode->var->name) + 1);
+        strcpy(ptr->name,paramNode->var->name);
+        ptr->next = fn->localVars;
+        fn->localVars = ptr;
+        paramNode = paramNode->next;
+    }
+    putFn(fn);
+}
+
+ASTnode* userDefFnCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
+    /* TODO: check args */
+    /* TODO: assign arg values to local var table */
+    p = ex(fnNode->fn->body);
     return p;
 }
 
@@ -38,9 +92,14 @@ ASTnode* fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     if (UNDEFINED(fnNode))
         yyerror("reference to undefined function \"%s\"", fnNode->var->name);
     if (fnNode->type != typeFn)
-        yyerror("expected function name before '(', got %d", fnNode->type);
+        yyerror("expected function name before '('");
 
-    p = (*(fnNode->fn->ptr))(p, args);
+    if (fnNode->fn->ptr)
+        p = (*(fnNode->fn->ptr))(p, args);
+    else
+        p = userDefFnCall(p, fnNode, args);
+
+    return p;
 }
 
 /* execute a section of the AST */
@@ -57,7 +116,7 @@ ASTnode* ex(ASTnode *n) {
 
     /* only nodes with children should be evaluated */
     if (p->type == typeVar)
-        return UNDEFINED(p) ? p : dereference(p);
+        return dereference(p);
     if (p->type != typeOp)
         return p;
 
@@ -67,7 +126,7 @@ ASTnode* ex(ASTnode *n) {
 
     switch(p->op.oper) {
         /* declarations */
-        case FNDEF: /* not implemented yet */ return NULL;
+        case FNDEF: funcDefine(child[0], child[1], child[2]); return p;
         /* keywords */
         case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); p->type = typeOp; return p;
         case WHILE: while(ex(child[0])->val) { ex(child[1]); freeNodes(1); } freeNodes(1); p->type = typeOp; return p;
@@ -113,7 +172,7 @@ ASTnode* ex(ASTnode *n) {
 /* helper function to ensure that a function call is valid */
 /* TODO: use ... to allow type checking */
 void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
-    char *typeNames[] = {"integer", "string", "function", "variable", "parameter", "operation"};
+    char *typeNames[] = {"integer", "string", "function", "variable", "opt argument", "operation"};
     int i;
     va_list ap;
     va_start(ap, numArgs);
@@ -131,7 +190,7 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
     }
     va_end(ap);
     /* check for excess arguments */
-    if (traverse != NULL && traverse->type != typeParam) {
+    if (traverse != NULL && traverse->type != typeOptArg) {
         while ((traverse = traverse->next) != NULL) i++;
         yyerror("%s expected %d argument(s), got %d", funcName, numArgs, ++i);
     }
@@ -167,7 +226,7 @@ ASTnode* modvar(ASTnode *varNode, char op, double mod) {
 void* getOptArg(ASTnode *args, char *name, int type) {
     ASTnode *traverse = args;
     for (traverse = args; traverse != NULL; traverse = traverse->next)
-        if (traverse->type == typeParam && !(strncmp(traverse->var->name,name,strlen(name)))) {
+        if (traverse->type == typeOptArg && !(strncmp(traverse->var->name,name,strlen(name)))) {
             ASTnode *value = ex(traverse->var->value);
             switch (type) {
                 case typeVal: return &value->val;

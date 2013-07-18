@@ -21,10 +21,10 @@
                         yylval = mkIdNode(yytext);
                         return IDENTIFIER;
                     }
-    /* optional function parameter */
+    /* optional function argument */
 [a-zA-Z]+:          {
-                        yylval = mkParamNode(yytext);
-                        return PARAM;
+                        yylval = mkOptArgNode(yytext);
+                        return OPTARG;
                     }
     /* number, with optional decimal */
 [0-9]+(\.[0-9]+)?   {
@@ -96,6 +96,8 @@ int resWord(char *str) {
     /* function definition */
     else if (!strcmp(str, "function"))
         return FNDEF;
+    else if (!strcmp(str, "return"))
+        return RETURN;
     /* not a reserved word */
     else
         return 0;
