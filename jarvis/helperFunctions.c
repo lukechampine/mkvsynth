@@ -264,7 +264,7 @@ MkvsynthFrame * getFrame(MkvsynthGetParams *params) {
 //
 ///////////////////////////////////////
 
-void putFrame(MkvsynthControlNode *params, uint8_t *payload) {	
+void putFrame(MkvsynthPutParams *params, uint8_t *payload) {	
 	int i;
 	for(i = 0; i < params->outputBreadth; i++)
 		sem_wait(params->consumedBuffer + sizeof(sem_t) * i);
