@@ -67,9 +67,9 @@ void rgbCrop(RgbCropParams *filterParams, MkvsynthGetParams *getParams, Mkvsynth
 			}
 		}
  
-		clearFrame(workingFrame, workingFrame->payload);
+		clearFrame(workingFrame, NULL);
  
-		putFrame(putParams, NULL);
+		putFrame(putParams, payload);
 
 		workingFrame = getFrame(getParams);
 	}
