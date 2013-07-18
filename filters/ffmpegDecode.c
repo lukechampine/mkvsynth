@@ -68,12 +68,10 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 	// Memory Allocation //
 	///////////////////////
 	AVFrame *frame = avcodec_alloc_frame();
-	AVFrame *newFrame = avcodec_alloc_frame();
-	if(frame == NULL || newFrame == NULL) {
+	if(frame == NULLL) {
 		// Error!
 	}
 	
-	uint8_t *buffer;
 	struct SwsContext *resizeContext;
 	char memoryAllocated = 0;
 	
@@ -100,11 +98,9 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 					putParams->metaData->depth = 8;
 					putParams->metaData->colorspace = GENERIC_RGB;
 					signalStartupCompletion();
-
 					
-					int numBytes = avpicture_get_size(PIX_FMT_RGB24, frame->width, frame->height);
-					buffer = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
-					avpicture_fill((AVPicture *)newFrame, buffer, PIX_FMT_RGB24, frame->width, frame->height);
+					uint8_t *payload = malloc(3*width*height);
+					int newLinesize = 3*width;
 		
 					resizeContext = sws_getContext (
 						frame->width,
@@ -127,10 +123,10 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 					frame->linesize,
 					0,
 					frame->height,
-					newFrame->data,
-					newFrame->linesize);
+					payload,
+					newLinesize);
 			
-				putFrame(newFrame->data);
+				putFrame(putParams, payload);
 			}
 		}
 		
@@ -145,9 +141,7 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 	/////////////////////////
 	// Memory Deallocation //
 	/////////////////////////
-	free(buffer);
 	av_free(frame);
-	av_free(newFrame);
 	avcodec_close(codecContext);
 	avformat_close_input(&formatContext);
 }
