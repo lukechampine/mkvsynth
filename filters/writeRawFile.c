@@ -30,4 +30,5 @@ void writeRawFile(ASTParams *filterParams) {
 	}
 
 	putFrame(NULL);
+	MkvsynthTerminate();
 }
