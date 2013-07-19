@@ -2,12 +2,13 @@
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 
-void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
+void ffmpegDecode(ASTParams *filterParams) {
 	
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	char* filename = checkArgs(filterParams, "file", string);
+	char* filename = checkString(filterParams, "file");
+	MkvsynthOutput *output = checkOutput(filterParams, "output1");
 
 	//////////////////////////////////////
 	// Error Checking And Initializtion //
@@ -29,11 +30,11 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 		NULL);
 
 	if(avOpen != 0) {
-		// Error: input file could not be opened
+		filterError("Input file could not be opened.");
 	}
 	
 	if(avformat_find_stream_info(formatContext, NULL) < 0) {
-		// Error: input file does not seem to be a video
+		filterError("Input file does not seem to be a video.");
 	}
 	
 	int i;
@@ -45,14 +46,14 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 	}
 	
 	if(videoStream == -1) {
-		// Error: input file does not seem to have a video stream
+		filterError("Input file does not seem to have a video stream.");
 	}
 
 	codecContext = formatContext->streams[videoStream]->codec;
 
 	codec = avcodec_find_decoder(codecContext->codec_id);
 	if(decodeContext->codec == NULL) {
-		// Error: unrecognized video codec
+		filterError("Unrecognized video codec.");
 	}
 
 	int openCodec = avcodec_open2(
@@ -61,7 +62,7 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 		&optionsDictionary);
 
 	if(openCodec < 0) {
-		// Error: failed to open codec
+		filterError("Failed to open codec.");
 	}
 	
 	///////////////////////
@@ -69,7 +70,7 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 	///////////////////////
 	AVFrame *frame = avcodec_alloc_frame();
 	if(frame == NULLL) {
-		// Error!
+		filterError("Failed to allocate the decoding frame.");
 	}
 	
 	struct SwsContext *resizeContext;
@@ -92,12 +93,12 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 					//////////////////////////////////////////
 					// Meta Data and More Memory Allocation //
 					//////////////////////////////////////////
-					putParams->metaData->width = frame->width;
-					putParams->metaData->height = frame->height;
-					putParams->metaData->channels = 3;
-					putParams->metaData->depth = 8;
-					putParams->metaData->colorspace = GENERIC_RGB;
-					putParams->metaData->bytes = 3*frame->width*frame->height;
+					output->metaData->width = frame->width;
+					output->metaData->height = frame->height;
+					output->metaData->channels = 3;
+					output->metaData->depth = 8;
+					output->metaData->colorspace = GENERIC_RGB;
+					output->metaData->bytes = 3*frame->width*frame->height;
 					signalStartupCompletion();
 					
 					uint8_t *payload = malloc(3*width*height);
@@ -127,7 +128,7 @@ void ffmpegDecode(ASTParams *filterParams, MkvsynthPutParams *putParams) {
 					payload,
 					newLinesize);
 			
-				putFrame(putParams, payload);
+				putFrame(output, payload);
 			}
 		}
 		

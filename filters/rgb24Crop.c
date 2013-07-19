@@ -1,55 +1,57 @@
-void rgbCrop(ASTParams *filterParams, MkvsynthGetParams *getParams, MkvsynthPutParams *putParams) {
+void rgb24Crop(ASTParams *filterParams) {
 
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	int left = checkInt(filterParams, "left", int);
-	int top = checkInt(filterParams, "top", int);
-	int right = checkInt(filterParams, "right", int);
-	int bottom = checkInt(filterParams, "bottom", int);
+	int left = checkInt(filterParams, "left");
+	int top = checkInt(filterParams, "top");
+	int right = checkInt(filterParams, "right");
+	int bottom = checkInt(filterParams, "bottom");
+	MkvsynthInput *input = checkInput(filterParams, "input1");
+	MkvsynthOutput *output = checkOutput(filterParams, "output1");
 
 	////////////////////
 	// Error Checking //
 	////////////////////
-	if((filterParams->left + filterParams->right) > getParams->metaData->width)
+	if((left + right) > input->metaData->width)
 		filterError("You cannot crop that many columns! Insufficient video width!");
    
-	if((filterParams->top + filterParams->bottom) > getParams->metaData->height)
+	if((top + bottom) > input->metaData->height)
 		filterError("You cannot crop that many rows! Insufficient video height!");
    
-	if(getParams->metaData->colorspace != PACKED_RGB && getParams->metaData->colorspace != STRICT_RGB)
+	if(input->metaData->colorspace != PACKED_RGB && input->metaData->colorspace != STRICT_RGB)
 		filterError("rgbCrop does not recognize the colorspace of the input video!");
 
 	///////////////
 	// Meta Data //
 	///////////////
-	putParams->metaData->colorspace = getParams->metaData->colorspace;
-	putParams->metaData->width = getParams->metaData->width - filterParams->left - filterParams->right;
-	putParams->metaData->height = getParams->metaData->height - filterParams->top - filterParams->bottom;
-	putParams->metaData->channels = getParams->metaData->channels;
-	putParams->metaData->depth = getParams->metaData->channels;
-	putParams->metaData->bytes = 3*putParams->metaData->width*putParams->metaData->height;
+	output->metaData->colorspace = input->metaData->colorspace;
+	output->metaData->width = input->metaData->width - left - right;
+	output->metaData->height = input->metaData->height - top - bottom;
+	output->metaData->channels = input->metaData->channels;
+	output->metaData->depth = input->metaData->channels;
+	output->metaData->bytes = 3*output->metaData->width*output->metaData->height;
 	signalStartupCompletion(); 
 
 	/////////////////
 	// Filter Loop //
 	/////////////////
-	MkvsynthFrame *workingFrame = getFrame(getParams);
+	MkvsynthFrame *workingFrame = getFrame(input);
 
 	while(workingFrame != NULL) {
-		uint8_t *payload = malloc(putParams->metaData->bytes);
+		uint8_t *payload = malloc(output->metaData->bytes);
 
 		int i, j;
-		for(i = 0; i < putParams->metaData->height; i++) {
-			int sourceOffset = i*3*getParams->width+left*3;
+		for(i = 0; i < output->metaData->height; i++) {
+			int sourceOffset = i*3*input->width+left*3;
 			int destOffset = 3*i*width;
 			int offsetSize = 3*(width-left-right);
 			memcpy(payload[3*i*width], workingFrame->payload[startOffset], offsetSize);
 		}
  
 		clearFrame(workingFrame, NULL);
-		putFrame(putParams, payload);
-		workingFrame = getFrame(getParams);
+		putFrame(output, payload);
+		workingFrame = getFrame(input);
 	}
 
 	putFrame(NULL);

@@ -1,34 +1,36 @@
 #include <libswscale/swscale.h>
 
-void rgb24Resize(ASTParams *filterParams, MkvsynthGetParams *getParams, MkvsynthPutParams *putParams) {
+void rgb24Resize(ASTParams *filterParams, MkvsynthGetParams *input, MkvsynthPutParams *output) {
 
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	char* algorithm = checkArgs(filterParams, "algorithm", string);
-	int width = checkArgs(filterParams, "width", int);
-	int height = checkArgs(filterParams, "height", int);
+	int width = checkInt(filterParams, "width");
+	int height = checkInt(filterParams, "height");
+	char* algorithm = checkString(filterParams, "algorithm");
+	MkvsynthInput *input = checkInput(filterParams, "input1");
+	MkvsynthOutput *output = checkOutput(filterParams, "output1");
 
 	////////////////////
 	// Error Checking //
 	////////////////////
 	if(algorithm != "spline" && algorithm != "bilinear") {
-		// ERROR
+		filterError("Resize algorithm is not recognized.");
 	}
 
 	///////////////
 	// Meta Data //
 	///////////////
-	putParams->metaData->colorspace = GENERIC_RGB;
-	putParams->metaData->width = width;
-	putParams->metaData->height = height;
-	putParams->metaData->channels = 3;
-	putParams->metaData->depth = 8;
-	putParams->metaData->bytes = 3*width*height;
+	output->metaData->colorspace = GENERIC_RGB;
+	output->metaData->width = width;
+	output->metaData->height = height;
+	output->metaData->channels = 3;
+	output->metaData->depth = 8;
+	output->metaData->bytes = 3*width*height;
 
 	signalStartupCompletion(); 
 
-	int oldLinesize = 3 * getParams->width;
+	int oldLinesize = 3 * input->width;
 	int newLinesize = 3 * width;
 
 	int sws_algorithm;
@@ -39,8 +41,8 @@ void rgb24Resize(ASTParams *filterParams, MkvsynthGetParams *getParams, Mkvsynth
 	}
 
 	struct SwsContext *resizeContext = sws_getContext (
-		getParams->metaData->width,
-		getParams->metaData->height,
+		input->metaData->width,
+		input->metaData->height,
 		PIX_FMT_RGB24,
 		width,
 		height,
@@ -53,7 +55,7 @@ void rgb24Resize(ASTParams *filterParams, MkvsynthGetParams *getParams, Mkvsynth
 	/////////////////
 	// Filter Loop //
 	/////////////////
-	MkvsynthFrame *workingFrame = getFrame(getParams);
+	MkvsynthFrame *workingFrame = getFrame(input);
 
 	while(workingFrame != NULL) {
 		uint8_t *payload = malloc(3*height*width);
@@ -63,13 +65,13 @@ void rgb24Resize(ASTParams *filterParams, MkvsynthGetParams *getParams, Mkvsynth
 			(uint8_t const * const *)workingFrame->payload,
 			oldLinesize,
 			0,
-			getParams->metaData->height,
+			input->metaData->height,
 			payload,
 			newLinesize);
 			
 		clearFrame(workingFrame, NULL);
-		putFrame(putParams, payload);
-		workingFrame = getFrame(getParams);
+		putFrame(output, payload);
+		workingFrame = getFrame(input);
 	}
 
 	putFrame(NULL);

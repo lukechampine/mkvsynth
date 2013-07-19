@@ -5,17 +5,16 @@ void x264Encode(ASTParams *filterParams) {
 	///////////////////////
 	char *options = checkString(filterParams, "options");
 	char *outputFile = checkString(filterParams, "file"); // this is optional
-	MkvsynthInput input = checkInput(filterParams, "input");
+	MkvsynthInput *input = checkInput(filterParams, "input1");
 
 	////////////////////
 	// Error Checking //
 	////////////////////
-	// I'm sure there are some limitations like video must me modular 2, but not entirely sure
+	// Not sure what possible errors are
 	
 	///////////////////
 	// x264 Spawning //
 	///////////////////
-	// Concatenate options to the string that fills out the raw information
 	char fullCommand[1024];
 	snprintf(fullCommand, sizeof(fullCommand), "x264 --input-csp rgb24 --width %i --height %i %s --output %s",
 		input->metaData->width, input->metaData->height, options, outputFile);
