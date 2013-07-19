@@ -11,7 +11,7 @@ void filterError(char *error) {
 	exit(0);
 }
 
-void terminate() {
+void mkvsynthTerminate() {
 	pthread_exit(0);
 }
 
