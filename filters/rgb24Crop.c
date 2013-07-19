@@ -55,5 +55,5 @@ void rgb24Crop(ASTParams *filterParams) {
 	}
 
 	putFrame(NULL);
-	terminate();
+	mkvsynthTerminate();
 }
