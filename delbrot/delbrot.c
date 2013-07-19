@@ -8,10 +8,13 @@
 
 #define UNDEFINED(n) n->type == typeVar && n->var->value == NULL
 
+/* useful for error messages */
+static char *typeNames[] = {"integer", "identifier", "string", "function", "variable", "opt argument", "operation"};
+
 /* assign a variable */
 ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
     if (varNode->type != typeVar)
-        yyerror("can't assign to a constant value");
+        yyerror("can't assign to a constant value (got %s)", typeNames[varNode->type]);
 
     /* new variable */
     if (UNDEFINED(varNode)) {
@@ -25,10 +28,31 @@ ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
     return memcpy(varNode->var->value, valueNode, sizeof(ASTnode));
 }
 
+/* resolve an identifier */
+ASTnode *identify(ASTnode *p) {
+    varRec *scope = p->scope;
+    varRec *v; funcRec *f;
+    /* function */
+    if ((f = getFn(p->str)) != NULL) {
+        p->type = typeFn;
+        p->fn = f;
+    }
+    /* existing variable */
+    else if ((v = getVar(p->str, scope)) != NULL) {
+        p->type = typeVar;
+        p->var = v;
+        
+    }
+    /* new variable */
+    else {
+        p->type = typeVar;
+        p->var = putVar(p->str);
+    }
+    return p;
+}
+
 /* dereference a variable */
-ASTnode* dereference(ASTnode *p) {
-    if (UNDEFINED(p))
-        return p; 
+ASTnode *dereference(ASTnode *p) {
     ASTnode *next = p->next;
     memcpy(p, p->var->value, sizeof(ASTnode));
     p->next = next;
@@ -52,38 +76,60 @@ ASTnode* allocateProtected(ASTnode *p) {
     }
 
     memcpy(dup, p, sizeof(ASTnode));
-    dup->next = allocateProtected(dup->next);
     dup->readonly = 1;
+    /* recurse to linked node */
+    dup->next = allocateProtected(dup->next);
+    
     return dup;
 }
 
 void funcDefine(ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
-    if (nameNode->type != typeVar || nameNode->var->value != NULL)
+    if (nameNode->type != typeId)
         yyerror("function name \"%s\" is already in use", nameNode->var->name);
-
     /* create new function table entry */
     funcRec *fn;
     if ((fn = malloc(sizeof(funcRec))) == NULL)
         yyerror("out of memory");
-    fn->name = nameNode->var->name;
-    fn->params = allocateProtected(paramNode);
+    fn->name = nameNode->str;
     fn->body = allocateProtected(bodyNode);
-    /* define local variables */
-    while(paramNode) {
-        varRec *ptr = (varRec *) malloc(sizeof (varRec));
-        ptr->name = (char *) malloc(strlen (paramNode->var->name) + 1);
-        strcpy(ptr->name,paramNode->var->name);
-        ptr->next = fn->localVars;
-        fn->localVars = ptr;
-        paramNode = paramNode->next;
-    }
     putFn(fn);
+    /* allocate variables */
+    for(; paramNode; paramNode = paramNode->next) {
+        varRec *v = (varRec *) malloc(sizeof (varRec));
+        v->name = strdup(paramNode->str);
+        v->value = newNode(0);
+        v->value->type = paramNode->type;
+        v->next = fn->localVars;
+        fn->localVars = v;
+    }
 }
 
 ASTnode* userDefFnCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
-    /* TODO: check args */
-    /* TODO: assign arg values to local var table */
+    /* determine number of arguments */
+    int i, numArgs = 0;
+    varRec* fnVars;
+    for(fnVars = fnNode->fn->localVars; fnVars; fnVars = fnVars->next, numArgs++);
+    fnVars = fnNode->fn->localVars;
+
+    /* define and assign local variables */
+    for(i = 0; i < numArgs; i++, args = args->next, fnVars = fnVars->next) {
+        if (!args)
+            yyerror("%s expected %d argument(s), got %d", fnNode->fn->name, numArgs, i);
+        if (args->type != fnVars->value->type)
+            yyerror("type mismatch in function call: arg %d expected %s, got %s", i+1, typeNames[args->type], typeNames[fnVars->value->type]);
+
+        memcpy(fnVars->value, args, sizeof(ASTnode));
+    }
+
+    /* excessive arguments */
+    if (args) {
+        while ((args = args->next) != NULL) i++;
+        yyerror("%s expected %d argument(s), got %d", fnNode->fn->name, numArgs, ++i);
+    }
+
+    /* execute function body */
     p = ex(fnNode->fn->body);
+
     return p;
 }
 
@@ -92,7 +138,7 @@ ASTnode* fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     if (UNDEFINED(fnNode))
         yyerror("reference to undefined function \"%s\"", fnNode->var->name);
     if (fnNode->type != typeFn)
-        yyerror("expected function name before '('");
+        yyerror("expected function name before '(' (got %s)", typeNames[fnNode->type]);
 
     if (fnNode->fn->ptr)
         p = (*(fnNode->fn->ptr))(p, args);
@@ -114,9 +160,15 @@ ASTnode* ex(ASTnode *n) {
         memcpy(p, n, sizeof(ASTnode));
     }
 
-    /* only nodes with children should be evaluated */
+    /* resolve identifiers */
+    if (p->type == typeId)
+        return identify(p);
+
+    /* dereference variables */
     if (p->type == typeVar)
         return dereference(p);
+
+    /* only nodes with children should be evaluated */
     if (p->type != typeOp)
         return p;
 
@@ -132,17 +184,17 @@ ASTnode* ex(ASTnode *n) {
         case WHILE: while(ex(child[0])->val) { ex(child[1]); freeNodes(1); } freeNodes(1); p->type = typeOp; return p;
         case FOR:   for(ex(child[0]); ex(child[1])->val; ex(child[2]), freeNodes(1)) ex(child[3]); freeNodes(1); p->type = typeOp; return p;
         /* functions */
-        case FNCT:  return fnctCall(p, child[0], child[1]);
-        case '.':   child[0]->next = child[2]; return fnctCall(p, child[1], ex(child[0]));
+        case FNCT:  return fnctCall(p, ex(child[0]), child[1]);
+        case '.':   child[0]->next = child[2]; return fnctCall(p, ex(child[1]), ex(child[0]));
         /* assignment */
-        case '=':   return assign(child[0], ex(child[1])); 
-        case ADDEQ: return modvar(child[0], '+', ex(child[1])->val);
-        case SUBEQ: return modvar(child[0], '-', ex(child[1])->val);
-        case MULEQ: return modvar(child[0], '*', ex(child[1])->val);
-        case DIVEQ: return modvar(child[0], '/', ex(child[1])->val);
-        case MODEQ: return modvar(child[0], '%', ex(child[1])->val);
-        case INC:   return modvar(child[0], '+', 1);
-        case DEC:   return modvar(child[0], '-', 1);
+        case '=':   return assign(ex(child[0]), ex(child[1])); 
+        case ADDEQ: return modvar(ex(child[0]), '+', ex(child[1])->val);
+        case SUBEQ: return modvar(ex(child[0]), '-', ex(child[1])->val);
+        case MULEQ: return modvar(ex(child[0]), '*', ex(child[1])->val);
+        case DIVEQ: return modvar(ex(child[0]), '/', ex(child[1])->val);
+        case MODEQ: return modvar(ex(child[0]), '%', ex(child[1])->val);
+        case INC:   return modvar(ex(child[0]), '+', 1);
+        case DEC:   return modvar(ex(child[0]), '-', 1);
         /* arithmetic operators */
         /* TODO: make these real function calls, complete with type checking */
         case '%':   p->val = (int) ex(child[0])->val % (int) ex(child[1])->val; return p;
@@ -172,7 +224,6 @@ ASTnode* ex(ASTnode *n) {
 /* helper function to ensure that a function call is valid */
 /* TODO: use ... to allow type checking */
 void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
-    char *typeNames[] = {"integer", "string", "function", "variable", "opt argument", "operation"};
     int i;
     va_list ap;
     va_start(ap, numArgs);
@@ -263,6 +314,8 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
         /* unreduced/unprintable types */
         if (UNDEFINED(args))
             yyerror("reference to uninitialized variable \"%s\"", args->var->name);
+        if (args->type == typeId)
+            args = ex(args);
         if (args->type == typeVar || args->type == typeOp)
             args = ex(args);
         /* printable types */

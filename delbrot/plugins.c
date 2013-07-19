@@ -3,6 +3,6 @@
 ASTnode* myPlugin_AST(ASTnode *p, ASTnode *args);
 
 funcRec pluginFunctions[] = {
-	"myPlugin", myPlugin_AST, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0
+	"myPlugin", myPlugin_AST, 0, 0, 0,
+	0, 0, 0, 0, 0
 };

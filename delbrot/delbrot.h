@@ -1,5 +1,5 @@
 /* types */
-typedef enum { typeVal, typeStr, typeFn, typeVar, typeOptArg, typeOp } nodeType;
+typedef enum { typeVal, typeId, typeStr, typeFn, typeVar, typeOptArg, typeOp } nodeType;
 
 /* an operator node */
 typedef struct ASTnode ASTnode;
@@ -23,6 +23,7 @@ struct ASTnode {
         varRec *var;        /* variable */
         opNode   op;        /* operator */
     };
+    varRec *scope;          /* variable scope */
     struct ASTnode *next;   /* used for argument linked lists */
 };
 
@@ -48,7 +49,6 @@ typedef ASTnode * (*func) (ASTnode *, ASTnode *);
 struct funcRec {
     char *name;             /* function name */
     func ptr;               /* BUILT-IN: function pointer */
-    ASTnode *params;        /* USER-DEFINED: function parameters */
     ASTnode *body;          /* USER-DEFINED: function body */
     varRec *localVars;      /* USER-DEFINED: local variables */
     struct funcRec *next;   /* link field */
@@ -69,7 +69,7 @@ extern varRec *varTable;
 
 /* variable/function access prototypes */
 varRec* putVar(char const *);
-varRec* getVar(char const *);
+varRec* getVar(char const *, varRec *scope);
 funcRec* putFn(funcRec *);
 funcRec* getFn(char const *);
 void* getOptArg(ASTnode *args, char *name, int type);

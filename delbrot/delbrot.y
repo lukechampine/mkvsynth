@@ -52,9 +52,9 @@ param_list
     ;
 
 param
-    : T_INT primary_expr   
-    | T_DOUBLE primary_expr
-    | T_STRING primary_expr
+    : T_INT primary_expr                                      { $2->type = typeVal; $$ = $2;           }
+    | T_DOUBLE primary_expr                                   { $2->type = typeVal; $$ = $2;           }
+    | T_STRING primary_expr                                   { $2->type = typeStr; $$ = $2;           }
     ;
 
 stmt
@@ -189,26 +189,12 @@ ASTnode *mkStrNode(char *str) {
     return p;
 }
 
-/* create a variable or function node in the AST */
+/* create an identifier node in the AST */
 /* TODO: DELAY IDENTIFICATION. This has to be done to allow for recursion, and so that functions will only check their local var table */
 ASTnode *mkIdNode(char *ident) {
     ASTnode *p = newNode(0);
-    varRec *v; funcRec *f;
-    /* function */
-    if ((f = getFn(ident)) != NULL) {
-        p->type = typeFn;
-        p->fn = f;
-    }
-    /* existing variable */
-    else if ((v = getVar(ident)) != NULL) {
-        p->type = typeVar;
-        p->var = v;
-    }
-    /* new variable */
-    else {
-        p->type = typeVar;
-        p->var = putVar(ident);
-    }
+    p->type = typeId;
+    p->str = strdup(ident);
     return p;
 }
 
@@ -318,10 +304,12 @@ varRec *putVar(char const *varName) {
 }
 
 /* look up a variable's corresponding ASTnode */
-varRec *getVar(char const *varName) {
+varRec *getVar(char const *varName, varRec *scope) {
+    if (!scope)
+        scope = varTable;
     varRec *ptr;
-    for (ptr = varTable; ptr != NULL; ptr = ptr->next)
-        if (strcmp (ptr->name,varName) == 0)
+    for (ptr = scope; ptr != NULL; ptr = ptr->next)
+        if (strcmp (ptr->name, varName) == 0)
             return ptr;
     return NULL;
 }
@@ -339,13 +327,13 @@ void yyerror(char *error, ...) {
 
 /* built-in functions */
 static funcRec coreFunctions[] = {
-    "ffmpegDecode", ffmpegDecode_AST, NULL, NULL, NULL, NULL,
-    "print", print, NULL, NULL, NULL, NULL,
-    "sin", nsin, NULL, NULL, NULL, NULL,
-    "cos", ncos, NULL, NULL, NULL, NULL,
-    "ln", nlog, NULL, NULL, NULL, NULL,
-    "sqrt", nsqrt, NULL, NULL, NULL, NULL,
-    0, 0, 0, 0, 0, 0
+    "ffmpegDecode", ffmpegDecode_AST, NULL, NULL, NULL,
+    "print", print, NULL, NULL, NULL,
+    "sin", nsin, NULL, NULL, NULL,
+    "cos", ncos, NULL, NULL, NULL,
+    "ln", nlog, NULL, NULL, NULL,
+    "sqrt", nsqrt, NULL, NULL, NULL,
+    0, 0, 0, 0, 0
 };
 
 int main () {
