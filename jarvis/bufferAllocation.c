@@ -1,7 +1,7 @@
 #ifndef _bufferAllocation_c_
 #define _bufferAllocation_c_
 
-MkvsynthOutput *createBuffer(int outputBreadth) {
+MkvsynthOutput *createOutputBuffer(int outputBreadth) {
 	MkvsynthMetaData *metaData = malloc(sizeof(MkvsynthMetaData));
 	MkvsynthOutput *output = malloc(sizeof(MkvsynthOutput));
 	
@@ -19,4 +19,17 @@ MkvsynthOutput *createBuffer(int outputBreadth) {
 	output->consumedBuffer = consumedBuffer;
 	output->recentFrame = NULL;
 	output->metaData = metaData;
+	
+	return output;
+}
+
+MkvsynthInput *createInputBuffer(MkvsynthOutput *output, int semaphoreIndex) {
+	MkvsynthInput *input = malloc(sizeof(MkvsynthInput));
+	
+	input->remainingBuffer = &output->remainingBuffer[semaphoreIndex];
+	input->consumedBuffer = &output->consumedBuffer[semaphoreIndex];
+	input->currentFrame = NULL;
+	input->metaData = output->metaData;
+	
+	return input;
 }
