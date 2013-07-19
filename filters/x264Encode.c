@@ -39,4 +39,5 @@ void x264Encode(ASTParams *filterParams) {
 	}
 
 	pclose(x264Proc);
+	mkvsynthTerminate();
 }
