@@ -146,4 +146,5 @@ void ffmpegDecode(ASTParams *filterParams) {
 	av_free(frame);
 	avcodec_close(codecContext);
 	avformat_close_input(&formatContext);
+	terminate();
 }
