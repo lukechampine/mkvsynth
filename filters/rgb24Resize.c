@@ -75,5 +75,5 @@ void rgb24Resize(ASTParams *filterParams, MkvsynthGetParams *input, MkvsynthPutP
 	}
 
 	putFrame(NULL);
-	terminate();
+	mkvsynthTerminate();
 }
