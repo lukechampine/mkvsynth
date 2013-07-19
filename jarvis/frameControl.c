@@ -1,7 +1,7 @@
 // There should probably be error checking statements around all of the mallocs(), frees(), and inits()
 
-#ifndef _datatypes_h_
-#define _datatypes_h_
+#ifndef frameControl_c_
+#define frameControl_c_
 
 #include <pthread.h>
 #include <semaphore.h>
