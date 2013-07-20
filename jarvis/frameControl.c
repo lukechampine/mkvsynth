@@ -16,7 +16,7 @@ typedef struct {
 	int depth;
 	int bytes;
 	
-	sem_t *startupComplete;
+	sem_t startupComplete;
 } MkvsynthMetaData;
 
 typedef struct {
