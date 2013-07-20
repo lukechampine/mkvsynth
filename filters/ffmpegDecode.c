@@ -99,7 +99,7 @@ void ffmpegDecode(ASTParams *filterParams) {
 					output->metaData->depth = 8;
 					output->metaData->colorspace = GENERIC_RGB;
 					output->metaData->bytes = 3*frame->width*frame->height;
-					signalStartupCompletion();
+					signalStartupCompletion(output);
 					
 					uint8_t *payload = malloc(3*width*height);
 					int newLinesize = 3*width;

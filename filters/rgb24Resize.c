@@ -28,7 +28,7 @@ void rgb24Resize(ASTParams *filterParams, MkvsynthGetParams *input, MkvsynthPutP
 	output->metaData->depth = 8;
 	output->metaData->bytes = 3*width*height;
 
-	signalStartupCompletion(); 
+	signalStartupCompletion(output); 
 
 	int oldLinesize = 3 * input->width;
 	int newLinesize = 3 * width;

@@ -31,7 +31,7 @@ void rgb24Crop(ASTParams *filterParams) {
 	output->metaData->channels = input->metaData->channels;
 	output->metaData->depth = input->metaData->channels;
 	output->metaData->bytes = 3*output->metaData->width*output->metaData->height;
-	signalStartupCompletion(); 
+	signalStartupCompletion(output); 
 
 	/////////////////
 	// Filter Loop //
