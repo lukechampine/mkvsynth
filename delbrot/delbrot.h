@@ -15,7 +15,7 @@ typedef struct funcRec funcRec;
 typedef struct varRec varRec;
 struct ASTnode {
     nodeType type;          /* type of node */
-    int readonly;           /* determines whether ex() will consume node */
+    int decay;              /* number of operations before this node will be freed */
     union {
         double  val;        /* value */
         char   *str;        /* string */
@@ -30,7 +30,9 @@ struct ASTnode {
 #define YYSTYPE ASTnode*
 
 /* ASTnode prototypes */
-ASTnode* newNode(int);
+ASTnode* newNode();
+void     freeAll();
+void     protect(ASTnode *);
 ASTnode* mkIdNode(char *);
 ASTnode* mkValNode(double);
 ASTnode* mkStrNode(char *);
@@ -39,8 +41,6 @@ ASTnode* mkOpNode(int, int, ...);
 ASTnode* mkOptArgNode(char *);
 ASTnode* append(ASTnode *, ASTnode *);
 ASTnode* ex(ASTnode *);
-void     freeNodes(int);
-void     setReadOnly(ASTnode *);
 
 /* a function */
 /* arg1 is passed by reference, and will contain result of the function */
@@ -75,12 +75,12 @@ funcRec* getFn(char const *);
 void* getOptArg(ASTnode *args, char *name, int type);
 
 /* standard mathematical function prototypes */
-ASTnode* nmod(ASTnode *, ASTnode *);
-ASTnode* npow(ASTnode *, ASTnode *);
-ASTnode* nmul(ASTnode *, ASTnode *);
-ASTnode* ndiv(ASTnode *, ASTnode *);
-ASTnode* nadd(ASTnode *, ASTnode *);
-ASTnode* nsub(ASTnode *, ASTnode *);
+ASTnode* nmod(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* npow(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* nmul(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* ndiv(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* nadd(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* nsub(ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nneg(ASTnode *, ASTnode *);
 ASTnode* nsin(ASTnode *, ASTnode *);
 ASTnode* ncos(ASTnode *, ASTnode *);

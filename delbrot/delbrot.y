@@ -33,7 +33,7 @@
     /* TODO: consider delaying AST evaluation until it has been fully constructed */
 program
     : /* empty program */
-    | program item                                            { ex($2); freeNodes(0);                  }
+    | program item                                            { ex($2); freeAll();                  }
     ;
 
 item
@@ -163,19 +163,21 @@ primary_expr
 %% /* end of grammar */
 
 /* allocate space for a new node */
-ASTnode *newNode(int i) {
+ASTnode *newNode() {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
-    /* seek to open slot (normal and duplicate nodes are interleaved) */
-    for (i; unfreed[i]; i += 2);
+    p->decay = 1;
+    /* seek to open slot */
+    int i = 0;
+    while(unfreed[i]) i++;
     unfreed[i] = p;
     return p;
 }
 
 /* create a value node in the AST */
 ASTnode *mkValNode(double val) {
-    ASTnode *p = newNode(0);
+    ASTnode *p = newNode();
     p->type = typeVal;
     p->val = val;
     return p;
@@ -183,7 +185,7 @@ ASTnode *mkValNode(double val) {
 
 /* create a string node in the AST */
 ASTnode *mkStrNode(char *str) {
-    ASTnode *p = newNode(0);
+    ASTnode *p = newNode();
     p->type = typeStr;
     p->str = strdup(str);
     return p;
@@ -191,7 +193,7 @@ ASTnode *mkStrNode(char *str) {
 
 /* create an identifier node in the AST */
 ASTnode *mkIdNode(char *ident) {
-    ASTnode *p = newNode(0);
+    ASTnode *p = newNode();
     p->type = typeId;
     p->str = strdup(ident);
     p->scope = &globalVars;
@@ -201,7 +203,7 @@ ASTnode *mkIdNode(char *ident) {
 /* create an optional argument node in the AST */
 /* reuse the var struct, it's close enough */
 ASTnode *mkOptArgNode(char *name) {
-    ASTnode *p = newNode(0);
+    ASTnode *p = newNode();
     /* allocate space for var */
     if ((p->var = malloc(sizeof(varRec))) == NULL)
         yyerror("out of memory");
@@ -212,14 +214,14 @@ ASTnode *mkOptArgNode(char *name) {
 }
 
 ASTnode *mkTypeNode(int type) {
-    ASTnode *p = newNode(0);
+    ASTnode *p = newNode();
     p->type = type;
     return p;
 }
 
 /* create an operation node in the AST */
 ASTnode *mkOpNode(int oper, int nops, ...) {
-    ASTnode *p = newNode(0);
+    ASTnode *p = newNode();
     /* allocate space for ops */
     if ((p->op.ops = malloc(nops * sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
@@ -235,17 +237,38 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
     return p;
 }
 
-/* destroy evaluated nodes in the AST */
-/* TODO: make this smarter. Maybe attach a value to each node and decide whether to free based on that. */
-void freeNodes(int i) {
-    // for (i; unfreed[i]; i += 2) {
-    //     if(!unfreed[i + 2] /* ridiculous hack to prevent freeing of IF/ELSE resolving token */
-    //     || unfreed[i + 2]->type != typeOp
-    //     || unfreed[i + 2]->op.oper != IF
-    //     || unfreed[i + 2]->op.nops != 2)
-    //         free(unfreed[i]);
-    //     unfreed[i] = NULL;
-    // }
+/* hide a node (and its children) from the garbage collector */ 
+void protect(ASTnode *p) {
+    if (!p)
+        return;
+    /* set unfreed[] entry to NULL */
+    int i;
+    for(i = 0; i < 8192; i++) {
+        if (unfreed[i] == p) {
+            unfreed[i] = NULL;
+            break;
+        }
+    }
+    /* recurse to children, if any */
+    if (p->type == typeOp) {
+        int i;
+        for (i = 0; i < p->op.nops; i++)
+            protect(p->op.ops[i]);
+    }
+    /* recurse to linked node */
+    protect(p->next);
+}
+
+/* free all memory */
+/* this is only run after a statement has been fully executed */
+void freeAll() {
+    int i;
+    for (i = 0; i < 8192; i++) {
+        if (unfreed[i] == NULL)
+            continue;
+        free(unfreed[i]);
+        unfreed[i] = NULL;
+    }
 }
 
 /* add an ASTnode to the end of a linked list of arguments */

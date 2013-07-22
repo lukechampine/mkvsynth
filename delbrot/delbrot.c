@@ -85,41 +85,56 @@ ASTnode *dereference(ASTnode *p) {
     return p;
 }
 
-/* copy a block to new memory that is not garbage-collected */ 
-ASTnode* allocateProtected(ASTnode *p, varRec **scope) {
+/* copy a node and it's children */
+ASTnode *copy(ASTnode *p) {
     if (!p)
         return NULL;
 
-    /* allocate new node outside of the garbage collection table */
-    ASTnode *dup;
-    if ((dup = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
+    ASTnode *dup = newNode();
+    memcpy(dup, p, sizeof(ASTnode));
 
+    /* recurse to children, if any */
+    if (dup->type == typeOp) {
+        if ((dup->op.ops = malloc(dup->op.nops * sizeof(ASTnode))) == NULL)
+            yyerror("out of memory");
+        int i;
+        for (i = 0; i < dup->op.nops; i++)
+            dup->op.ops[i] = copy(p->op.ops[i]);
+    }
+
+    /* recurse to linked node */
+    dup->next = copy(dup->next);
+    
+    return dup;
+}
+
+/* propagate scope to children */
+void propagateScope(ASTnode *p, varRec **scope) {
+    if (!p)
+        return;
+
+    p->scope = scope;
     /* recurse to children, if any */
     if (p->type == typeOp) {
         int i;
         for (i = 0; i < p->op.nops; i++)
-            p->op.ops[i] = allocateProtected(p->op.ops[i], scope);
+            propagateScope(p->op.ops[i], scope);
     }
-
-    memcpy(dup, p, sizeof(ASTnode));
-    dup->readonly = 1;
-    dup->scope = scope;
     /* recurse to linked node */
-    dup->next = allocateProtected(dup->next, scope);
-    
-    return dup;
+    propagateScope(p->next, scope);
 }
 
 /* process a run-time function definition */
 void funcDefine(ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
     if (nameNode->type != typeId)
         yyerror("function name \"%s\" is already in use", nameNode->var->name);
+
     /* create new function table entry */
     funcRec *fn;
     if ((fn = malloc(sizeof(funcRec))) == NULL)
         yyerror("out of memory");
     fn->name = nameNode->str;
+
     /* allocate variables */
     for(; paramNode; paramNode = paramNode->next) {
         paramNode->scope = &fn->localVars;
@@ -127,8 +142,14 @@ void funcDefine(ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
         v->value = (ASTnode *) malloc(sizeof(ASTnode));
         v->value->type = paramNode->type;
     }
-    /* duplicate function body and apply readonly/scope */
-    fn->body = allocateProtected(bodyNode, &fn->localVars);
+
+    /* propagate scope to function body */
+    fn->body = bodyNode;
+    propagateScope(fn->body, &fn->localVars);
+
+    /* protect function body */
+    protect(fn->body);
+
     putFn(fn);
 }
 
@@ -155,8 +176,8 @@ ASTnode* userDefFnCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
         yyerror("%s expected %d argument(s), got %d", fnNode->fn->name, numArgs, ++i);
     }
 
-    /* execute function body */
-    p = ex(fnNode->fn->body);
+    /* make a copy of the function body and execute it */
+    p = ex(copy(fnNode->fn->body));
 
     return p;
 }
@@ -176,28 +197,6 @@ ASTnode* fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     return p;
 }
 
-ASTnode *copy(ASTnode *p) {
-    if (!p)
-        return NULL;
-
-    ASTnode *dup = newNode(1);
-    memcpy(dup, p, sizeof(ASTnode));
-
-    /* recurse to children, if any */
-    if (dup->type == typeOp) {
-        if ((dup->op.ops = malloc(dup->op.nops * sizeof(ASTnode))) == NULL)
-            yyerror("out of memory");
-        int i;
-        for (i = 0; i < dup->op.nops; i++)
-            dup->op.ops[i] = copy(p->op.ops[i]);
-    }
-
-    /* recurse to linked node */
-    dup->next = copy(dup->next);
-    
-    return dup;
-}
-
 void handleWhile(ASTnode *cond, ASTnode *body) {
     ASTnode *dupCond = copy(cond);
     if(!ex(dupCond)->val)
@@ -206,8 +205,6 @@ void handleWhile(ASTnode *cond, ASTnode *body) {
     ex(dupBody);
     /* recurse */
     handleWhile(cond, body);
-    /* clean up */
-    freeNodes(1);
 }
 
 void handleFor(ASTnode *cond, ASTnode *each, ASTnode *body) {
@@ -220,8 +217,6 @@ void handleFor(ASTnode *cond, ASTnode *each, ASTnode *body) {
     ex(dupEach);
     /* recurse */
     handleFor(cond, each, body);
-    /* clean up */
-    freeNodes(1);
 }
 
 /* execute a section of the AST */
@@ -267,12 +262,12 @@ ASTnode* ex(ASTnode *n) {
         case INC:   return modvar(identify(child[0]), '+', NULL); /* bit of a hack */
         case DEC:   return modvar(identify(child[0]), '-', NULL);
         /* arithmetic operators */
-        case '%':   child[0]->next = child[1]; return nmod(p, child[0]);
-        case '^':   child[0]->next = child[1]; return npow(p, child[0]);
-        case '*':   child[0]->next = child[1]; return nmul(p, child[0]);
-        case '/':   child[0]->next = child[1]; return ndiv(p, child[0]);
-        case '+':   child[0]->next = child[1]; return nadd(p, child[0]);
-        case '-':   child[0]->next = child[1]; return nsub(p, child[0]);
+        case '%':   return nmod(p, ex(child[0]), ex(child[1]));
+        case '^':   return npow(p, ex(child[0]), ex(child[1]));
+        case '*':   return nmul(p, ex(child[0]), ex(child[1]));
+        case '/':   return ndiv(p, ex(child[0]), ex(child[1]));
+        case '+':   return nadd(p, ex(child[0]), ex(child[1]));
+        case '-':   return nsub(p, ex(child[0]), ex(child[1]));
         case NEG:   return nneg(p, ex(child[0]));
         /* boolean operators */
         case '!':   p->val = !ex(child[0])->val;                     return p;
@@ -390,39 +385,45 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 }
 
 /* standard mathematical functions, modified to use ASTnode */
-ASTnode* nmod(ASTnode *p, ASTnode *args) {
-    checkArgs("%", args, 2, typeVal, typeVal);
-    p->val = (double) ((int) args->val % (int) args->next->val);
+ASTnode* nmod(ASTnode *p, ASTnode *c1, ASTnode *c2) {
+    if (c1->type != typeVal) yyerror("arg 1 of %% expected integer, got %s", typeNames[c1->type]); 
+    if (c2->type != typeVal) yyerror("arg 2 of %% expected integer, got %s", typeNames[c2->type]); 
+    p->val = (double) ((int) c1->val % (int) c2->val);
     return p;
 } 
-ASTnode* npow(ASTnode *p, ASTnode *args) {
-    checkArgs("^", args, 2, typeVal, typeVal);
-    p->val = pow(args->val, args->next->val);
+ASTnode* npow(ASTnode *p, ASTnode *c1, ASTnode *c2) {
+    if (c1->type != typeVal) yyerror("arg 1 of ^ expected integer, got %s", typeNames[c1->type]); 
+    if (c2->type != typeVal) yyerror("arg 2 of ^ expected integer, got %s", typeNames[c2->type]); 
+    p->val = pow(c1->val, c2->val);
     return p;
 } 
-ASTnode* nmul(ASTnode *p, ASTnode *args) {
-    checkArgs("*", args, 2, typeVal, typeVal);
-    p->val = args->val * args->next->val;
+ASTnode* nmul(ASTnode *p, ASTnode *c1, ASTnode *c2) {
+    if (c1->type != typeVal) yyerror("arg 1 of * expected integer, got %s", typeNames[c1->type]); 
+    if (c2->type != typeVal) yyerror("arg 2 of * expected integer, got %s", typeNames[c2->type]); 
+    p->val = c1->val * c2->val;
     return p;
 } 
-ASTnode* ndiv(ASTnode *p, ASTnode *args) {
-    checkArgs("/", args, 2, typeVal, typeVal);
-    p->val = args->val / args->next->val;
+ASTnode* ndiv(ASTnode *p, ASTnode *c1, ASTnode *c2) {
+    if (c1->type != typeVal) yyerror("arg 1 of / expected integer, got %s", typeNames[c1->type]); 
+    if (c2->type != typeVal) yyerror("arg 2 of / expected integer, got %s", typeNames[c2->type]); 
+    p->val = c1->val / c2->val;
     return p;
 } 
-ASTnode* nadd(ASTnode *p, ASTnode *args) {
-    checkArgs("+", args, 2, typeVal, typeVal);
-    p->val = args->val + args->next->val;
+ASTnode* nadd(ASTnode *p, ASTnode *c1, ASTnode *c2) {
+    if (c1->type != typeVal) yyerror("arg 1 of + expected integer, got %s", typeNames[c1->type]); 
+    if (c2->type != typeVal) yyerror("arg 2 of + expected integer, got %s", typeNames[c2->type]); 
+    p->val = c1->val + c2->val;
     return p;
 } 
-ASTnode* nsub(ASTnode *p, ASTnode *args) {
-    checkArgs("-", args, 2, typeVal, typeVal);
-    p->val = args->val - args->next->val;
+ASTnode* nsub(ASTnode *p, ASTnode *c1, ASTnode *c2) {
+    if (c1->type != typeVal) yyerror("arg 1 of - expected integer, got %s", typeNames[c1->type]); 
+    if (c2->type != typeVal) yyerror("arg 2 of - expected integer, got %s", typeNames[c2->type]); 
+    p->val = c1->val - c2->val;
     return p;
 } 
-ASTnode* nneg(ASTnode *p, ASTnode *args) {
-    checkArgs("-", args, 1, typeVal);
-    p->val = -args->val;
+ASTnode* nneg(ASTnode *p, ASTnode *c1) {
+    if (c1->type != typeVal) yyerror("arg 1 of - expected integer, got %s", typeNames[c1->type]); 
+    p->val = -c1->val;
     return p;
 }  
 
