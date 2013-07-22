@@ -23,7 +23,7 @@ struct ASTnode {
         varRec *var;        /* variable */
         opNode   op;        /* operator */
     };
-    varRec *scope;          /* variable scope */
+    varRec **scope;         /* variable scope */
     struct ASTnode *next;   /* used for argument linked lists */
 };
 
@@ -64,22 +64,28 @@ struct varRec {
     struct varRec *next;    /* link field */
 };
 
-/* the variable table */
-extern varRec *varTable;
+/* the global variable table */
+extern varRec *globalVars;
 
 /* variable/function access prototypes */
-varRec* putVar(char const *);
-varRec* getVar(char const *, varRec *scope);
+varRec* putVar(ASTnode *);
+varRec* getVar(ASTnode *);
 funcRec* putFn(funcRec *);
 funcRec* getFn(char const *);
 void* getOptArg(ASTnode *args, char *name, int type);
 
 /* standard mathematical function prototypes */
+ASTnode* nmod(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* npow(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* nmul(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* ndiv(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* nadd(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* nsub(ASTnode *, ASTnode *, ASTnode *);
+ASTnode* nneg(ASTnode *, ASTnode *);
 ASTnode* nsin(ASTnode *, ASTnode *);
 ASTnode* ncos(ASTnode *, ASTnode *);
 ASTnode* nlog(ASTnode *, ASTnode *);
 ASTnode* nsqrt(ASTnode *, ASTnode *);
-ASTnode* modvar(ASTnode *, char, double);
 
 /* mkvsynth function prototypes */
 ASTnode* ffmpegDecode_AST(ASTnode *, ASTnode *);

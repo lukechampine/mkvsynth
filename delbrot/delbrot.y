@@ -190,11 +190,11 @@ ASTnode *mkStrNode(char *str) {
 }
 
 /* create an identifier node in the AST */
-/* TODO: DELAY IDENTIFICATION. This has to be done to allow for recursion, and so that functions will only check their local var table */
 ASTnode *mkIdNode(char *ident) {
     ASTnode *p = newNode(0);
     p->type = typeId;
     p->str = strdup(ident);
+    p->scope = &globalVars;
     return p;
 }
 
@@ -253,6 +253,7 @@ void setReadOnly(ASTnode *p) {
 }
 
 /* destroy evaluated nodes in the AST */
+/* TODO: make this smarter. Maybe attach a value to each node and decide whether to free based on that. */
 void freeNodes(int i) {
     for (i; unfreed[i]; i += 2) {
         if(!unfreed[i + 2] /* ridiculous hack to prevent freeing of IF/ELSE resolving token */
@@ -291,25 +292,23 @@ funcRec *getFn(char const *fnName) {
 }
 
 /* the global variable table */
-varRec *varTable;
+varRec *globalVars;
 
 /* allocate a new variable */
-varRec *putVar(char const *varName) {
+varRec *putVar(ASTnode *p) {
     varRec *ptr = (varRec *) malloc(sizeof (varRec));
-    ptr->name = (char *) malloc(strlen (varName) + 1);
-    strcpy(ptr->name,varName);
-    ptr->next = varTable;
-    varTable = ptr;
+    ptr->name = (char *) malloc(strlen (p->str) + 1);
+    strcpy(ptr->name, p->str);
+    ptr->next = *p->scope;
+    *p->scope = ptr;
     return ptr;
 }
 
 /* look up a variable's corresponding ASTnode */
-varRec *getVar(char const *varName, varRec *scope) {
-    if (!scope)
-        scope = varTable;
+varRec *getVar(ASTnode *p) {
     varRec *ptr;
-    for (ptr = scope; ptr != NULL; ptr = ptr->next)
-        if (strcmp (ptr->name, varName) == 0)
+    for (ptr = *p->scope; ptr->name != NULL; ptr = ptr->next)
+        if (strcmp(ptr->name, p->str) == 0)
             return ptr;
     return NULL;
 }
@@ -339,6 +338,9 @@ static funcRec coreFunctions[] = {
 int main () {
     int i;
     //yydebug = 1;
+
+    /* initialize global variable table */
+    globalVars = (varRec *) malloc(sizeof(varRec));
 
     /* initialize function table */
     for(i = 0; coreFunctions[i].name != 0; i++)
