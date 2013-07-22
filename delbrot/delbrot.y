@@ -60,7 +60,7 @@ param
 stmt
     : expression_stmt
     | selection_stmt
-    | iteration_stmt                                          { setReadOnly($1);                       }
+    | iteration_stmt
     | increment_stmt
     ;
 
@@ -235,34 +235,17 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
     return p;
 }
 
-/* propagate readonly flag to any children */
-void setReadOnly(ASTnode *p) {
-    if (!p)
-        return;
-
-    /* set flag on this node */
-    p->readonly = 1;
-    /* recurse to child nodes */
-    if (p->type == typeOp) {
-        int i;
-        for (i = 0; i < p->op.nops; i++)
-            setReadOnly(p->op.ops[i]);
-    }
-    /* recurse to linked node */
-    setReadOnly(p->next);
-}
-
 /* destroy evaluated nodes in the AST */
 /* TODO: make this smarter. Maybe attach a value to each node and decide whether to free based on that. */
 void freeNodes(int i) {
-    for (i; unfreed[i]; i += 2) {
-        if(!unfreed[i + 2] /* ridiculous hack to prevent freeing of IF/ELSE resolving token */
-        || unfreed[i + 2]->type != typeOp
-        || unfreed[i + 2]->op.oper != IF
-        || unfreed[i + 2]->op.nops != 2)
-            free(unfreed[i]);
-        unfreed[i] = NULL;
-    }
+    // for (i; unfreed[i]; i += 2) {
+    //     if(!unfreed[i + 2] /* ridiculous hack to prevent freeing of IF/ELSE resolving token */
+    //     || unfreed[i + 2]->type != typeOp
+    //     || unfreed[i + 2]->op.oper != IF
+    //     || unfreed[i + 2]->op.nops != 2)
+    //         free(unfreed[i]);
+    //     unfreed[i] = NULL;
+    // }
 }
 
 /* add an ASTnode to the end of a linked list of arguments */
