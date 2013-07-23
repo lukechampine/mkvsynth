@@ -96,6 +96,8 @@ ASTnode* print(ASTnode *, ASTnode *);
 extern funcRec pluginFunctions[];
 
 /* helpful plugin macros */
+#define MANDVAL() args->val; args = args->next
+#define MANDSTR() args->str; args = args->next
 #define OPTVAL(name, default) getOptArg(args, name, typeVal) ? *((double *) getOptArg(args, name, typeVal)) : default
 #define OPTSTR(name, default) getOptArg(args, name, typeStr) ?     (char *) getOptArg(args, name, typeStr)  : default
 

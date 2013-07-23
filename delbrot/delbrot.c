@@ -165,7 +165,7 @@ ASTnode* userDefFnCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     for(i = 0; i < numArgs; i++, args = args->next, fnVars = fnVars->next) {
         if (!args)
             yyerror("%s expected %d argument(s), got %d", fnNode->fn->name, numArgs, i);
-        ex(ex(args));
+        ex(args);
         if (args->type != fnVars->value->type)
             yyerror("arg %d of %s expected %s, got %s", i+1, fnNode->fn->name, typeNames[fnVars->value->type], typeNames[args->type]);
 
@@ -350,8 +350,10 @@ char* unesc(char* str) {
 ASTnode* print(ASTnode *p, ASTnode *args) {
     while(args) {
         /* unreduced/unprintable types */
-        if (args->type == typeId || args->type == typeVar || args->type == typeOp)
-            ex(args);
+        if (args->type == typeId)
+            args = ex(args);
+        if(args->type == typeVar || args->type == typeOp)
+            args = ex(args);
         /* printable types */
         switch(args->type) {
             case typeVal: printf("%.10g ", args->val); break;
@@ -374,15 +376,12 @@ void ffmpegDecode(char *filename, int numFrames) {
 /* toy ffmpeg decoding function, showcasing optional arguments */
 ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 
-    checkArgs("ffmpegDecode", args, 2, typeVal, typeVal);
-    printf("yep\n");
+    checkArgs("ffmpegDecode", args, 1, typeStr);
 
-    // checkArgs("ffmpegDecode", args, 1, typeStr);
+    char *str = MANDSTR();
+    double frames = OPTVAL("frames", -1);
 
-    // char *str = args->str;
-    // double frames = OPTVAL("frames", -1);
-
-    // ffmpegDecode(str, frames);
+    ffmpegDecode(str, frames);
 
     RETURNVAL(0);
 }

@@ -21,7 +21,7 @@ ASTnode* myPlugin_AST(ASTnode *p, ASTnode *args) {
     checkArgs("myPlugin", args, 1, typeStr);
 
     /* get arguments */
-    char *str = args->str;
+    char *str = MANDSTR();
     /* get optional arguments */
     double frames = OPTVAL("frames", -1);
     char *output  = OPTSTR("output", NULL);

@@ -2296,6 +2296,7 @@ int main () {
     //yydebug = 1;
 
     /* initialize global variable table */
+    /* TODO: can this be removed? */
     globalVars = (varRec *) malloc(sizeof(varRec));
 
     /* initialize function table */
