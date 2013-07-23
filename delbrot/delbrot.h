@@ -15,7 +15,6 @@ typedef struct funcRec funcRec;
 typedef struct varRec varRec;
 struct ASTnode {
     nodeType type;          /* type of node */
-    int decay;              /* number of operations before this node will be freed */
     union {
         double  val;        /* value */
         char   *str;        /* string */
@@ -32,6 +31,8 @@ struct ASTnode {
 /* ASTnode prototypes */
 ASTnode* newNode();
 void     freeAll();
+ASTnode* tempNode();
+void     freeTemp();
 void     protect(ASTnode *);
 ASTnode* mkIdNode(char *);
 ASTnode* mkValNode(double);

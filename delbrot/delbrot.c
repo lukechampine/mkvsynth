@@ -90,12 +90,13 @@ ASTnode *copy(ASTnode *p) {
     if (!p)
         return NULL;
 
-    ASTnode *dup = newNode();
+    ASTnode *dup = tempNode();
     memcpy(dup, p, sizeof(ASTnode));
 
     /* recurse to children, if any */
     if (dup->type == typeOp) {
-        if ((dup->op.ops = malloc(dup->op.nops * sizeof(ASTnode))) == NULL)
+        /* TODO: find a way to free this */
+        if ((dup->op.ops = malloc(dup->op.nops * sizeof(ASTnode *))) == NULL)
             yyerror("out of memory");
         int i;
         for (i = 0; i < dup->op.nops; i++)
@@ -198,23 +199,22 @@ ASTnode* fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
 }
 
 void handleWhile(ASTnode *cond, ASTnode *body) {
-    ASTnode *dupCond = copy(cond);
-    if(!ex(dupCond)->val)
+    if(!ex(copy(cond))->val)
         return;
-    ASTnode *dupBody = copy(body);
-    ex(dupBody);
+    ex(copy(body));
+    /* clean up */
+    freeTemp();
     /* recurse */
     handleWhile(cond, body);
 }
 
 void handleFor(ASTnode *cond, ASTnode *each, ASTnode *body) {
-    ASTnode *dupCond = copy(cond);
-    if(!ex(dupCond)->val)
+    if(!ex(copy(cond))->val)
         return;
-    ASTnode *dupBody = copy(body);
-    ex(dupBody);
-    ASTnode *dupEach = copy(each);
-    ex(dupEach);
+    ex(copy(body));
+    ex(copy(each));
+    /* clean up */
+    freeTemp();
     /* recurse */
     handleFor(cond, each, body);
 }
@@ -247,8 +247,8 @@ ASTnode* ex(ASTnode *n) {
         case FNDEF: funcDefine(child[0], child[1], child[2]); return p;
         /* keywords */
         case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); p->type = typeOp; return p;
-        case WHILE: handleWhile(child[0], child[1]); p->type = typeOp; return p;
-        case FOR:   ex(child[0]); handleFor(child[1], child[2], child[3]); p->type = typeOp; return p;
+        case WHILE: handleWhile(child[0], child[1]); freeTemp(); p->type = typeOp; return p;
+        case FOR:   ex(child[0]); handleFor(child[1], child[2], child[3]); freeTemp(); p->type = typeOp; return p;
         /* functions */
         case FNCT:  return fnctCall(p, ex(child[0]), child[1]);
         case '.':   child[0]->next = child[2]; return fnctCall(p, ex(child[1]), ex(child[0]));

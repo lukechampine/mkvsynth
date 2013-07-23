@@ -7,7 +7,9 @@
     /* prototypes */
     void yyerror(char *, ...);
     extern int linenumber;
+    void printTotal();
     ASTnode *unfreed[8192];
+    ASTnode *scratch[1024];
     #define YYDEBUG 1
 %}
 
@@ -33,7 +35,7 @@
     /* TODO: consider delaying AST evaluation until it has been fully constructed */
 program
     : /* empty program */
-    | program item                                            { ex($2); freeAll();                  }
+    | program item                                            { ex($2); freeAll();                     }
     ;
 
 item
@@ -61,7 +63,6 @@ stmt
     : expression_stmt
     | selection_stmt
     | iteration_stmt
-    | increment_stmt
     ;
 
 expression_stmt
@@ -87,11 +88,6 @@ block
 stmt_list
     : stmt
     | stmt_list stmt                                          { $$ = mkOpNode(';', 2, $1, $2);         }
-    ;
-
-increment_stmt
-    : primary_expr INC ';'                                    { $$ = mkOpNode(INC, 1, $1);             }
-    | primary_expr DEC ';'                                    { $$ = mkOpNode(DEC, 1, $1);             }
     ;
 
 expr
@@ -131,9 +127,15 @@ arithmetic_expr
     ;
 
 prefix_expr
-    : function_expr
+    : postfix_expr
     | '-' prefix_expr                                         { $$ = mkOpNode(NEG, 1, $2);             }
     | '!' prefix_expr                                         { $$ = mkOpNode('!', 1, $2);             }
+    ;
+
+postfix_expr
+    : function_expr
+    | postfix_expr INC                                        { $$ = mkOpNode(INC, 1, $1);             }
+    | postfix_expr DEC                                        { $$ = mkOpNode(DEC, 1, $1);             }
     ;
 
 function_expr
@@ -167,11 +169,22 @@ ASTnode *newNode() {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
-    p->decay = 1;
     /* seek to open slot */
     int i = 0;
     while(unfreed[i]) i++;
     unfreed[i] = p;
+    return p;
+}
+
+/* allocate scratch space (used for looping) */
+ASTnode *tempNode() {
+    ASTnode *p;
+    if ((p = malloc(sizeof(ASTnode))) == NULL)
+        yyerror("out of memory");
+    /* seek to open slot */
+    int i = 0;
+    while(scratch[i]) i++;
+    scratch[i] = p;
     return p;
 }
 
@@ -213,6 +226,7 @@ ASTnode *mkOptArgNode(char *name) {
     return p;
 }
 
+/* create a type node in the AST */
 ASTnode *mkTypeNode(int type) {
     ASTnode *p = newNode();
     p->type = type;
@@ -223,7 +237,7 @@ ASTnode *mkTypeNode(int type) {
 ASTnode *mkOpNode(int oper, int nops, ...) {
     ASTnode *p = newNode();
     /* allocate space for ops */
-    if ((p->op.ops = malloc(nops * sizeof(ASTnode))) == NULL)
+    if ((p->op.ops = malloc(nops * sizeof(ASTnode *))) == NULL)
         yyerror("out of memory");
     p->type = typeOp;
     p->op.oper = oper;
@@ -268,6 +282,19 @@ void freeAll() {
             continue;
         free(unfreed[i]);
         unfreed[i] = NULL;
+    }
+    freeTemp(); /* just in case -- eventually this should be replaced by calling freeTemp() wherever necessary */
+}
+
+/* free scratch memory */
+/* this is run after each loop iteration */
+void freeTemp() {
+    int i;
+    for (i = 0; i < 1024; i++) {
+        if (scratch[i] == NULL)
+            continue;
+        free(scratch[i]);
+        scratch[i] = NULL;
     }
 }
 
