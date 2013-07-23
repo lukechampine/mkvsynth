@@ -37,7 +37,6 @@ void     protect(ASTnode *);
 ASTnode* mkIdNode(char *);
 ASTnode* mkValNode(double);
 ASTnode* mkStrNode(char *);
-ASTnode* mkTypeNode(int);
 ASTnode* mkOpNode(int, int, ...);
 ASTnode* mkOptArgNode(char *);
 ASTnode* append(ASTnode *, ASTnode *);
@@ -74,6 +73,7 @@ varRec* getVar(ASTnode *);
 funcRec* putFn(funcRec *);
 funcRec* getFn(char const *);
 void* getOptArg(ASTnode *args, char *name, int type);
+void checkArgs(char *funcName, ASTnode *args, int numArgs, ...);
 
 /* standard mathematical function prototypes */
 ASTnode* nmod(ASTnode *, ASTnode *, ASTnode *);

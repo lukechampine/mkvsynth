@@ -7,7 +7,7 @@
     /* prototypes */
     void yyerror(char *, ...);
     extern int linenumber;
-    void printTotal();
+    /* TODO: make this dynamic? */
     ASTnode *unfreed[8192];
     ASTnode *scratch[1024];
     #define YYDEBUG 1
@@ -32,7 +32,6 @@
 
 %% /* grammar definition section  */
 
-    /* TODO: consider delaying AST evaluation until it has been fully constructed */
 program
     : /* empty program */
     | program item                                            { ex($2); freeAll();                     }
@@ -50,7 +49,7 @@ function_declaration
 param_list
     : /* empty */                                             { $$ = NULL;                             }
     | param                                                   { $$ = $1;                               }
-    | param_list ',' param                                    { $$ = append($1, $3);                   }
+    | param_list ',' param                                    { $$ = append($3, $1);                   }
     ;
 
 param
@@ -60,6 +59,7 @@ param
     ;
 
 stmt
+    /* TODO: add return statement */
     : expression_stmt
     | selection_stmt
     | iteration_stmt
@@ -169,9 +169,12 @@ ASTnode *newNode() {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
+    p->next = NULL;
     /* seek to open slot */
     int i = 0;
     while(unfreed[i]) i++;
+    if (i > 8192)
+        yyerror("out of memory");
     unfreed[i] = p;
     return p;
 }
@@ -181,9 +184,12 @@ ASTnode *tempNode() {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
+    p->next = NULL;
     /* seek to open slot */
     int i = 0;
     while(scratch[i]) i++;
+    if (i > 1024)
+        yyerror("out of memory");
     scratch[i] = p;
     return p;
 }
@@ -223,13 +229,6 @@ ASTnode *mkOptArgNode(char *name) {
     /* copy information */
     p->type = typeOptArg;
     p->var->name = name;
-    return p;
-}
-
-/* create a type node in the AST */
-ASTnode *mkTypeNode(int type) {
-    ASTnode *p = newNode();
-    p->type = type;
     return p;
 }
 
@@ -300,6 +299,8 @@ void freeTemp() {
 
 /* add an ASTnode to the end of a linked list of arguments */
 ASTnode *append(ASTnode *root, ASTnode *node) {
+    if (!root || !node)
+        yyerror("invalid argument");
     ASTnode *traverse;
     for (traverse = root; traverse->next != NULL; traverse = traverse->next);
     traverse->next = node;
@@ -329,9 +330,10 @@ varRec *globalVars;
 
 /* allocate a new variable */
 varRec *putVar(ASTnode *p) {
-    varRec *ptr = (varRec *) malloc(sizeof (varRec));
-    ptr->name = (char *) malloc(strlen (p->str) + 1);
-    strcpy(ptr->name, p->str);
+    varRec *ptr;
+    if ((ptr = malloc(sizeof(varRec))) == NULL)
+        yyerror("out of memory");
+    ptr->name = strdup(p->str);
     ptr->next = *p->scope;
     *p->scope = ptr;
     return ptr;
@@ -340,9 +342,14 @@ varRec *putVar(ASTnode *p) {
 /* look up a variable's corresponding ASTnode */
 varRec *getVar(ASTnode *p) {
     varRec *ptr;
-    for (ptr = *p->scope; ptr->name != NULL; ptr = ptr->next)
+    for (ptr = *p->scope; ptr && ptr->name; ptr = ptr->next)
         if (strcmp(ptr->name, p->str) == 0)
             return ptr;
+    /* check global scope after local scope */
+    if (*p->scope != globalVars)
+        for (ptr = globalVars; ptr && ptr->name; ptr = ptr->next)
+            if (strcmp(ptr->name, p->str) == 0)
+                return ptr;
     return NULL;
 }
 

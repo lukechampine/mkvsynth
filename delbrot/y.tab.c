@@ -78,7 +78,7 @@
     /* prototypes */
     void yyerror(char *, ...);
     extern int linenumber;
-    void printTotal();
+    /* TODO: make this dynamic? */
     ASTnode *unfreed[8192];
     ASTnode *scratch[1024];
     #define YYDEBUG 1
@@ -499,8 +499,8 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    36,    36,    38,    42,    43,    47,    51,    52,    53,
-      57,    58,    59,    63,    64,    65,    69,    70,    74,    75,
+       0,    35,    35,    37,    41,    42,    46,    50,    51,    52,
+      56,    57,    58,    63,    64,    65,    69,    70,    74,    75,
       79,    80,    84,    85,    89,    90,    94,    98,    99,   100,
      101,   102,   103,   104,   108,   109,   110,   111,   112,   113,
      114,   115,   116,   120,   121,   122,   123,   124,   125,   126,
@@ -1508,56 +1508,56 @@ yyreduce:
         case 3:
 
 /* Line 1455 of yacc.c  */
-#line 38 "delbrot.y"
+#line 37 "delbrot.y"
     { ex((yyvsp[(2) - (2)])); freeAll();                     }
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 47 "delbrot.y"
+#line 46 "delbrot.y"
     { (yyval) = mkOpNode(FNDEF, 3, (yyvsp[(2) - (8)]), (yyvsp[(4) - (8)]), (yyvsp[(7) - (8)]));   }
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 51 "delbrot.y"
+#line 50 "delbrot.y"
     { (yyval) = NULL;                             }
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 52 "delbrot.y"
+#line 51 "delbrot.y"
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 53 "delbrot.y"
-    { (yyval) = append((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));                   }
+#line 52 "delbrot.y"
+    { (yyval) = append((yyvsp[(3) - (3)]), (yyvsp[(1) - (3)]));                   }
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 57 "delbrot.y"
+#line 56 "delbrot.y"
     { (yyvsp[(2) - (2)])->type = typeVal; (yyval) = (yyvsp[(2) - (2)]);           }
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 58 "delbrot.y"
+#line 57 "delbrot.y"
     { (yyvsp[(2) - (2)])->type = typeVal; (yyval) = (yyvsp[(2) - (2)]);           }
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 59 "delbrot.y"
+#line 58 "delbrot.y"
     { (yyvsp[(2) - (2)])->type = typeStr; (yyval) = (yyvsp[(2) - (2)]);           }
     break;
 
@@ -2085,9 +2085,12 @@ ASTnode *newNode() {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
+    p->next = NULL;
     /* seek to open slot */
     int i = 0;
     while(unfreed[i]) i++;
+    if (i > 8192)
+        yyerror("out of memory");
     unfreed[i] = p;
     return p;
 }
@@ -2097,9 +2100,12 @@ ASTnode *tempNode() {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
+    p->next = NULL;
     /* seek to open slot */
     int i = 0;
     while(scratch[i]) i++;
+    if (i > 1024)
+        yyerror("out of memory");
     scratch[i] = p;
     return p;
 }
@@ -2139,13 +2145,6 @@ ASTnode *mkOptArgNode(char *name) {
     /* copy information */
     p->type = typeOptArg;
     p->var->name = name;
-    return p;
-}
-
-/* create a type node in the AST */
-ASTnode *mkTypeNode(int type) {
-    ASTnode *p = newNode();
-    p->type = type;
     return p;
 }
 
@@ -2216,6 +2215,8 @@ void freeTemp() {
 
 /* add an ASTnode to the end of a linked list of arguments */
 ASTnode *append(ASTnode *root, ASTnode *node) {
+    if (!root || !node)
+        yyerror("invalid argument");
     ASTnode *traverse;
     for (traverse = root; traverse->next != NULL; traverse = traverse->next);
     traverse->next = node;
@@ -2245,9 +2246,10 @@ varRec *globalVars;
 
 /* allocate a new variable */
 varRec *putVar(ASTnode *p) {
-    varRec *ptr = (varRec *) malloc(sizeof (varRec));
-    ptr->name = (char *) malloc(strlen (p->str) + 1);
-    strcpy(ptr->name, p->str);
+    varRec *ptr;
+    if ((ptr = malloc(sizeof(varRec))) == NULL)
+        yyerror("out of memory");
+    ptr->name = strdup(p->str);
     ptr->next = *p->scope;
     *p->scope = ptr;
     return ptr;
@@ -2256,9 +2258,14 @@ varRec *putVar(ASTnode *p) {
 /* look up a variable's corresponding ASTnode */
 varRec *getVar(ASTnode *p) {
     varRec *ptr;
-    for (ptr = *p->scope; ptr->name != NULL; ptr = ptr->next)
+    for (ptr = *p->scope; ptr && ptr->name; ptr = ptr->next)
         if (strcmp(ptr->name, p->str) == 0)
             return ptr;
+    /* check global scope after local scope */
+    if (*p->scope != globalVars)
+        for (ptr = globalVars; ptr && ptr->name; ptr = ptr->next)
+            if (strcmp(ptr->name, p->str) == 0)
+                return ptr;
     return NULL;
 }
 
