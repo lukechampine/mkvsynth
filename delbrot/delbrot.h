@@ -30,9 +30,8 @@ struct ASTnode {
 
 /* ASTnode prototypes */
 ASTnode* newNode();
+void     freeNode();
 void     freeAll();
-ASTnode* tempNode();
-void     freeTemp();
 void     protect(ASTnode *);
 ASTnode* mkIdNode(char *);
 ASTnode* mkValNode(double);

@@ -50,26 +50,27 @@
      SUBEQ = 266,
      MULEQ = 267,
      DIVEQ = 268,
-     MODEQ = 269,
-     IF = 270,
-     ELSE = 271,
-     FOR = 272,
-     WHILE = 273,
-     FNCT = 274,
-     FNDEF = 275,
-     RETURN = 276,
-     IFX = 277,
-     LAND = 278,
-     LOR = 279,
-     LE = 280,
-     GE = 281,
-     LT = 282,
-     GT = 283,
-     NE = 284,
-     EQ = 285,
-     NEG = 286,
-     DEC = 287,
-     INC = 288
+     POWEQ = 269,
+     MODEQ = 270,
+     IF = 271,
+     ELSE = 272,
+     FOR = 273,
+     WHILE = 274,
+     FNCT = 275,
+     FNDEF = 276,
+     RETURN = 277,
+     IFX = 278,
+     LAND = 279,
+     LOR = 280,
+     LE = 281,
+     GE = 282,
+     LT = 283,
+     GT = 284,
+     NE = 285,
+     EQ = 286,
+     NEG = 287,
+     DEC = 288,
+     INC = 289
    };
 #endif
 /* Tokens.  */
@@ -84,26 +85,27 @@
 #define SUBEQ 266
 #define MULEQ 267
 #define DIVEQ 268
-#define MODEQ 269
-#define IF 270
-#define ELSE 271
-#define FOR 272
-#define WHILE 273
-#define FNCT 274
-#define FNDEF 275
-#define RETURN 276
-#define IFX 277
-#define LAND 278
-#define LOR 279
-#define LE 280
-#define GE 281
-#define LT 282
-#define GT 283
-#define NE 284
-#define EQ 285
-#define NEG 286
-#define DEC 287
-#define INC 288
+#define POWEQ 269
+#define MODEQ 270
+#define IF 271
+#define ELSE 272
+#define FOR 273
+#define WHILE 274
+#define FNCT 275
+#define FNDEF 276
+#define RETURN 277
+#define IFX 278
+#define LAND 279
+#define LOR 280
+#define LE 281
+#define GE 282
+#define LT 283
+#define GT 284
+#define NE 285
+#define EQ 286
+#define NEG 287
+#define DEC 288
+#define INC 289
 
 
 

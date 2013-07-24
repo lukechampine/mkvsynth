@@ -49,6 +49,7 @@ ASTnode* modvar(ASTnode *varNode, char op, ASTnode *modNode) {
         case '-': varNode->var->value->val -= mod; break;
         case '*': varNode->var->value->val *= mod; break;
         case '/': varNode->var->value->val /= mod; break;
+        case '^': varNode->var->value->val = pow(varNode->var->value->val, mod); break;
         case '%': varNode->var->value->val = ((int)varNode->var->value->val % (int)mod); break;
     }
     return ex(varNode);
@@ -79,6 +80,7 @@ ASTnode *identify(ASTnode *p) {
 ASTnode *dereference(ASTnode *p) {
     if (UNDEFINED(p))
         yyerror("dereference called on uninitialized variable %s", p->var->name);
+    /* TODO: can this be changed to copy only the value and type? */
     ASTnode *next = p->next;
     memcpy(p, p->var->value, sizeof(ASTnode));
     p->next = next;
@@ -90,7 +92,7 @@ ASTnode *copy(ASTnode *p) {
     if (!p)
         return NULL;
 
-    ASTnode *dup = tempNode();
+    ASTnode *dup = newNode();
     memcpy(dup, p, sizeof(ASTnode));
 
     /* recurse to children, if any */
@@ -145,12 +147,9 @@ void funcDefine(ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
     }
 
     /* propagate scope to function body */
-    fn->body = bodyNode;
+    fn->body = copy(bodyNode);
     propagateScope(fn->body, &fn->localVars);
-
-    /* protect function body */
-    protect(fn->body);
-
+    
     putFn(fn);
 }
 
@@ -180,7 +179,7 @@ ASTnode* userDefFnCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     /* make a copy of the function body and execute it */
     /* TODO: fix gross memory usage caused by recursive function calls */
     p = ex(copy(fnNode->fn->body));
-
+    p->type = typeVal; /* TODO: allow functions to return any type */
     return p;
 }
 
@@ -202,9 +201,8 @@ ASTnode* fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
 void handleWhile(ASTnode *cond, ASTnode *body) {
     if(!ex(copy(cond))->val)
         return;
-    ex(copy(body));
-    /* clean up */
-    freeTemp();
+    /* copy, execute, and free */
+    freeNode(ex(copy(body)));
     /* recurse */
     handleWhile(cond, body);
 }
@@ -212,10 +210,9 @@ void handleWhile(ASTnode *cond, ASTnode *body) {
 void handleFor(ASTnode *cond, ASTnode *each, ASTnode *body) {
     if(!ex(copy(cond))->val)
         return;
+    /* copy and execute */
     ex(copy(body));
     ex(copy(each));
-    /* clean up */
-    freeTemp();
     /* recurse */
     handleFor(cond, each, body);
 }
@@ -237,39 +234,52 @@ ASTnode* ex(ASTnode *p) {
     if (p->type != typeOp)
         return p;
 
-    /* for convenience/readability */
-    ASTnode **child = p->op.ops;
-    p->type = typeVal; /* can be redefined later if necessary */
+    /* make a copy of all the child pointers */
+    int nops = p->op.nops;
+    ASTnode **child;
+    if ((child = malloc(nops * sizeof(ASTnode *))) == NULL)
+        yyerror("out of memory");
+    memcpy(child, p->op.ops, nops * sizeof(ASTnode *));
 
     switch(p->op.oper) {
         /* declarations */
-        case FNDEF: funcDefine(child[0], child[1], child[2]); return p;
+        case FNDEF: funcDefine(child[0], child[1], child[2]); break;
+        case '=':   p = assign(identify(child[0]), ex(child[1])); break;
         /* keywords */
-        case IF:    if (ex(child[0])->val) ex(child[1]); else if (p->op.nops > 2) ex(child[2]); p->type = typeOp; return p;
-        case WHILE: handleWhile(child[0], child[1]); p->type = typeOp; return p;
-        case FOR:   ex(child[0]); handleFor(child[1], child[2], child[3]); p->type = typeOp; return p;
+        case IF:    if (ex(child[0])->val) ex(child[1]); else if (nops > 2) ex(child[2]); p->type = typeOp; break;
+        case WHILE: handleWhile(child[0], child[1]); p->type = typeOp; break;
+        case FOR:   ex(child[0]); handleFor(child[1], child[2], child[3]); p->type = typeOp; break;
         /* functions */
-        case FNCT:  return fnctCall(p, ex(child[0]), child[1]);
-        case '.':   child[0]->next = child[2]; return fnctCall(p, ex(child[1]), ex(child[0]));
+        case FNCT:  p = fnctCall(p, ex(child[0]), child[1]); break;
+        case '.':   child[0]->next = child[2]; p = fnctCall(p, ex(child[1]), ex(child[0])); break;
         /* assignment */
-        case '=':   return assign(identify(child[0]), ex(child[1])); 
-        case ADDEQ: return modvar(identify(child[0]), '+', ex(child[1]));
-        case SUBEQ: return modvar(identify(child[0]), '-', ex(child[1]));
-        case MULEQ: return modvar(identify(child[0]), '*', ex(child[1]));
-        case DIVEQ: return modvar(identify(child[0]), '/', ex(child[1]));
-        case MODEQ: return modvar(identify(child[0]), '%', ex(child[1]));
-        case INC:   return modvar(identify(child[0]), '+', NULL); /* bit of a hack */
-        case DEC:   return modvar(identify(child[0]), '-', NULL);
+        case ADDEQ: p = modvar(identify(child[0]), '+', ex(child[1])); break;
+        case SUBEQ: p = modvar(identify(child[0]), '-', ex(child[1])); break;
+        case MULEQ: p = modvar(identify(child[0]), '*', ex(child[1])); break;
+        case DIVEQ: p = modvar(identify(child[0]), '/', ex(child[1])); break;
+        case POWEQ: p = modvar(identify(child[0]), '^', ex(child[1])); break;
+        case MODEQ: p = modvar(identify(child[0]), '%', ex(child[1])); break;
+        case INC:   p = modvar(identify(child[0]), '+', NULL); break; /* bit of a hack */
+        case DEC:   p = modvar(identify(child[0]), '-', NULL); break;
         /* unary operators */
-        case NEG:   return nneg(p, ex(child[0]));
-        case '!':   return nnot(p, ex(child[0]));
+        case NEG:   p = nneg(p, ex(child[0])); break;
+        case '!':   p = nnot(p, ex(child[0])); break;
         /* arithmetic / boolean operators */
-        case BINOP: return binOp(p, child[1]->val, ex(child[0]), ex(child[2]));
+        case BINOP: p = binOp(p, child[1]->val, ex(child[0]), ex(child[2])); break;
         /* compound statements */
-        case ';':   ex(child[0]); return ex(child[1]);
+        case ';':   ex(child[0]); p = ex(child[1]); break;
+        /* should never wind up here */
+        default: yyerror("Unknown operator");
     }
-    /* should never wind up here */
-    yyerror("Unknown operator");
+
+    /* free children, since they are no longer needed */
+    int i;
+    for(i = 0; i < nops; i++) {
+        freeNode(child[i]);
+    }
+    free(child);
+
+    return p;
 }
 
 /* helper function to ensure that a function call is valid */
@@ -350,14 +360,9 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
         args = args->next;
     }
     printf("\n");
+    p->type = typeVal;
+    p->val = 0;
     return p;
-}
-
-void ffmpegDecode(char *filename, int numFrames) {
-    if (numFrames != -1)
-        printf("decoded %d frames of %s\n", numFrames, filename);
-    else
-        printf("decoded %s\n", filename);
 }
 
 /* toy ffmpeg decoding function, showcasing optional arguments */
@@ -365,10 +370,13 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 
     checkArgs("ffmpegDecode", args, 1, typeStr);
 
-    char *str = MANDSTR();
-    double frames = OPTVAL("frames", -1);
+    char *filename = MANDSTR();
+    double numFrames = OPTVAL("frames", -1);
 
-    ffmpegDecode(str, frames);
+    if (numFrames != -1)
+        printf("decoded %f frames of %s\n", numFrames, filename);
+    else
+        printf("decoded %s\n", filename);
 
     RETURNVAL(0);
 }
@@ -404,13 +412,15 @@ ASTnode* binOp(ASTnode* p, int op, ASTnode* c1, ASTnode* c2) {
 
 /* handle unary operators */
 ASTnode* nneg(ASTnode *p, ASTnode *c1) {
-    if (c1->type != typeVal) yyerror("arg 1 of - expected integer, got %s", typeNames[c1->type]); 
+    if (c1->type != typeVal) yyerror("arg 1 of - expected integer, got %s", typeNames[c1->type]);
+    p->type = typeVal;
     p->val = -c1->val;
     return p;
 }
 
 ASTnode* nnot(ASTnode *p, ASTnode *c1) {
-    if (c1->type != typeVal) yyerror("arg 1 of ! expected integer, got %s", typeNames[c1->type]); 
+    if (c1->type != typeVal) yyerror("arg 1 of ! expected integer, got %s", typeNames[c1->type]);
+    p->type = typeVal;
     p->val = !c1->val;
     return p;
 }
@@ -418,21 +428,25 @@ ASTnode* nnot(ASTnode *p, ASTnode *c1) {
 /* standard mathematical functions, modified to use ASTnode */
 ASTnode* nsin (ASTnode *p, ASTnode *args) {
     checkArgs("sin", args, 1, typeVal);
+    p->type = typeVal;
     p->val = sin(args->val); 
     return p;
 }
 ASTnode* ncos (ASTnode *p, ASTnode *args) {
     checkArgs("cos", args, 1, typeVal);
+    p->type = typeVal;
     p->val = cos(args->val); 
     return p;
 }
 ASTnode* nlog (ASTnode *p, ASTnode *args) {
     checkArgs("log", args, 1, typeVal);
+    p->type = typeVal;
     p->val = log(args->val); 
     return p;
 }
 ASTnode* nsqrt(ASTnode *p, ASTnode *args) {
     checkArgs("sqrt",args, 1, typeVal);
+    p->type = typeVal;
     p->val = sqrt(args->val);
     return p;
 }

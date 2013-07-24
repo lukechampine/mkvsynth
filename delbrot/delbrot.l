@@ -62,6 +62,7 @@
 "-="                    return SUBEQ;
 "*="                    return MULEQ;
 "/="                    return DIVEQ;
+"^="                    return POWEQ;
 "%="                    return MODEQ;
 
     /* miscellaneous character */
