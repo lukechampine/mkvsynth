@@ -13,9 +13,9 @@
     #define YYDEBUG 1
 %}
 
-%token T_INT T_DOUBLE T_STRING
+%token INT DOUBLE STRING
 %token CONSTANT IDENTIFIER OPTARG
-%token LE GE EQ NE
+%token BINOP
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ
 %token IF ELSE FOR WHILE
 %token FNCT FNDEF RETURN
@@ -23,7 +23,7 @@
 %nonassoc IFX  /* avoid shift/reduce conflicts */
 %nonassoc ELSE
 %right '^'
-%left LAND LOR
+%left EQ NE GT LT GE LE LOR LAND
 %left '+' '-'
 %left '*' '/' '%'
 %right NEG
@@ -53,9 +53,9 @@ param_list
     ;
 
 param
-    : T_INT primary_expr                                      { $2->type = typeVal; $$ = $2;           }
-    | T_DOUBLE primary_expr                                   { $2->type = typeVal; $$ = $2;           }
-    | T_STRING primary_expr                                   { $2->type = typeStr; $$ = $2;           }
+    : INT primary_expr                                        { $2->type = typeVal; $$ = $2;           }
+    | DOUBLE primary_expr                                     { $2->type = typeVal; $$ = $2;           }
+    | STRING primary_expr                                     { $2->type = typeStr; $$ = $2;           }
     ;
 
 stmt
@@ -106,24 +106,20 @@ assignment_expr
 
 boolean_expr
     : arithmetic_expr
-    | boolean_expr EQ arithmetic_expr                         { $$ = mkOpNode(EQ,  2, $1, $3);         }
-    | boolean_expr NE arithmetic_expr                         { $$ = mkOpNode(NE,  2, $1, $3);         }
-    | boolean_expr GE arithmetic_expr                         { $$ = mkOpNode(GE,  2, $1, $3);         }
-    | boolean_expr LE arithmetic_expr                         { $$ = mkOpNode(LE,  2, $1, $3);         }
-    | boolean_expr '>' arithmetic_expr                        { $$ = mkOpNode('>', 2, $1, $3);         }
-    | boolean_expr '<' arithmetic_expr                        { $$ = mkOpNode('<', 2, $1, $3);         }
-    | boolean_expr LOR arithmetic_expr                        { $$ = mkOpNode(LOR, 2, $1, $3);         }
-    | boolean_expr LAND arithmetic_expr                       { $$ = mkOpNode(LAND,2, $1, $3);         }
+    | boolean_expr boolean_operator arithmetic_expr           { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    ;
+
+boolean_operator
+    : EQ | NE | GT | LT | GE | LE | LOR | LAND
     ;
 
 arithmetic_expr
     : prefix_expr
-    | arithmetic_expr '+' prefix_expr                         { $$ = mkOpNode('+', 2, $1, $3);         }
-    | arithmetic_expr '-' prefix_expr                         { $$ = mkOpNode('-', 2, $1, $3);         }
-    | arithmetic_expr '*' prefix_expr                         { $$ = mkOpNode('*', 2, $1, $3);         }
-    | arithmetic_expr '/' prefix_expr                         { $$ = mkOpNode('/', 2, $1, $3);         }
-    | arithmetic_expr '^' prefix_expr                         { $$ = mkOpNode('^', 2, $1, $3);         }
-    | arithmetic_expr '%' prefix_expr                         { $$ = mkOpNode('%', 2, $1, $3);         }
+    | arithmetic_expr arithmetic_operator prefix_expr         { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    ;
+
+arithmetic_operator
+    : '+' | '-' | '*' | '/' | '^' | '%'
     ;
 
 prefix_expr
@@ -142,7 +138,7 @@ function_expr
     : primary_expr
     | primary_expr '(' arg_list ')'                           { $$ = mkOpNode(FNCT, 2, $1, $3);        }
     | function_expr '.' primary_expr '(' arg_list ')'         { $$ = mkOpNode('.',  3, $1, $3, $5);    }
-    | function_expr '.' primary_expr                          { $$ = mkOpNode('.',  3, $1, $3, NULL);  }
+    | function_expr '.' primary_expr  /* sugar */             { $$ = mkOpNode('.',  3, $1, $3, NULL);  }
     ;
 
 arg_list
@@ -206,7 +202,9 @@ ASTnode *mkValNode(double val) {
 ASTnode *mkStrNode(char *str) {
     ASTnode *p = newNode();
     p->type = typeStr;
-    p->str = strdup(str);
+    /* remove enclosing quotation marks */
+    p->str = strdup(str + 1);
+    p->str[strlen(str)-2] = 0;
     return p;
 }
 

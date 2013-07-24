@@ -34,23 +34,28 @@
     /* string literal */
 \"([^\\\"]|\\.)*\"  { //"
                         /* TODO: add check for newlines */
-                        /* don't include surrounding quotation marks */
-                        char *str = strdup(yytext+1);
-                        str[yyleng-2] = 0;
-                        yylval = mkStrNode(str);
+                        yylval = mkStrNode(yytext);
                         return CONSTANT;
                     }
     /* increment/decrement -- these are preincrements! Post increments are not supported! */
 "++"                    return INC;
 "--"                    return DEC;
-
+    /* arithmetic operator */
+"+"                 { yylval = mkValNode('+');  return '+';   }
+"-"                 { yylval = mkValNode('-');  return '-';   }
+"*"                 { yylval = mkValNode('*');  return '*';   }
+"/"                 { yylval = mkValNode('/');  return '/';   }
+"^"                 { yylval = mkValNode('^');  return '^';   }
+"%"                 { yylval = mkValNode('%');  return '%';   }
     /* comparator or boolean operator */
-">="                    return GE;
-"<="                    return LE;
-"=="                    return EQ;
-"!="                    return NE;
-"&&"                    return LAND;
-"||"                    return LOR;
+"=="                { yylval = mkValNode(EQ);   return EQ;   }
+"!="                { yylval = mkValNode(NE);   return NE;   }
+">"                 { yylval = mkValNode(GT);   return GT;   }
+"<"                 { yylval = mkValNode(LT);   return LT;   }
+">="                { yylval = mkValNode(GE);   return GE;   }
+"<="                { yylval = mkValNode(LE);   return LE;   }
+"||"                { yylval = mkValNode(LOR);  return LOR;  }
+"&&"                { yylval = mkValNode(LAND); return LAND; }
 
     /* arithmetic assignment operator */
 "+="                    return ADDEQ;
@@ -60,7 +65,7 @@
 "%="                    return MODEQ;
 
     /* miscellaneous character */
-[(){}<>+*=/%!.,:;\-\^]  return *yytext;
+[(){}=!.,:;]            return *yytext;
 
     /* comment */
 #.*\n                   ; 
@@ -88,11 +93,11 @@ int resWord(char *str) {
         return FOR;
     /* types */
     else if (!strcmp(str, "int"))
-        return T_INT;
+        return INT;
     else if (!strcmp(str, "double"))
-        return T_DOUBLE;
+        return DOUBLE;
     else if (!strcmp(str, "string"))
-        return T_STRING;
+        return STRING;
     /* function definition */
     else if (!strcmp(str, "function"))
         return FNDEF;

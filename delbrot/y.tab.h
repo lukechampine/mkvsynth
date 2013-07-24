@@ -39,65 +39,71 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     T_INT = 258,
-     T_DOUBLE = 259,
-     T_STRING = 260,
+     INT = 258,
+     DOUBLE = 259,
+     STRING = 260,
      CONSTANT = 261,
      IDENTIFIER = 262,
      OPTARG = 263,
-     LE = 264,
-     GE = 265,
-     EQ = 266,
-     NE = 267,
-     ADDEQ = 268,
-     SUBEQ = 269,
-     MULEQ = 270,
-     DIVEQ = 271,
-     MODEQ = 272,
-     IF = 273,
-     ELSE = 274,
-     FOR = 275,
-     WHILE = 276,
-     FNCT = 277,
-     FNDEF = 278,
-     RETURN = 279,
-     IFX = 280,
-     LOR = 281,
-     LAND = 282,
-     NEG = 283,
-     DEC = 284,
-     INC = 285
+     BINOP = 264,
+     ADDEQ = 265,
+     SUBEQ = 266,
+     MULEQ = 267,
+     DIVEQ = 268,
+     MODEQ = 269,
+     IF = 270,
+     ELSE = 271,
+     FOR = 272,
+     WHILE = 273,
+     FNCT = 274,
+     FNDEF = 275,
+     RETURN = 276,
+     IFX = 277,
+     LAND = 278,
+     LOR = 279,
+     LE = 280,
+     GE = 281,
+     LT = 282,
+     GT = 283,
+     NE = 284,
+     EQ = 285,
+     NEG = 286,
+     DEC = 287,
+     INC = 288
    };
 #endif
 /* Tokens.  */
-#define T_INT 258
-#define T_DOUBLE 259
-#define T_STRING 260
+#define INT 258
+#define DOUBLE 259
+#define STRING 260
 #define CONSTANT 261
 #define IDENTIFIER 262
 #define OPTARG 263
-#define LE 264
-#define GE 265
-#define EQ 266
-#define NE 267
-#define ADDEQ 268
-#define SUBEQ 269
-#define MULEQ 270
-#define DIVEQ 271
-#define MODEQ 272
-#define IF 273
-#define ELSE 274
-#define FOR 275
-#define WHILE 276
-#define FNCT 277
-#define FNDEF 278
-#define RETURN 279
-#define IFX 280
-#define LOR 281
-#define LAND 282
-#define NEG 283
-#define DEC 284
-#define INC 285
+#define BINOP 264
+#define ADDEQ 265
+#define SUBEQ 266
+#define MULEQ 267
+#define DIVEQ 268
+#define MODEQ 269
+#define IF 270
+#define ELSE 271
+#define FOR 272
+#define WHILE 273
+#define FNCT 274
+#define FNDEF 275
+#define RETURN 276
+#define IFX 277
+#define LAND 278
+#define LOR 279
+#define LE 280
+#define GE 281
+#define LT 282
+#define GT 283
+#define NE 284
+#define EQ 285
+#define NEG 286
+#define DEC 287
+#define INC 288
 
 
 

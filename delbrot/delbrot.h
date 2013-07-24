@@ -76,17 +76,13 @@ void* getOptArg(ASTnode *args, char *name, int type);
 void checkArgs(char *funcName, ASTnode *args, int numArgs, ...);
 
 /* standard mathematical function prototypes */
-ASTnode* nmod(ASTnode *, ASTnode *, ASTnode *);
-ASTnode* npow(ASTnode *, ASTnode *, ASTnode *);
-ASTnode* nmul(ASTnode *, ASTnode *, ASTnode *);
-ASTnode* ndiv(ASTnode *, ASTnode *, ASTnode *);
-ASTnode* nadd(ASTnode *, ASTnode *, ASTnode *);
-ASTnode* nsub(ASTnode *, ASTnode *, ASTnode *);
 ASTnode* nneg(ASTnode *, ASTnode *);
+ASTnode* nnot(ASTnode *, ASTnode *);
 ASTnode* nsin(ASTnode *, ASTnode *);
 ASTnode* ncos(ASTnode *, ASTnode *);
 ASTnode* nlog(ASTnode *, ASTnode *);
 ASTnode* nsqrt(ASTnode *, ASTnode *);
+ASTnode* binOp(ASTnode *, int op, ASTnode *, ASTnode *);
 
 /* mkvsynth function prototypes */
 ASTnode* ffmpegDecode_AST(ASTnode *, ASTnode *);

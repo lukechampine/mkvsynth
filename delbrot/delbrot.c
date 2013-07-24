@@ -260,24 +260,11 @@ ASTnode* ex(ASTnode *p) {
         case MODEQ: return modvar(identify(child[0]), '%', ex(child[1]));
         case INC:   return modvar(identify(child[0]), '+', NULL); /* bit of a hack */
         case DEC:   return modvar(identify(child[0]), '-', NULL);
-        /* arithmetic operators */
-        case '%':   return nmod(p, ex(child[0]), ex(child[1]));
-        case '^':   return npow(p, ex(child[0]), ex(child[1]));
-        case '*':   return nmul(p, ex(child[0]), ex(child[1]));
-        case '/':   return ndiv(p, ex(child[0]), ex(child[1]));
-        case '+':   return nadd(p, ex(child[0]), ex(child[1]));
-        case '-':   return nsub(p, ex(child[0]), ex(child[1]));
+        /* unary operators */
         case NEG:   return nneg(p, ex(child[0]));
-        /* boolean operators */
-        case '!':   p->val = !ex(child[0])->val;                     return p;
-        case '>':   p->val = ex(child[0])->val > ex(child[1])->val;  return p;
-        case '<':   p->val = ex(child[0])->val < ex(child[1])->val;  return p;
-        case GE:    p->val = ex(child[0])->val >= ex(child[1])->val; return p;
-        case LE:    p->val = ex(child[0])->val <= ex(child[1])->val; return p;
-        case EQ:    p->val = ex(child[0])->val == ex(child[1])->val; return p;
-        case NE:    p->val = ex(child[0])->val != ex(child[1])->val; return p;
-        case LOR:   p->val = ex(child[0])->val || ex(child[1])->val; return p;
-        case LAND:  p->val = ex(child[0])->val && ex(child[1])->val; return p;
+        case '!':   return nnot(p, ex(child[0]));
+        /* arithmetic / boolean operators */
+        case BINOP: return binOp(p, child[1]->val, ex(child[0]), ex(child[2]));
         /* compound statements */
         case ';':   ex(child[0]); return ex(child[1]);
     }
@@ -386,49 +373,49 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
     RETURNVAL(0);
 }
 
-/* standard mathematical functions, modified to use ASTnode */
-ASTnode* nmod(ASTnode *p, ASTnode *c1, ASTnode *c2) {
-    if (c1->type != typeVal) yyerror("arg 1 of %% expected integer, got %s", typeNames[c1->type]); 
-    if (c2->type != typeVal) yyerror("arg 2 of %% expected integer, got %s", typeNames[c2->type]); 
-    p->val = (double) ((int) c1->val % (int) c2->val);
+/* handle arithmetic / boolean operators */
+ASTnode* binOp(ASTnode* p, int op, ASTnode* c1, ASTnode* c2) {
+    if (c1->type != typeVal) yyerror("arg 1 of %c expected integer, got %s", op, typeNames[c1->type]);
+    if (c2->type != typeVal) yyerror("arg 2 of %c expected integer, got %s", op, typeNames[c2->type]);
+
+    p->type = typeVal;
+    switch(op) {
+        /* arithmetic operators */
+        case '+':  p->val = c1->val + c2->val; break;
+        case '-':  p->val = c1->val + c2->val; break;
+        case '*':  p->val = c1->val + c2->val; break;
+        case '/':  p->val = c1->val + c2->val; break;
+        case '^':  p->val = pow(c1->val, c2->val); break;
+        case '%':  p->val = (double) ((int) c1->val % (int) c2->val); break;
+        /* boolean operators */
+        case EQ:   p->val = c1->val == c2->val; break;
+        case NE:   p->val = c1->val != c2->val; break;
+        case GT:   p->val = c1->val  > c2->val; break;
+        case LT:   p->val = c1->val  < c2->val; break;
+        case GE:   p->val = c1->val >= c2->val; break;
+        case LE:   p->val = c1->val <= c2->val; break;
+        case LOR:  p->val = c1->val || c2->val; break;
+        case LAND: p->val = c1->val && c2->val; break;
+        /* should never wind up here */
+        default: yyerror("unrecognized binary operator");
+    }
     return p;
-} 
-ASTnode* npow(ASTnode *p, ASTnode *c1, ASTnode *c2) {
-    if (c1->type != typeVal) yyerror("arg 1 of ^ expected integer, got %s", typeNames[c1->type]); 
-    if (c2->type != typeVal) yyerror("arg 2 of ^ expected integer, got %s", typeNames[c2->type]); 
-    p->val = pow(c1->val, c2->val);
-    return p;
-} 
-ASTnode* nmul(ASTnode *p, ASTnode *c1, ASTnode *c2) {
-    if (c1->type != typeVal) yyerror("arg 1 of * expected integer, got %s", typeNames[c1->type]); 
-    if (c2->type != typeVal) yyerror("arg 2 of * expected integer, got %s", typeNames[c2->type]); 
-    p->val = c1->val * c2->val;
-    return p;
-} 
-ASTnode* ndiv(ASTnode *p, ASTnode *c1, ASTnode *c2) {
-    if (c1->type != typeVal) yyerror("arg 1 of / expected integer, got %s", typeNames[c1->type]); 
-    if (c2->type != typeVal) yyerror("arg 2 of / expected integer, got %s", typeNames[c2->type]); 
-    p->val = c1->val / c2->val;
-    return p;
-} 
-ASTnode* nadd(ASTnode *p, ASTnode *c1, ASTnode *c2) {
-    if (c1->type != typeVal) yyerror("arg 1 of + expected integer, got %s", typeNames[c1->type]); 
-    if (c2->type != typeVal) yyerror("arg 2 of + expected integer, got %s", typeNames[c2->type]); 
-    p->val = c1->val + c2->val;
-    return p;
-} 
-ASTnode* nsub(ASTnode *p, ASTnode *c1, ASTnode *c2) {
-    if (c1->type != typeVal) yyerror("arg 1 of - expected integer, got %s", typeNames[c1->type]); 
-    if (c2->type != typeVal) yyerror("arg 2 of - expected integer, got %s", typeNames[c2->type]); 
-    p->val = c1->val - c2->val;
-    return p;
-} 
+}
+
+/* handle unary operators */
 ASTnode* nneg(ASTnode *p, ASTnode *c1) {
     if (c1->type != typeVal) yyerror("arg 1 of - expected integer, got %s", typeNames[c1->type]); 
     p->val = -c1->val;
     return p;
-}  
+}
 
+ASTnode* nnot(ASTnode *p, ASTnode *c1) {
+    if (c1->type != typeVal) yyerror("arg 1 of ! expected integer, got %s", typeNames[c1->type]); 
+    p->val = !c1->val;
+    return p;
+}
+
+/* standard mathematical functions, modified to use ASTnode */
 ASTnode* nsin (ASTnode *p, ASTnode *args) {
     checkArgs("sin", args, 1, typeVal);
     p->val = sin(args->val); 
