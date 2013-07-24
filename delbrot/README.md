@@ -2,7 +2,7 @@
 This is the current implementation of delbrot, the MkvSynth script interpreter.
 
 ## features ##
-At present, delbrot is essentially a glorified calculator. It only has support for doubles and strings. But already it showcases a level of sophistication greater than any previous implementation. Expressions are evaluated recursively, method calls can be chained, and optional parameters are supported:
+At present, delbrot is essentially a glorified calculator. It only has support for doubles and strings. But already it showcases a level of sophistication greater than any previous implementation. Functions can be defined (and called recursively), method calls can be chained, and optional parameters are supported:
 
 ```perl
 # Project Euler problem 1
@@ -11,6 +11,19 @@ for(x = 0; x < 1000; x += 1)
 	if (!(x % 3 && x % 5))
 		total += x;
 print(total); # prints "233168"
+
+# recursive version
+total = 0;
+function euler(int x) {
+	if (x == 1000)
+		print(total);
+	else {
+		if (!(x % 3 && x % 5))
+			total += x;
+		euler(x + 1);
+	}
+}
+euler(0) # prints "233168"
 
 # method chaining
 0.sin.cos.print; # equivalent to print(cos(sin(0))), prints "1"
