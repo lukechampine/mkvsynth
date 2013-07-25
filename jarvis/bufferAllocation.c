@@ -17,7 +17,7 @@ MkvsynthOutput *createOutputBuffer(int outputBreadth) {
 	output->outputBreadth = outputBreadth;
 	output->remainingBuffer = remainingBuffer;
 	output->consumedBuffer = consumedBuffer;
-	output->recentFrame = malloc(sizeof(MkvsynthFrame)); // never gets deallocated
+	output->recentFrame = malloc(sizeof(MkvsynthFrame));
 	output->metaData = metaData;
 	
 	return output;
