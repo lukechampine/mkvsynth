@@ -17,7 +17,7 @@ MkvsynthOutput *createOutputBuffer(int outputBreadth) {
 	output->outputBreadth = outputBreadth;
 	output->remainingBuffer = remainingBuffer;
 	output->consumedBuffer = consumedBuffer;
-	output->recentFrame = NULL;
+	output->recentFrame = malloc(sizeof(MkvsynthFrame)); // never gets deallocated
 	output->metaData = metaData;
 	
 	return output;
@@ -28,7 +28,7 @@ MkvsynthInput *createInputBuffer(MkvsynthOutput *output, int semaphoreIndex) {
 	
 	input->remainingBuffer = &output->remainingBuffer[semaphoreIndex];
 	input->consumedBuffer = &output->consumedBuffer[semaphoreIndex];
-	input->currentFrame = NULL;
+	input->currentFrame = output->recentFrame;
 	input->metaData = output->metaData;
 	
 	return input;
