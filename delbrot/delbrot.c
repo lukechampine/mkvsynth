@@ -368,7 +368,7 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
 /* toy ffmpeg decoding function, showcasing optional arguments */
 ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 
-    checkArgs("ffmpegDecode", args, 1, typeStr);
+    checkArgs("ffmpegDecodeToy", args, 1, typeStr);
 
     char *filename = MANDSTR();
     double numFrames = OPTVAL("frames", -1);
