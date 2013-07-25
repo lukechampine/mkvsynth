@@ -46,17 +46,10 @@ typedef struct {
 } MkvsynthOutput;
 
 MkvsynthFrame *getFrame(MkvsynthInput *params) {
-	// The very first frame in a stream is blank, and only used
-	// so that getFrame can be pointed to the associated output
-	// frame. For that reason, the advancement happens at the 
-	// top instead of the bottom of the getFrame logic
-	params->currentFrame = params->currentFrame->nextFrame;
-	if(params->currentFrame->payload == NULL)
-		return NULL; // A null payload indicates end-of-stream
-		
 	sem_wait(params->remainingBuffer);
 	pthread_mutex_lock(&params->currentFrame->lock);
 	
+	A:
 	MkvsynthFrame *newFrame;
 	if(params->currentFrame->filtersRemaining > 1) {
 		newFrame = malloc(sizeof(MkvsynthFrame));
@@ -66,14 +59,20 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 		pthread_mutex_init(&newFrame->lock, NULL);
 		newFrame->nextFrame = params->currentFrame->nextFrame;
 		params->currentFrame->filtersRemaining--;
-	} else {
+	} else if(params->currentFrame->filtersRemaining == 1) {
 		params->currentFrame->filtersRemaining = 0;
 		newFrame = params->currentFrame;
+	} else {
+		MkvsynthFrame *tmp = params->currentFrame;
+		params->currentFrame = params->currentFrame->nextFrame;
+		clearFrame(tmp);
+		goto A;
 	}
 
 	pthread_mutex_unlock(&params->currentFrame->lock);
 	sem_post(params->consumedBuffer);
 	
+	params->currentFrame = params->currentFrame->nextFrame;
 	return newFrame;
 }
 
