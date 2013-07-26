@@ -8,46 +8,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-typedef struct {
-	int colorSpace;
-	int width;
-	int height;
-	int channels;
-	int depth;
-	int bytes;
-} MkvsynthMetaData;
-
-typedef struct {
-	uint8_t *payload;
-
-	int filtersRemaining;
-	pthread_mutex_t lock;
-
-	MkvsynthFrame *nextFrame;
-} MkvsynthFrame;
-
-typedef struct {
-	sem_t *remainingBuffer;
-	sem_t *consumedBuffer;
-
-	MkvsynthFrame *currentFrame;
-	MkvsynthMetaData *metaData;
-} MkvsynthInput;
-
-typedef struct {
-	int outputBreadth;
-	MkvsynthSemaphoreList *semaphores;
-
-	MkvsynthFrame *recentFrame;
-	MkvsynthMetaData *metaData;
-} MkvsynthOutput;
-
 MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	sem_wait(params->remainingBuffer);
 	pthread_mutex_lock(&params->currentFrame->lock);
 	
-	A:
 	MkvsynthFrame *newFrame;
+
+A:
 	if(params->currentFrame->filtersRemaining > 1) {
 		newFrame = malloc(sizeof(MkvsynthFrame));
 		newFrame->payload = malloc(params->payloadBytes);

@@ -7,26 +7,29 @@
 #include "../jarvis/spawn.c"
 #include "../delbrot/delbrot.h"
 
+/////////////////////////////////////
+// The Threaded Function Arguments //
+/////////////////////////////////////
 struct ffmpegDecode {
 	char *filename;
 	MkvsynthOutput *output;
 };
 
-// This function will hopefully be automated by delbrot eventually, instead of needing to be written by the user
-void ffmpegDecodeDefinition(ASTnode *p, ASTnode *args) {
+MkvsynthOutput* ffmpegDecodeDefinition(ASTnode *p, ASTnode *args) {
+
+	///////////////////////////
+	// Parse Input Arguments //
+	///////////////////////////
 	checkArgs("ffmpegDecode", args, 1, typeStr);
 	char *filename = MANDSTR();
 
 	struct ffmpegDecode *ffmpegParams = malloc(sizeof(struct ffmpegDecode));
 	ffmpegParams->filename = filename;
-	ffmpegParams->output = createOutputBuffer(1); // 1 is the limit until the parser can feed us values for the outputs
+	ffmpegParams->output = createOutputBuffer();
 
-	FilterParams *filterParams = malloc(sizeof(FilterParams));
-	filterParams->p = p;
-	filterParams->parserArgs = args;
-	filterParams->filterArgs = (void *)ffmpegParams;
+	spawn((void *)ffmpegParams, ffmpegDecode);
 
-	spawn(filterParams, ffmpegDecode);
+	return ffmpegParams->output;
 }
 
 void ffmpegDecode(void *filterParams) {
