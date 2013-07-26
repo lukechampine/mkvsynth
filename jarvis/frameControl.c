@@ -14,7 +14,6 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	
 	MkvsynthFrame *newFrame;
 
-A:
 	if(params->currentFrame->filtersRemaining > 1) {
 		newFrame = malloc(sizeof(MkvsynthFrame));
 		newFrame->payload = malloc(params->payloadBytes);
@@ -23,14 +22,9 @@ A:
 		pthread_mutex_init(&newFrame->lock, NULL);
 		newFrame->nextFrame = params->currentFrame->nextFrame;
 		params->currentFrame->filtersRemaining--;
-	} else if(params->currentFrame->filtersRemaining == 1) {
+	} else {
 		params->currentFrame->filtersRemaining = 0;
 		newFrame = params->currentFrame;
-	} else {
-		MkvsynthFrame *tmp = params->currentFrame;
-		params->currentFrame = params->currentFrame->nextFrame;
-		clearFrame(tmp);
-		goto A;
 	}
 
 	pthread_mutex_unlock(&params->currentFrame->lock);
@@ -45,10 +39,11 @@ void putFrame(MkvsynthOutput *params, uint8_t *payload) {
 	for(i = 0; i < params->outputBreadth; i++)
 		sem_wait(params->consumedBuffer + sizeof(sem_t) * i);
 
+	params->recentFrame->payload = payload;
+	params->recentFrame->filtersRemaining = params->outputBreadth;
+	pthread_mutex_init(&params->recentFrame->lock, NULL);
+
 	MkvsynthFrame *newFrame = malloc(sizeof(MkvsynthFrame));
-	newFrame->payload = payload;
-	newFrame->filtersRemaining = params->outputBreadth;
-	pthread_mutex_init(&newFrame->lock, NULL);
 	newFrame->nextFrame = NULL;
 	params->recentFrame->nextFrame = newFrame;
 	params->recentFrame = newFrame;
@@ -58,12 +53,17 @@ void putFrame(MkvsynthOutput *params, uint8_t *payload) {
 }
 
 void clearFrame(MkvsynthFrame *usedFrame) {
+// the mutex needs to be used
 	if(usedFrame->filtersRemaining == 0) {
 		pthread_mutex_destroy(usedFrame->lock);
 		free(usedFrame->payload);
 		free(usedFrame);
 	} else {
 		// case not implemented yet
+		// will need to be implemented, because there's another
+		// consumer that I forgot about: the producer. The frame
+		// can't be cleared until the producer has pointed to the
+		// next one.
 	}
 }
 

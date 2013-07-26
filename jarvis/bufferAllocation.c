@@ -1,12 +1,6 @@
 #ifndef _bufferAllocation_c_
 #define _bufferAllocation_c_
 
-typedef MkvsynthSemaphoreList {
-	sem_t remainingBuffer;
-	sem_t consumedBuffer;
-	MkvsynthSemaphoreList *next;
-}
-
 MkvsynthOutput *createOutputBuffer() {
 	MkvsynthMetaData *metaData = malloc(sizeof(MkvsynthMetaData));
 	MkvsynthOutput *output = malloc(sizeof(MkvsynthOutput));
@@ -14,6 +8,7 @@ MkvsynthOutput *createOutputBuffer() {
 	output->outputBreadth = 0;
 	output->semaphores = malloc(sizeof(MkvsynthSemaphoreList));
 	output->recentFrame = malloc(sizeof(MkvsynthFrame));
+	output->recentFrame->filtersRemaining = 0;
 	output->metaData = metaData;
 	
 	return output;
