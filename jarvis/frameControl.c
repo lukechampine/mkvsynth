@@ -15,8 +15,6 @@ typedef struct {
 	int channels;
 	int depth;
 	int bytes;
-	
-	sem_t startupComplete;
 } MkvsynthMetaData;
 
 typedef struct {
@@ -38,23 +36,18 @@ typedef struct {
 
 typedef struct {
 	int outputBreadth;
-	sem_t *remainingBuffer;
-	sem_t *consumedBuffer;
+	MkvsynthSemaphoreList *semaphores;
 
 	MkvsynthFrame *recentFrame;
 	MkvsynthMetaData *metaData;
 } MkvsynthOutput;
 
 MkvsynthFrame *getFrame(MkvsynthInput *params) {
-	MkvsynthFrame *newFrame;
-
 	sem_wait(params->remainingBuffer);
-	
-	if(params->currentFrame == NULL)
-		return NULL;
-
 	pthread_mutex_lock(&params->currentFrame->lock);
-
+	
+	A:
+	MkvsynthFrame *newFrame;
 	if(params->currentFrame->filtersRemaining > 1) {
 		newFrame = malloc(sizeof(MkvsynthFrame));
 		newFrame->payload = malloc(params->payloadBytes);
@@ -62,11 +55,15 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 		newFrame->filtersRemaining = 0;
 		pthread_mutex_init(&newFrame->lock, NULL);
 		newFrame->nextFrame = params->currentFrame->nextFrame;
-		
 		params->currentFrame->filtersRemaining--;
-	} else {
+	} else if(params->currentFrame->filtersRemaining == 1) {
 		params->currentFrame->filtersRemaining = 0;
 		newFrame = params->currentFrame;
+	} else {
+		MkvsynthFrame *tmp = params->currentFrame;
+		params->currentFrame = params->currentFrame->nextFrame;
+		clearFrame(tmp);
+		goto A;
 	}
 
 	pthread_mutex_unlock(&params->currentFrame->lock);

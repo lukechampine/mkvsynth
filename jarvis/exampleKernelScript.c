@@ -31,16 +31,16 @@ int main() {
 	char *x264Params1 = "--preset placebo";
 	char *x264Params2 = "--preset placebo";
 	
-	MkvsynthOutput *decoderOutput = createOutputBuffer(1);
-	MkvsynthOutput *cropOutput = createOutputBuffer(2); // crop feeds 2 filters, so two 'slots' must be signaled
-	MkvsynthOutput *resizeOutput1 = createOutputBuffer(1);
-	MkvsynthOutput *resizeOutput2 = createOutputbuffer(1);
+	MkvsynthOutput *decoderOutput = createOutputBuffer();
+	MkvsynthOutput *cropOutput = createOutputBuffer(); // crop feeds 2 filters, so two 'slots' must be signaled
+	MkvsynthOutput *resizeOutput1 = createOutputBuffer();
+	MkvsynthOutput *resizeOutput2 = createOutputbuffer();
 	
-	MkvsynthInput *cropInput = createInputBuffer(decoderOutput, 0);
-	MkvsynthInput *resizeInput1 = createInputBuffer(cropOutput, 0); // This guy gets slot 0
-	MkvsynthInput *resizeInput2 = createInputBuffer(cropOutput, 1); // This guy gets slot 1
-	MkvsynthInput *x264Input1 = createInputBuffer(resizeOutput1, 0);
-	MkvsynthInput *x264Input2 = createInputBuffer(resizeOutput2, 0);
+	MkvsynthInput *cropInput = createInputBuffer(decoderOutput);
+	MkvsynthInput *resizeInput1 = createInputBuffer(cropOutput); // This guy gets slot 0
+	MkvsynthInput *resizeInput2 = createInputBuffer(cropOutput); // This guy gets slot 1
+	MkvsynthInput *x264Input1 = createInputBuffer(resizeOutput1);
+	MkvsynthInput *x264Input2 = createInputBuffer(resizeOutput2);
 	
 	//
 	// This is where delbrot assembles all parameters together into ASTParams...
