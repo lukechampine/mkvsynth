@@ -59,7 +59,7 @@ ASTnode* modvar(ASTnode *varNode, char op, ASTnode *modNode) {
 }
 
 /* resolve an identifier */
-ASTnode *identify(ASTnode *p) {
+ASTnode* identify(ASTnode *p) {
     varRec *v; funcRec *f;
     /* function */
     if ((f = getFn(p->str)) != NULL) {
@@ -80,7 +80,7 @@ ASTnode *identify(ASTnode *p) {
 }
 
 /* dereference a variable */
-ASTnode *dereference(ASTnode *p) {
+ASTnode* dereference(ASTnode *p) {
     if (UNDEFINED(p))
         yyerror("dereference called on uninitialized variable %s", p->var->name);
     /* TODO: can this be changed to copy only the value and type? */
@@ -91,7 +91,7 @@ ASTnode *dereference(ASTnode *p) {
 }
 
 /* copy a node and it's children */
-ASTnode *copy(ASTnode *p) {
+ASTnode* copy(ASTnode *p) {
     if (!p)
         return NULL;
 
@@ -396,9 +396,9 @@ ASTnode* binOp(ASTnode* p, int op, ASTnode* c1, ASTnode* c2) {
     switch(op) {
         /* arithmetic operators */
         case '+':  p->val = c1->val + c2->val; break;
-        case '-':  p->val = c1->val + c2->val; break;
-        case '*':  p->val = c1->val + c2->val; break;
-        case '/':  p->val = c1->val + c2->val; break;
+        case '-':  p->val = c1->val - c2->val; break;
+        case '*':  p->val = c1->val * c2->val; break;
+        case '/':  p->val = c1->val / c2->val; break;
         case '^':  p->val = pow(c1->val, c2->val); break;
         case '%':  p->val = (double) ((int) c1->val % (int) c2->val); break;
         /* boolean operators */

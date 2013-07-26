@@ -1,9 +1,10 @@
-/* A Bison parser, made by GNU Bison 2.4.3.  */
+
+/* A Bison parser, made by GNU Bison 2.4.1.  */
 
 /* Skeleton implementation for Bison's Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-   2009, 2010 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +46,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "2.4.3"
+#define YYBISON_VERSION "2.4.1"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -82,7 +83,7 @@
 
 
 /* Line 189 of yacc.c  */
-#line 86 "y.tab.c"
+#line 87 "y.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -192,7 +193,7 @@ typedef int YYSTYPE;
 
 
 /* Line 264 of yacc.c  */
-#line 196 "y.tab.c"
+#line 197 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -242,7 +243,7 @@ typedef short int yytype_int16;
 #define YYSIZE_MAXIMUM ((YYSIZE_T) -1)
 
 #ifndef YY_
-# if defined YYENABLE_NLS && YYENABLE_NLS
+# if YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
 #   define YY_(msgid) dgettext ("bison-runtime", msgid)
@@ -715,18 +716,9 @@ static const yytype_uint8 yystos[] =
 
 /* Like YYERROR except do call yyerror.  This remains here temporarily
    to ease the transition to the new meaning of YYERROR, for GCC.
-   Once GCC version 2 has supplanted version 1, this can go.  However,
-   YYFAIL appears to be in use.  Nevertheless, it is formally deprecated
-   in Bison 2.4.2's NEWS entry, where a plan to phase it out is
-   discussed.  */
+   Once GCC version 2 has supplanted version 1, this can go.  */
 
 #define YYFAIL		goto yyerrlab
-#if defined YYFAIL
-  /* This is here to suppress warnings from the GCC cpp's
-     -Wunused-macros.  Normally we don't worry about that warning, but
-     some users do, and we want to make it easy for users to remove
-     YYFAIL uses, which will produce warnings from Bison 2.5.  */
-#endif
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
@@ -783,7 +775,7 @@ while (YYID (0))
    we won't break user code: when these are the locations we know.  */
 
 #ifndef YY_LOCATION_PRINT
-# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+# if YYLTYPE_IS_TRIVIAL
 #  define YY_LOCATION_PRINT(File, Loc)			\
      fprintf (File, "%d.%d-%d.%d",			\
 	      (Loc).first_line, (Loc).first_column,	\
@@ -1522,105 +1514,104 @@ yyreduce:
     {
         case 3:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 35 "delbrot.y"
     { ex((yyvsp[(2) - (2)])); free((yyvsp[(2) - (2)])->op.ops); free((yyvsp[(2) - (2)]));                      }
     break;
 
   case 6:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 44 "delbrot.y"
     { (yyval) = mkOpNode(FNDEF, 3, (yyvsp[(2) - (8)]), (yyvsp[(4) - (8)]), (yyvsp[(7) - (8)]));   }
     break;
 
   case 7:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 48 "delbrot.y"
     { (yyval) = NULL;                             }
     break;
 
   case 8:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 49 "delbrot.y"
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 9:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 50 "delbrot.y"
     { (yyval) = append((yyvsp[(3) - (3)]), (yyvsp[(1) - (3)]));                   }
     break;
 
   case 10:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 54 "delbrot.y"
     { (yyvsp[(2) - (2)])->type = typeVal; (yyval) = (yyvsp[(2) - (2)]);           }
     break;
 
   case 11:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 55 "delbrot.y"
     { (yyvsp[(2) - (2)])->type = typeVal; (yyval) = (yyvsp[(2) - (2)]);           }
     break;
 
   case 12:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 56 "delbrot.y"
     { (yyvsp[(2) - (2)])->type = typeStr; (yyval) = (yyvsp[(2) - (2)]);           }
     break;
 
   case 17:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 67 "delbrot.y"
     { (yyval) = mkOpNode(';', 2, NULL, NULL);     }
     break;
 
   case 18:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 68 "delbrot.y"
     { (yyval) = (yyvsp[(1) - (2)]);                               }
     break;
 
   case 19:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 72 "delbrot.y"
     { (yyval) = mkOpNode(IF, 2, (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));          }
     break;
 
   case 20:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 73 "delbrot.y"
     { (yyval) = mkOpNode(IF, 3, (yyvsp[(3) - (7)]), (yyvsp[(5) - (7)]), (yyvsp[(7) - (7)]));      }
     break;
 
   case 21:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 77 "delbrot.y"
     { (yyval) = mkOpNode(WHILE, 2, (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));       }
     break;
 
   case 22:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 78 "delbrot.y"
     { (yyval) = mkOpNode(FOR, 4, (yyvsp[(3) - (9)]), (yyvsp[(5) - (9)]), (yyvsp[(7) - (9)]), (yyvsp[(9) - (9)])); }
     break;
 
   case 23:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 82 "delbrot.y"
     { (yyval) = mkOpNode(RETURN, 1, (yyvsp[(2) - (3)]));          }
@@ -1629,23 +1620,19 @@ yyreduce:
   case 24:
 
 /* Line 1455 of yacc.c  */
-=======
-/* Line 1464 of yacc.c  */
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
 #line 83 "delbrot.y"
     { (yyval) = mkOpNode(RETURN, 1, NULL);        }
     break;
 
   case 26:
 
-/* Line 1464 of yacc.c  */
+/* Line 1455 of yacc.c  */
 #line 88 "delbrot.y"
     { (yyval) = (yyvsp[(2) - (3)]);                               }
     break;
 
   case 28:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 93 "delbrot.y"
     { (yyval) = mkOpNode(';', 2, (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));         }
@@ -1655,298 +1642,174 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 102 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 97 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode('=',   2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));       }
     break;
 
   case 32:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 103 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 98 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(ADDEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));       }
     break;
 
   case 33:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 104 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 99 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(SUBEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));       }
     break;
 
   case 34:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 105 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 100 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(MULEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));       }
     break;
 
   case 35:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 106 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 101 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(DIVEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));       }
     break;
 
   case 36:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 107 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 102 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(POWEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));       }
     break;
 
   case 37:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 108 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 103 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(MODEQ, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));       }
     break;
 
   case 39:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 113 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 108 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 49:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 122 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 117 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 57:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 131 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 126 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(NEG, 1, (yyvsp[(2) - (2)]));             }
     break;
 
   case 58:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 132 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 127 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode('!', 1, (yyvsp[(2) - (2)]));             }
     break;
 
   case 60:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 137 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 132 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(INC, 1, (yyvsp[(1) - (2)]));             }
     break;
 
   case 61:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 138 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 133 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(DEC, 1, (yyvsp[(1) - (2)]));             }
     break;
 
   case 63:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 143 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 138 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode(FNCT, 2, (yyvsp[(1) - (4)]), (yyvsp[(3) - (4)]));        }
     break;
 
   case 64:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 144 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 139 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode('.',  3, (yyvsp[(1) - (6)]), (yyvsp[(3) - (6)]), (yyvsp[(5) - (6)]));    }
     break;
 
   case 65:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 145 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 140 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = mkOpNode('.',  3, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]), NULL);  }
     break;
 
   case 66:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 149 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 144 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = NULL;                             }
     break;
 
   case 67:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 150 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 145 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 68:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 151 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 146 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = append((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));                   }
     break;
 
   case 69:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 155 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 150 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 70:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 156 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 151 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyvsp[(1) - (2)])->var->value = (yyvsp[(2) - (2)]);                   }
     break;
 
   case 71:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 160 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 155 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 72:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 161 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 156 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 73:
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 162 "delbrot.y"
-=======
-/* Line 1464 of yacc.c  */
-#line 157 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
     { (yyval) = (yyvsp[(2) - (3)]);                               }
     break;
 
 
 
-<<<<<<< HEAD
 /* Line 1455 of yacc.c  */
 #line 1813 "y.tab.c"
-=======
-/* Line 1464 of yacc.c  */
-#line 1802 "y.tab.c"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2157,13 +2020,8 @@ yyreturn:
 
 
 
-<<<<<<< HEAD
 /* Line 1675 of yacc.c  */
 #line 165 "delbrot.y"
-=======
-/* Line 1684 of yacc.c  */
-#line 160 "delbrot.y"
->>>>>>> 5074f4f9e7e552b93c788eaa3b528f5d8f49230e
  /* end of grammar */
 
 /* initialize a new node */
