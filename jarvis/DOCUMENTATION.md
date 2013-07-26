@@ -40,6 +40,10 @@ putFrame() assumes that 'recentFrame' currently exists and contains no data. For
 
 getFrame() waits until there is a frame in the buffer (using the unique semaphore it shares with the producer), then it locks the frame, then it produces a unique copy of the frame for the filter. If this filter is the last filter to get the frame, getFrame() can just pass a pointer. Otherwise, getFrame() will make a replica of the frame (including a new mutex_init) and pass a pointer to the replica. Then it will update the frame to acknowledge that the frame has been consumed by a filter.
 
-## Bed Time ##
+clearFrame() gets called when a filter is done using a frame. clearFrame makes sure that all filters are done using a frame before deallocating it, and makes sure the frame is fully deallocated.
 
-That's all I got time for today.
+## Pthreads ##
+
+The bulk of the processing is done from pthreads. Before the filters can start working though, they need all the metadata from other filters. Filters set up in serial, and add themselves to a linked list of un-created pthreads. When the final filter has started up, it calls the function that will crawl though the linked list and spawn all of the ptheads.
+
+
