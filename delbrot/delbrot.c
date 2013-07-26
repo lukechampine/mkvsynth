@@ -131,7 +131,6 @@ void propagateScope(ASTnode *p, varRec **scope) {
 
 /* process a run-time function definition */
 /* TODO: allow variables to be defined inside function definitions */
-/* TODO: implement return statements */
 void funcDefine(ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
     if (nameNode->type != typeId)
         yyerror("function name \"%s\" is already in use", nameNode->var->name);
@@ -159,26 +158,27 @@ void funcDefine(ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
 }
 
 /* find a return statement in a function body and set its jump point */
-void setReturnPoint(ASTnode *p, jmp_buf *ret) {
+int setReturnPoint(ASTnode *p, jmp_buf *ret) {
     if (!p || p->type != typeOp)
-        return;
+        return 0;
 
     if (p->op.oper == RETURN) {
         p->op.ops[0]->returnContext = ret;
-        return;
+        return 1;
     }
 
     /* recurse to children */
-    int i;
+    int i, total = 0;
     for (i = 0; i < p->op.nops; i++)
-        setReturnPoint(p->op.ops[i], ret);
+        total += setReturnPoint(p->op.ops[i], ret);
+    return total;
 }
 
 /* process the call of a function that was defined at run-time */
 ASTnode* userDefFnCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     /* determine number of arguments */
     int i, numArgs = 0;
-    varRec* fnVars;
+    varRec *fnVars;
     for(fnVars = fnNode->fn->localVars; fnVars; fnVars = fnVars->next, numArgs++);
     fnVars = fnNode->fn->localVars;
     /* define and assign local variables */
@@ -197,13 +197,23 @@ ASTnode* userDefFnCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
         yyerror("%s expected %d argument(s), got %d", fnNode->fn->name, numArgs, ++i);
     }
 
-    /* set return point */
+    /* set return point and execute */
+    returnValue = NULL;
     jmp_buf ret;
-    setReturnPoint(fnNode->fn->body, &ret);
-
-    /* make a copy of the function body and execute it */
-    if (!setjmp(ret))
+    if (setReturnPoint(fnNode->fn->body, &ret) == 0)
         ex(copy(fnNode->fn->body));
+    else if (!setjmp(ret))
+        ex(copy(fnNode->fn->body));
+
+    /* clean up: remove any locally defined variables */
+    for(i = 0, fnVars = fnNode->fn->localVars; fnVars; i++, fnVars = fnVars->next);
+    for(fnVars = fnNode->fn->localVars; i - numArgs > 0; i--) {
+        varRec *next = fnVars->next;
+        free(fnVars->value);
+        free(fnVars);
+        fnVars = next;
+    }
+    fnNode->fn->localVars = fnVars;
     return (p = returnValue);
 }
 

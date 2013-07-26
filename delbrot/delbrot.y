@@ -32,7 +32,7 @@
 
 program
     : /* empty program */
-    | program item                                            { ex($2); free($2->op.ops); free($2);                      }
+    | program item                                            { ex($2); free($2->op.ops); free($2);   }
     ;
 
 item
@@ -65,7 +65,7 @@ stmt
 
 expression_stmt
     : ';'                                                     { $$ = mkOpNode(';', 2, NULL, NULL);     }
-    | expr ';'                                                { $$ = $1;                               }
+    | expr ';'                                                { $$ = mkOpNode(';', 2, $1, NULL);       }
     ;
 
 selection_stmt
@@ -80,7 +80,6 @@ iteration_stmt
 
 return_stmt
     : RETURN expr ';'                                         { $$ = mkOpNode(RETURN, 1, $2);          }
-    | RETURN ';'                                              { $$ = mkOpNode(RETURN, 1, NULL);        }
     ;
 
 block
