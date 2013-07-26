@@ -1,15 +1,38 @@
+#ifndef ffmpegDecode_c_
+#define ffmpegDecode_c_
+
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
+#include "../jarvis/spawn.c"
+#include "../delbrot/delbrot.h"
 
-void ffmpegDecode(ASTParams *filterParams) {
-	
-	///////////////////////
-	// Parameter Parsing //
-	///////////////////////
-	char* filename = checkString(filterParams, "file");
-	MkvsynthOutput *output = checkOutput(filterParams, "output1");
+/////////////////////////////////////
+// The Threaded Function Arguments //
+/////////////////////////////////////
+struct ffmpegDecode {
+	char *filename;
+	MkvsynthOutput *output;
+};
 
+MkvsynthOutput* ffmpegDecodeDefinition(ASTnode *p, ASTnode *args) {
+
+	///////////////////////////
+	// Parse Input Arguments //
+	///////////////////////////
+	checkArgs("ffmpegDecode", args, 1, typeStr);
+	char *filename = MANDSTR();
+
+	struct ffmpegDecode *ffmpegParams = malloc(sizeof(struct ffmpegDecode));
+	ffmpegParams->filename = filename;
+	ffmpegParams->output = createOutputBuffer();
+
+	spawn((void *)ffmpegParams, ffmpegDecode);
+
+	return ffmpegParams->output;
+}
+
+void ffmpegDecode(void *filterParams) {
 	//////////////////////////////////////
 	// Error Checking And Initializtion //
 	//////////////////////////////////////
@@ -25,7 +48,7 @@ void ffmpegDecode(ASTParams *filterParams) {
 	
 	int avOpen = avformat_open_input(
 		&formatContext,
-		filename,
+		(struct ffmpegDecode *)filterParams->filename,
 		NULL,
 		NULL);
 
@@ -93,13 +116,13 @@ void ffmpegDecode(ASTParams *filterParams) {
 					//////////////////////////////////////////
 					// Meta Data and More Memory Allocation //
 					//////////////////////////////////////////
-					output->metaData->width = frame->width;
-					output->metaData->height = frame->height;
-					output->metaData->channels = 3;
-					output->metaData->depth = 8;
-					output->metaData->colorspace = GENERIC_RGB;
-					output->metaData->bytes = 3*frame->width*frame->height;
-					signalStartupCompletion(output);
+					(struct ffmpegDecode *)filterParams->output->metaData->width = frame->width;
+					(struct ffmpegDecode *)filterParams->output->metaData->height = frame->height;
+					(struct ffmpegDecode *)filterParams->output->metaData->channels = 3;
+					(struct ffmpegDecode *)filterParams->output->metaData->depth = 8;
+					(struct ffmpegDecode *)filterParams->output->metaData->colorspace = GENERIC_RGB;
+					(struct ffmpegDecode *)filterParams->output->metaData->bytes = 3*frame->width*frame->height;
+					signalStartupCompletion((struct ffmpegDecode *)filterParams->output);
 					
 					uint8_t *payload = malloc(3*width*height);
 					int newLinesize = 3*width;
@@ -128,7 +151,7 @@ void ffmpegDecode(ASTParams *filterParams) {
 					payload,
 					newLinesize);
 			
-				putFrame(output, payload);
+				putFrame((struct ffmpegDecode *)filterParams->output, payload);
 			}
 		}
 		
@@ -148,3 +171,5 @@ void ffmpegDecode(ASTParams *filterParams) {
 	avformat_close_input(&formatContext);
 	mkvsynthTerminate();
 }
+
+#endif

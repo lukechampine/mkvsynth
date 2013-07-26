@@ -1,34 +1,37 @@
 #ifndef _bufferAllocation_c_
 #define _bufferAllocation_c_
 
-MkvsynthOutput *createOutputBuffer(int outputBreadth) {
+MkvsynthOutput *createOutputBuffer() {
 	MkvsynthMetaData *metaData = malloc(sizeof(MkvsynthMetaData));
 	MkvsynthOutput *output = malloc(sizeof(MkvsynthOutput));
 	
-	sem_t *remainingBuffer = malloc(sizeof(sem_t) * outputBreadth);
-	sem_t *consumedBuffer = malloc(sizeof(sem_t) * outputBreadth);
-	
-	int i;
-	for(i = 0; i < outputBreadth; i++) {
-		sem_init(&remainingBuffer[i], 0, outputBreadth);
-		sem_init(&consumedBuffer[i], 0, 0);
-	}
-	
-	output->outputBreadth = outputBreadth;
-	output->remainingBuffer = remainingBuffer;
-	output->consumedBuffer = consumedBuffer;
-	output->recentFrame = NULL;
+	output->outputBreadth = 0;
+	output->semaphores = malloc(sizeof(MkvsynthSemaphoreList));
+	output->recentFrame = malloc(sizeof(MkvsynthFrame));
+	output->recentFrame->filtersRemaining = 0;
 	output->metaData = metaData;
 	
 	return output;
 }
 
-MkvsynthInput *createInputBuffer(MkvsynthOutput *output, int semaphoreIndex) {
+MkvsynthInput *createInputBuffer(MkvsynthOutput *output) {
 	MkvsynthInput *input = malloc(sizeof(MkvsynthInput));
 	
-	input->remainingBuffer = &output->remainingBuffer[semaphoreIndex];
-	input->consumedBuffer = &output->consumedBuffer[semaphoreIndex];
-	input->currentFrame = NULL;
+	int i;
+	MkvsynthSemaphoreList *tmp = output->remainingBuffer;
+	for(i = 0; i < output->outputBreadth; i++)
+		tmp = tmp->next;
+		
+	output->outputBreadth++;
+	tmp->next = malloc(sizeof(MkvsynthSemaphoreList));
+	
+	input->remainingBuffer = &tmp->remainingBuffer;
+	input->consumedBuffer = &tmp->consumedBuffer;
+	
+	sem_init(input->remainingBuffer, 0, 5);
+	sem_init(input->consumedBuffer, 0, 0);
+	
+	input->currentFrame = output->recentFrame;
 	input->metaData = output->metaData;
 	
 	return input;

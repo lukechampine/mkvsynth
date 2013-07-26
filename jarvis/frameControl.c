@@ -8,52 +8,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-typedef struct {
-	int colorSpace;
-	int width;
-	int height;
-	int channels;
-	int depth;
-	int bytes;
-	
-	sem_t startupComplete;
-} MkvsynthMetaData;
-
-typedef struct {
-	uint8_t *payload;
-
-	int filtersRemaining;
-	pthread_mutex_t lock;
-
-	MkvsynthFrame *nextFrame;
-} MkvsynthFrame;
-
-typedef struct {
-	sem_t *remainingBuffer;
-	sem_t *consumedBuffer;
-
-	MkvsynthFrame *currentFrame;
-	MkvsynthMetaData *metaData;
-} MkvsynthInput;
-
-typedef struct {
-	int outputBreadth;
-	sem_t *remainingBuffer;
-	sem_t *consumedBuffer;
-
-	MkvsynthFrame *recentFrame;
-	MkvsynthMetaData *metaData;
-} MkvsynthOutput;
-
 MkvsynthFrame *getFrame(MkvsynthInput *params) {
-	MkvsynthFrame *newFrame;
-
 	sem_wait(params->remainingBuffer);
-	
-	if(params->currentFrame == NULL)
-		return NULL;
-
 	pthread_mutex_lock(&params->currentFrame->lock);
+	
+	MkvsynthFrame *newFrame;
 
 	if(params->currentFrame->filtersRemaining > 1) {
 		newFrame = malloc(sizeof(MkvsynthFrame));
@@ -62,7 +21,6 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 		newFrame->filtersRemaining = 0;
 		pthread_mutex_init(&newFrame->lock, NULL);
 		newFrame->nextFrame = params->currentFrame->nextFrame;
-		
 		params->currentFrame->filtersRemaining--;
 	} else {
 		params->currentFrame->filtersRemaining = 0;
@@ -81,10 +39,11 @@ void putFrame(MkvsynthOutput *params, uint8_t *payload) {
 	for(i = 0; i < params->outputBreadth; i++)
 		sem_wait(params->consumedBuffer + sizeof(sem_t) * i);
 
+	params->recentFrame->payload = payload;
+	params->recentFrame->filtersRemaining = params->outputBreadth;
+	pthread_mutex_init(&params->recentFrame->lock, NULL);
+
 	MkvsynthFrame *newFrame = malloc(sizeof(MkvsynthFrame));
-	newFrame->payload = payload;
-	newFrame->filtersRemaining = params->outputBreadth;
-	pthread_mutex_init(&newFrame->lock, NULL);
 	newFrame->nextFrame = NULL;
 	params->recentFrame->nextFrame = newFrame;
 	params->recentFrame = newFrame;
@@ -94,12 +53,17 @@ void putFrame(MkvsynthOutput *params, uint8_t *payload) {
 }
 
 void clearFrame(MkvsynthFrame *usedFrame) {
+// the mutex needs to be used
 	if(usedFrame->filtersRemaining == 0) {
 		pthread_mutex_destroy(usedFrame->lock);
 		free(usedFrame->payload);
 		free(usedFrame);
 	} else {
 		// case not implemented yet
+		// will need to be implemented, because there's another
+		// consumer that I forgot about: the producer. The frame
+		// can't be cleared until the producer has pointed to the
+		// next one.
 	}
 }
 
