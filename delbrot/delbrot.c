@@ -11,6 +11,9 @@
 /* useful for error messages */
 static char *typeNames[] = {"integer", "identifier", "string", "function", "variable", "opt argument", "operation"};
 
+/* return value */
+static ASTnode *returnValue;
+
 /* assign a variable */
 ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
     if (varNode->type != typeVar)
@@ -127,6 +130,8 @@ void propagateScope(ASTnode *p, varRec **scope) {
 }
 
 /* process a run-time function definition */
+/* TODO: allow variables to be defined inside function definitions */
+/* TODO: implement return statements */
 void funcDefine(ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
     if (nameNode->type != typeId)
         yyerror("function name \"%s\" is already in use", nameNode->var->name);
@@ -149,8 +154,24 @@ void funcDefine(ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
     /* propagate scope to function body */
     fn->body = copy(bodyNode);
     propagateScope(fn->body, &fn->localVars);
-    
+
     putFn(fn);
+}
+
+/* find a return statement in a function body and set its jump point */
+void setReturnPoint(ASTnode *p, jmp_buf *ret) {
+    if (!p || p->type != typeOp)
+        return;
+
+    if (p->op.oper == RETURN) {
+        p->op.ops[0]->returnContext = ret;
+        return;
+    }
+
+    /* recurse to children */
+    int i;
+    for (i = 0; i < p->op.nops; i++)
+        setReturnPoint(p->op.ops[i], ret);
 }
 
 /* process the call of a function that was defined at run-time */
@@ -176,11 +197,14 @@ ASTnode* userDefFnCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
         yyerror("%s expected %d argument(s), got %d", fnNode->fn->name, numArgs, ++i);
     }
 
+    /* set return point */
+    jmp_buf ret;
+    setReturnPoint(fnNode->fn->body, &ret);
+
     /* make a copy of the function body and execute it */
-    /* TODO: fix gross memory usage caused by recursive function calls */
-    p = ex(copy(fnNode->fn->body));
-    p->type = typeVal; /* TODO: allow functions to return any type */
-    return p;
+    if (!setjmp(ret))
+        ex(copy(fnNode->fn->body));
+    return (p = returnValue);
 }
 
 /* handle function calls */
@@ -196,25 +220,6 @@ ASTnode* fnctCall(ASTnode *p, ASTnode *fnNode, ASTnode *args) {
         p = userDefFnCall(p, fnNode, args);
 
     return p;
-}
-
-void handleWhile(ASTnode *cond, ASTnode *body) {
-    if(!ex(copy(cond))->val)
-        return;
-    /* copy, execute, and free */
-    freeNode(ex(copy(body)));
-    /* recurse */
-    handleWhile(cond, body);
-}
-
-void handleFor(ASTnode *cond, ASTnode *each, ASTnode *body) {
-    if(!ex(copy(cond))->val)
-        return;
-    /* copy and execute */
-    ex(copy(body));
-    ex(copy(each));
-    /* recurse */
-    handleFor(cond, each, body);
 }
 
 /* execute a section of the AST */
@@ -247,11 +252,12 @@ ASTnode* ex(ASTnode *p) {
         case '=':   p = assign(identify(child[0]), ex(child[1])); break;
         /* keywords */
         case IF:    if (ex(child[0])->val) ex(child[1]); else if (nops > 2) ex(child[2]); p->type = typeOp; break;
-        case WHILE: handleWhile(child[0], child[1]); p->type = typeOp; break;
-        case FOR:   ex(child[0]); handleFor(child[1], child[2], child[3]); p->type = typeOp; break;
+        case WHILE: while(ex(copy(child[0]))->val) ex(copy(child[1])); p->type = typeOp; break;
+        case FOR:   for(ex(child[0]); ex(copy(child[1]))->val; ex(copy(child[2]))) ex(copy(child[3])); p->type = typeOp; break;
         /* functions */
         case FNCT:  p = fnctCall(p, ex(child[0]), child[1]); break;
         case '.':   child[0]->next = child[2]; p = fnctCall(p, ex(child[1]), ex(child[0])); break;
+        case RETURN:if(!child[0]->returnContext) yyerror("encountered return statement outside function body"); returnValue = ex(child[0]); longjmp(*child[0]->returnContext, 1); break;
         /* assignment */
         case ADDEQ: p = modvar(identify(child[0]), '+', ex(child[1])); break;
         case SUBEQ: p = modvar(identify(child[0]), '-', ex(child[1])); break;

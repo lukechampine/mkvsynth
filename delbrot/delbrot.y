@@ -57,10 +57,10 @@ param
     ;
 
 stmt
-    /* TODO: add return statement */
     : expression_stmt
     | selection_stmt
     | iteration_stmt
+    | return_stmt
     ;
 
 expression_stmt
@@ -76,6 +76,11 @@ selection_stmt
 iteration_stmt
     : WHILE '(' expr ')' block                                { $$ = mkOpNode(WHILE, 2, $3, $5);       }
     | FOR '(' expr ';' expr ';' expr ')' block                { $$ = mkOpNode(FOR, 4, $3, $5, $7, $9); }
+    ;
+
+return_stmt
+    : RETURN expr ';'                                         { $$ = mkOpNode(RETURN, 1, $2);          }
+    | RETURN ';'                                              { $$ = mkOpNode(RETURN, 1, NULL);        }
     ;
 
 block
@@ -164,6 +169,7 @@ ASTnode *newNode() {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
+    p->returnContext = NULL;
     p->next = NULL;
     return p;
 }

@@ -1,3 +1,5 @@
+#include <setjmp.h>
+
 /* types */
 typedef enum { typeVal, typeId, typeStr, typeFn, typeVar, typeOptArg, typeOp } nodeType;
 
@@ -23,6 +25,7 @@ struct ASTnode {
         opNode   op;        /* operator */
     };
     varRec **scope;         /* variable scope */
+    jmp_buf *returnContext; /* where to jump to when returning */
     struct ASTnode *next;   /* used for argument linked lists */
 };
 
