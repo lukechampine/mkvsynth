@@ -35,6 +35,4 @@ Here we define the grammar of the language. Now that we have a sequence of token
 This file contains the `ex()` function, which is called each time we read in a full statement. The purpose of `ex()` is to reduce a section of the AST. In the example above, that would mean reducing the "cond" node (and all its children) down to a single node containing either "true" or "false." As such, this function must be highly recursive, since a node's children may need to be reduced before they can be meaningfully combined. This is also where we define the built-in functions of the language.
 
 ## memory concerns ##
-Memory management has been greatly improved with the help of some simple garbage collection. Allocated ASTnodes are recorded in an array and freed when they are no longer needed. Prior to this, a `for` loop leaked about 400 bytes per iteration, so simply printing the range 0..1000000 would consume 372MB of memory. Using the new memory management model, that figure stays under 7k -- always.*
-
-\* *assuming you're just writing toy loops like I am* 
+delbrot's memory management system has gone through endless revisions, all of them deficient in some way. Presently it is pretty leaky, but hopefully a more sophisticated garbage collector will change that. Memory management for the parser isn't a huge concern because most scripts won't contain any looping or recursion. However, it's still an important issue to address.
