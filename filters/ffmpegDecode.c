@@ -4,14 +4,16 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
-#include "../jarvis/spawn.c"
-#include "../delbrot/delbrot.h"
 
 /////////////////////////////////////
 // The Threaded Function Arguments //
 /////////////////////////////////////
 struct ffmpegDecode {
-	char *filename;
+	int videoStream;
+	AVFormatContext *formatContext;
+	AVCodecContext *codecContext;
+	AVFrame *frame;
+	struct SwsContext *resizeContext;
 	MkvsynthOutput *output;
 };
 
@@ -23,26 +25,19 @@ MkvsynthOutput* ffmpegDecodeDefinition(ASTnode *p, ASTnode *args) {
 	checkArgs("ffmpegDecode", args, 1, typeStr);
 	char *filename = MANDSTR();
 
-	struct ffmpegDecode *ffmpegParams = malloc(sizeof(struct ffmpegDecode));
-	ffmpegParams->filename = filename;
-	ffmpegParams->output = createOutputBuffer();
-
-	spawn((void *)ffmpegParams, ffmpegDecode);
-
-	return ffmpegParams->output;
-}
-
-void ffmpegDecode(void *filterParams) {
+	struct ffmpegDecode *params = malloc(sizeof(struct ffmpegDecode));
+	params->output = createOutputBuffer();
+	
 	//////////////////////////////////////
 	// Error Checking And Initializtion //
 	//////////////////////////////////////
 	AVFormatContext *formatContext = NULL;
 	AVCodecContext *codecContext = NULL;
 	AVCodec *codec = NULL;
-	AVPacket packet;
 	AVDictionary *optionsDictionary = NULL;
 	int videoStream = -1;
 	int frameFinished;
+	struct SwsContext *resizeContext;
 	
 	av_register_all();
 	
@@ -88,70 +83,85 @@ void ffmpegDecode(void *filterParams) {
 		filterError("Failed to open codec.");
 	}
 	
+	resizeContext = sws_getContext (
+		codecContext->width,
+		codecContext->height,
+		codecContext->pix_fmt,
+		codecContext->width,
+		codecContext->height,
+		PIX_FMT_RGB24,
+		SWS_SPLINE,
+		NULL,
+		NULL,
+		NULL);
+
 	///////////////////////
 	// Memory Allocation //
 	///////////////////////
 	AVFrame *frame = avcodec_alloc_frame();
-	if(frame == NULLL) {
+	if(frame == NULL) {
 		filterError("Failed to allocate the decoding frame.");
 	}
 	
-	struct SwsContext *resizeContext;
-	char memoryAllocated = 0;
+	///////////////
+	// Meta Data //
+	///////////////
+	ffmpegParams->output->metaData->width = codecContext->width;
+	ffmpegParams->output->metaData->height = codecContext->height;
+	ffmpegParams->output->metaData->channels = 3;
+	ffmpegParams->output->metaData->depth = 8;
+	ffmpegParams->output->metaData->colorspace = 0;
+	ffmpegParams->output->metaData->bytes = 3*codecContext->width*codecContext->height;
+	
+	/////////////////////////
+	// Pass Decode Context //
+	/////////////////////////
+	params->videoStream = videoStream;
+	params->formatContext = formatContext;
+	params->codecContext = codecContext;
+	params->frame = frame;
+	params->resizeContext = resizeContext;
+	
+	//////////////////////
+	// Queue and Return //
+	//////////////////////
+	mkvsynthQueue((void *)ffmpegParams, ffmpegDecode);
+	return ffmpegParams->output;
+}
+
+void ffmpegDecode(void *filterParams) {
+	//////////////////////
+	// Decode Variables //
+	//////////////////////
+	int frameFinished;
+	int newLinesize = 3*width;
+	AVPacket packet;
+	
+	struct ffmpegDecode *params = (ffmpegDecode *)filterParams;
 	
 	/////////////////
 	// Decode Loop //
 	/////////////////
-	while(av_read_frame(formatContext, &packet) >= 0) {
-		if(packet.stream_index == videoStream) {
+	while(av_read_frame(params->formatContext, &packet) >= 0) {
+		if(packet.stream_index == params->videoStream) {
 			avcodec_decode_video2(
-				codecContext,
-				frame,
+				params->codecContext,
+				params->frame,
 				&frameFinished,
 				&packet);
 
 			if(frameFinished) {
-				// Meta data was unknown until this point.
-				if(memoryAllocated == 0) {
-					//////////////////////////////////////////
-					// Meta Data and More Memory Allocation //
-					//////////////////////////////////////////
-					(struct ffmpegDecode *)filterParams->output->metaData->width = frame->width;
-					(struct ffmpegDecode *)filterParams->output->metaData->height = frame->height;
-					(struct ffmpegDecode *)filterParams->output->metaData->channels = 3;
-					(struct ffmpegDecode *)filterParams->output->metaData->depth = 8;
-					(struct ffmpegDecode *)filterParams->output->metaData->colorspace = GENERIC_RGB;
-					(struct ffmpegDecode *)filterParams->output->metaData->bytes = 3*frame->width*frame->height;
-					signalStartupCompletion((struct ffmpegDecode *)filterParams->output);
-					
-					uint8_t *payload = malloc(3*width*height);
-					int newLinesize = 3*width;
-		
-					resizeContext = sws_getContext (
-						frame->width,
-						frame->height,
-						frame->format,
-						frame->width,
-						frame->height,
-						PIX_FMT_RGB24,
-						SWS_SPLINE,
-						NULL,
-						NULL,
-						NULL);
-					
-					memoryAllocated = 1;
-				}
-
+				uint8_t *payload = malloc(3*width*height);
 				sws_scale (
-					resizeContext,
-					(uint8_t const * const *)frame->data,
-					frame->linesize,
+					params->resizeContext,
+					(uint8_t const * const *)params->frame->data,
+					params->frame->linesize,
 					0,
-					frame->height,
+					params->frame->height,
 					payload,
 					newLinesize);
 			
-				putFrame((struct ffmpegDecode *)filterParams->output, payload);
+				putFrame(params->output, payload);
 			}
 		}
 		
@@ -166,10 +176,10 @@ void ffmpegDecode(void *filterParams) {
 	/////////////////////////
 	// Memory Deallocation //
 	/////////////////////////
-	av_free(frame);
-	avcodec_close(codecContext);
-	avformat_close_input(&formatContext);
-	mkvsynthTerminate();
+	av_free(params->frame);
+	avcodec_close(params->codecContext);
+	avformat_close_input(&params->formatContext);
+	free(params);
 }
 
 #endif
