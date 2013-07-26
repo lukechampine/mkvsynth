@@ -18,6 +18,13 @@ typedef struct {
 } MkvsynthSemaphoreList;
 
 typedef struct {
+	pthread_t thread;
+	void *(*filter)(void *);
+	void *filterParams;
+	MkvsynthFilterQueue *next;
+} MkvsynthFilterQueue;
+
+typedef struct {
 	uint8_t *payload;
 
 	int filtersRemaining;
