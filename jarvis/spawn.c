@@ -1,14 +1,16 @@
 #ifndef spawn_c_
 #define spawn_c_
 
-MkvsynthFilterQueue *head = NULL;
-MkvsynthFilterQueue *tail = NULL;
+#include <stdlib.h>
+#include "datatypes.h"
+
+static struct MkvsynthFilterQueue *head = 0;
+static struct MkvsynthFilterQueue *tail = 0;
 // Hopefully these will be visible between function calls
 
-// Create a linked list of functions to create as pthreads
 void queueFunction(void *filterParams, void *(*filter) (void *)) {
-	MkvsynthFilterQueue *new = malloc(sizeof(MkvsynthFilterQueue));
-	new->fuction = filter; // No idea if that will work
+	struct MkvsynthFilterQueue *new = malloc(sizeof(struct MkvsynthFilterQueue));
+	new->filter = filter;
 	new->filterParams = filterParams;
 	new->next = NULL;
 
@@ -22,7 +24,7 @@ void queueFunction(void *filterParams, void *(*filter) (void *)) {
 }
 
 void spawnFunctions() {
-	MkvsynthFilterQueue *current = head;
+	struct MkvsynthFilterQueue *current = head;
 	while(current != NULL) {
 		pthread_create(&current->thread, NULL, current->filter, current->filterParams);
 		current = current->next;
@@ -30,11 +32,12 @@ void spawnFunctions() {
 }
 
 void joinFunctions() {
-	MkvsynthFilterQueue *current = head;
+	struct MkvsynthFilterQueue *current = head;
 	while(current != NULL) {
 		void *retval;
 		pthread_join(current->thread, &retval);
 		current = current->next;
 	}
 }
+
 #endif

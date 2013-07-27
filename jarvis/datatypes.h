@@ -6,47 +6,51 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef struct {
+struct MkvsynthMetaData{
 	int colorspace;
-	void *colorspaceData;
-} MkvsynthMetaData;
+	int width;
+	int height;
+	int channels;
+	int depth;
+	int bytes;
+};
 
-typedef struct {
+struct MkvsynthSemaphoreList{
 	sem_t remainingBuffer;
 	sem_t consumedBuffer;
 	struct MkvsynthSemaphoreList *next;
-} MkvsynthSemaphoreList;
+};
 
-typedef struct {
+struct MkvsynthFilterQueue {
 	pthread_t thread;
 	void *(*filter)(void *);
 	void *filterParams;
-	MkvsynthFilterQueue *next;
-} MkvsynthFilterQueue;
+	struct MkvsynthFilterQueue *next;
+};
 
-typedef struct {
+struct MkvsynthFrame {
 	uint8_t *payload;
 
 	int filtersRemaining;
 	pthread_mutex_t lock;
 
 	struct MkvsynthFrame *nextFrame;
-} MkvsynthFrame;
+};
 
-typedef struct {
+struct MkvsynthInput {
 	sem_t *remainingBuffer;
 	sem_t *consumedBuffer;
 
-	MkvsynthFrame *currentFrame;
-	MkvsynthMetaData *metaData;
-} MkvsynthInput;
+	struct MkvsynthFrame *currentFrame;
+	struct MkvsynthMetaData *metaData;
+};
 
-typedef struct {
+struct MkvsynthOutput {
 	int outputBreadth;
-	MkvsynthSemaphoreList *semaphores;
+	struct MkvsynthSemaphoreList *semaphores;
 
-	MkvsynthFrame *recentFrame;
-	MkvsynthMetaData *metaData;
-} MkvsynthOutput;
+	struct MkvsynthFrame *recentFrame;
+	struct MkvsynthMetaData *metaData;
+};
 
 #endif

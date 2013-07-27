@@ -1,29 +1,31 @@
 #ifndef _bufferAllocation_c_
 #define _bufferAllocation_c_
 
-MkvsynthOutput *createOutputBuffer() {
-	MkvsynthMetaData *metaData = malloc(sizeof(MkvsynthMetaData));
-	MkvsynthOutput *output = malloc(sizeof(MkvsynthOutput));
+#include "datatypes.h"
+
+struct MkvsynthOutput *createOutputBuffer() {
+	struct MkvsynthMetaData *metaData = malloc(sizeof(struct MkvsynthMetaData));
+	struct MkvsynthOutput *output = malloc(sizeof(struct MkvsynthOutput));
 	
 	output->outputBreadth = 0;
-	output->semaphores = malloc(sizeof(MkvsynthSemaphoreList));
-	output->recentFrame = malloc(sizeof(MkvsynthFrame));
+	output->semaphores = malloc(sizeof(struct MkvsynthSemaphoreList));
+	output->recentFrame = malloc(sizeof(struct MkvsynthFrame));
 	output->recentFrame->filtersRemaining = 0;
 	output->metaData = metaData;
 	
 	return output;
 }
 
-MkvsynthInput *createInputBuffer(MkvsynthOutput *output) {
-	MkvsynthInput *input = malloc(sizeof(MkvsynthInput));
+struct MkvsynthInput *createInputBuffer(struct MkvsynthOutput *output) {
+	struct MkvsynthInput *input = malloc(sizeof(struct MkvsynthInput));
 	
 	int i;
-	MkvsynthSemaphoreList *tmp = output->remainingBuffer;
+	struct MkvsynthSemaphoreList *tmp = output->semaphores;
 	for(i = 0; i < output->outputBreadth; i++)
 		tmp = tmp->next;
 		
 	output->outputBreadth++;
-	tmp->next = malloc(sizeof(MkvsynthSemaphoreList));
+	tmp->next = malloc(sizeof(struct MkvsynthSemaphoreList));
 	
 	input->remainingBuffer = &tmp->remainingBuffer;
 	input->consumedBuffer = &tmp->consumedBuffer;
@@ -36,3 +38,5 @@ MkvsynthInput *createInputBuffer(MkvsynthOutput *output) {
 	
 	return input;
 }
+
+#endif

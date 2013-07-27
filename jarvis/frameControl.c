@@ -3,21 +3,19 @@
 #ifndef frameControl_c_
 #define frameControl_c_
 
-#include <pthread.h>
-#include <semaphore.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <string.h>
+#include "datatypes.h"
 
-MkvsynthFrame *getFrame(MkvsynthInput *params) {
+struct MkvsynthFrame *getFrame(struct MkvsynthInput *params) {
 	sem_wait(params->remainingBuffer);
 	pthread_mutex_lock(&params->currentFrame->lock);
 	
-	MkvsynthFrame *newFrame;
+	struct MkvsynthFrame *newFrame;
 
 	if(params->currentFrame->filtersRemaining > 1) {
-		newFrame = malloc(sizeof(MkvsynthFrame));
-		newFrame->payload = malloc(params->payloadBytes);
-		memcpy(newFrame->payload, params->currentFrame->payload, params->payloadBytes);
+		newFrame = malloc(sizeof(struct MkvsynthFrame));
+		newFrame->payload = malloc(params->metaData->bytes);
+		memcpy(newFrame->payload, params->currentFrame->payload, params->metaData->bytes);
 		newFrame->filtersRemaining = 0;
 		pthread_mutex_init(&newFrame->lock, NULL);
 		newFrame->nextFrame = params->currentFrame->nextFrame;
@@ -34,28 +32,35 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	return newFrame;
 }
 
-void putFrame(MkvsynthOutput *params, uint8_t *payload) {	
+void putFrame(struct MkvsynthOutput *params, uint8_t *payload) {	
 	int i;
-	for(i = 0; i < params->outputBreadth; i++)
-		sem_wait(params->consumedBuffer + sizeof(sem_t) * i);
+	struct MkvsynthSemaphoreList *tmp = params->semaphores;
+
+	for(i = 0; i < params->outputBreadth; i++) {
+		sem_wait(&tmp->consumedBuffer);
+		tmp = tmp->next;
+	}
 
 	params->recentFrame->payload = payload;
 	params->recentFrame->filtersRemaining = params->outputBreadth;
 	pthread_mutex_init(&params->recentFrame->lock, NULL);
 
-	MkvsynthFrame *newFrame = malloc(sizeof(MkvsynthFrame));
+	struct MkvsynthFrame *newFrame = malloc(sizeof(struct MkvsynthFrame));
 	newFrame->nextFrame = NULL;
 	params->recentFrame->nextFrame = newFrame;
 	params->recentFrame = newFrame;
 
-	for(i = 0; i < params->outputBreadth; i++)
-		sem_post(params->remainingBuffer + sizeof(sem_t) * i);
+	tmp = params->semaphores;
+	for(i = 0; i < params->outputBreadth; i++) {
+		sem_post(&tmp->remainingBuffer);
+		tmp = tmp->next;
+	}
 }
 
-void clearFrame(MkvsynthFrame *usedFrame) {
+void clearFrame(struct MkvsynthFrame *usedFrame) {
 // the mutex needs to be used
 	if(usedFrame->filtersRemaining == 0) {
-		pthread_mutex_destroy(usedFrame->lock);
+		pthread_mutex_destroy(&usedFrame->lock);
 		free(usedFrame->payload);
 		free(usedFrame);
 	} else {
