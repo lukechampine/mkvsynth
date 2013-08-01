@@ -41,32 +41,33 @@
 "++"                    return INC;
 "--"                    return DEC;
     /* arithmetic operator */
-"+"                 { yylval = mkValNode('+');  return '+';   }
-"-"                 { yylval = mkValNode('-');  return '-';   }
-"*"                 { yylval = mkValNode('*');  return '*';   }
-"/"                 { yylval = mkValNode('/');  return '/';   }
-"^"                 { yylval = mkValNode('^');  return '^';   }
-"%"                 { yylval = mkValNode('%');  return '%';   }
+"+"                 { yylval = mkValNode('+');  return '+';    }
+"-"                 { yylval = mkValNode('-');  return '-';    }
+"*"                 { yylval = mkValNode('*');  return '*';    }
+"/"                 { yylval = mkValNode('/');  return '/';    }
+"^"                 { yylval = mkValNode('^');  return '^';    }
+"%"                 { yylval = mkValNode('%');  return '%';    }
     /* comparator or boolean operator */
-"=="                { yylval = mkValNode(EQ);   return EQ;   }
-"!="                { yylval = mkValNode(NE);   return NE;   }
-">"                 { yylval = mkValNode(GT);   return GT;   }
-"<"                 { yylval = mkValNode(LT);   return LT;   }
-">="                { yylval = mkValNode(GE);   return GE;   }
-"<="                { yylval = mkValNode(LE);   return LE;   }
-"||"                { yylval = mkValNode(LOR);  return LOR;  }
-"&&"                { yylval = mkValNode(LAND); return LAND; }
+"=="                { yylval = mkValNode(EQ);   return EQ;     }
+"!="                { yylval = mkValNode(NE);   return NE;     }
+">"                 { yylval = mkValNode(GT);   return GT;     }
+"<"                 { yylval = mkValNode(LT);   return LT;     }
+">="                { yylval = mkValNode(GE);   return GE;     }
+"<="                { yylval = mkValNode(LE);   return LE;     }
+"||"                { yylval = mkValNode(LOR);  return LOR;    }
+"&&"                { yylval = mkValNode(LAND); return LAND;   }
 
-    /* arithmetic assignment operator */
-"+="                    return ADDEQ;
-"-="                    return SUBEQ;
-"*="                    return MULEQ;
-"/="                    return DIVEQ;
-"^="                    return POWEQ;
-"%="                    return MODEQ;
+    /*assignment operator */
+"="                 { yylval = mkValNode('=');   return '=';   }
+"+="                { yylval = mkValNode(ADDEQ); return ADDEQ; }
+"-="                { yylval = mkValNode(SUBEQ); return SUBEQ; }
+"*="                { yylval = mkValNode(MULEQ); return MULEQ; }
+"/="                { yylval = mkValNode(DIVEQ); return DIVEQ; }
+"^="                { yylval = mkValNode(POWEQ); return POWEQ; }
+"%="                { yylval = mkValNode(MODEQ); return MODEQ; }
 
     /* miscellaneous character */
-[(){}=!.,:;]            return *yytext;
+[(){}!.,:;]             return *yytext;
 
     /* comment */
 #.*\n                   ; 

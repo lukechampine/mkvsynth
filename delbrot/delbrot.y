@@ -13,7 +13,7 @@
 
 %token INT DOUBLE STRING
 %token CONSTANT IDENTIFIER OPTARG
-%token BINOP
+%token ASSIGN BINOP
 %token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ
 %token IF ELSE FOR WHILE
 %token FNCT FNDEF RETURN
@@ -32,35 +32,19 @@
 
 program
     : /* empty program */
-    | program item                                            { ex(global, $2);                        }
+    | program stmt                                            { ex(global, $2);                        }
     ;
 
-item
+stmt
     : function_declaration
-    | stmt
+    | expression_stmt
+    | selection_stmt
+    | iteration_stmt
+    | return_stmt
     ;
 
 function_declaration
     : FNDEF primary_expr '(' param_list ')' '{' stmt_list '}' { $$ = mkOpNode(FNDEF, 3, $2, $4, $7);   }
-    ;
-
-param_list
-    : /* empty */                                             { $$ = NULL;                             }
-    | param                                                   { $$ = $1;                               }
-    | param_list ',' param                                    { $$ = append($1, $3);                   }
-    ;
-
-param
-    : INT primary_expr                                        { $2->type = typeVal; $$ = $2;           }
-    | DOUBLE primary_expr                                     { $2->type = typeVal; $$ = $2;           }
-    | STRING primary_expr                                     { $2->type = typeStr; $$ = $2;           }
-    ;
-
-stmt
-    : expression_stmt
-    | selection_stmt
-    | iteration_stmt
-    | return_stmt
     ;
 
 expression_stmt
@@ -83,6 +67,18 @@ return_stmt
     | RETURN ';'                                              { $$ = mkOpNode(RETURN, 1, NULL);        }
     ;
 
+param_list
+    : /* empty */                                             { $$ = NULL;                             }
+    | param                                                   { $$ = $1;                               }
+    | param_list ',' param                                    { $$ = append($1, $3);                   }
+    ;
+
+param
+    : INT primary_expr                                        { $2->type = typeVal; $$ = $2;           }
+    | DOUBLE primary_expr                                     { $2->type = typeVal; $$ = $2;           }
+    | STRING primary_expr                                     { $2->type = typeStr; $$ = $2;           }
+    ;
+
 block
     : stmt
     | '{' stmt_list '}'                                       { $$ = $2;                               }
@@ -99,13 +95,11 @@ expr
 
 assignment_expr
     : boolean_expr
-    | primary_expr  '='  assignment_expr                      { $$ = mkOpNode('=',   2, $1, $3);       }
-    | primary_expr ADDEQ assignment_expr                      { $$ = mkOpNode(ADDEQ, 2, $1, $3);       }
-    | primary_expr SUBEQ assignment_expr                      { $$ = mkOpNode(SUBEQ, 2, $1, $3);       }
-    | primary_expr MULEQ assignment_expr                      { $$ = mkOpNode(MULEQ, 2, $1, $3);       }
-    | primary_expr DIVEQ assignment_expr                      { $$ = mkOpNode(DIVEQ, 2, $1, $3);       }
-    | primary_expr POWEQ assignment_expr                      { $$ = mkOpNode(POWEQ, 2, $1, $3);       }
-    | primary_expr MODEQ assignment_expr                      { $$ = mkOpNode(MODEQ, 2, $1, $3);       }
+    | primary_expr assignment_operator assignment_expr        { $$ = mkOpNode(ASSIGN, 3, $1, $2, $3);  }
+    ;
+
+assignment_operator
+    : '=' | ADDEQ | SUBEQ | MULEQ | DIVEQ | POWEQ | MODEQ
     ;
 
 boolean_expr

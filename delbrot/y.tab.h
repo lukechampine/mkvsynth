@@ -45,32 +45,33 @@
      CONSTANT = 261,
      IDENTIFIER = 262,
      OPTARG = 263,
-     BINOP = 264,
-     ADDEQ = 265,
-     SUBEQ = 266,
-     MULEQ = 267,
-     DIVEQ = 268,
-     POWEQ = 269,
-     MODEQ = 270,
-     IF = 271,
-     ELSE = 272,
-     FOR = 273,
-     WHILE = 274,
-     FNCT = 275,
-     FNDEF = 276,
-     RETURN = 277,
-     IFX = 278,
-     LAND = 279,
-     LOR = 280,
-     LE = 281,
-     GE = 282,
-     LT = 283,
-     GT = 284,
-     NE = 285,
-     EQ = 286,
-     NEG = 287,
-     DEC = 288,
-     INC = 289
+     ASSIGN = 264,
+     BINOP = 265,
+     ADDEQ = 266,
+     SUBEQ = 267,
+     MULEQ = 268,
+     DIVEQ = 269,
+     POWEQ = 270,
+     MODEQ = 271,
+     IF = 272,
+     ELSE = 273,
+     FOR = 274,
+     WHILE = 275,
+     FNCT = 276,
+     FNDEF = 277,
+     RETURN = 278,
+     IFX = 279,
+     LAND = 280,
+     LOR = 281,
+     LE = 282,
+     GE = 283,
+     LT = 284,
+     GT = 285,
+     NE = 286,
+     EQ = 287,
+     NEG = 288,
+     DEC = 289,
+     INC = 290
    };
 #endif
 /* Tokens.  */
@@ -80,32 +81,33 @@
 #define CONSTANT 261
 #define IDENTIFIER 262
 #define OPTARG 263
-#define BINOP 264
-#define ADDEQ 265
-#define SUBEQ 266
-#define MULEQ 267
-#define DIVEQ 268
-#define POWEQ 269
-#define MODEQ 270
-#define IF 271
-#define ELSE 272
-#define FOR 273
-#define WHILE 274
-#define FNCT 275
-#define FNDEF 276
-#define RETURN 277
-#define IFX 278
-#define LAND 279
-#define LOR 280
-#define LE 281
-#define GE 282
-#define LT 283
-#define GT 284
-#define NE 285
-#define EQ 286
-#define NEG 287
-#define DEC 288
-#define INC 289
+#define ASSIGN 264
+#define BINOP 265
+#define ADDEQ 266
+#define SUBEQ 267
+#define MULEQ 268
+#define DIVEQ 269
+#define POWEQ 270
+#define MODEQ 271
+#define IF 272
+#define ELSE 273
+#define FOR 274
+#define WHILE 275
+#define FNCT 276
+#define FNDEF 277
+#define RETURN 278
+#define IFX 279
+#define LAND 280
+#define LOR 281
+#define LE 282
+#define GE 283
+#define LT 284
+#define GT 285
+#define NE 286
+#define EQ 287
+#define NEG 288
+#define DEC 289
+#define INC 290
 
 
 

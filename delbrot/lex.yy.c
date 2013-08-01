@@ -371,8 +371,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 32
-#define YY_END_OF_BUFFER 33
+#define YY_NUM_RULES 33
+#define YY_END_OF_BUFFER 34
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -382,11 +382,11 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[50] =
     {   0,
-        0,    0,   33,   31,   29,   30,   27,   31,   31,   12,
-       31,   27,    9,    7,    8,   10,    3,   16,   27,   15,
-        1,   11,   31,   29,   14,    0,    4,    0,    0,   28,
-       26,   20,   23,    5,   21,    6,   22,   24,    0,    3,
-       18,   13,   17,    2,    1,   25,   19,    3,    0
+        0,    0,   34,   32,   30,   31,   28,   32,   32,   12,
+       32,   28,    9,    7,    8,   10,    3,   16,   21,   15,
+        1,   11,   32,   30,   14,    0,    4,    0,    0,   29,
+       27,   20,   24,    5,   22,    6,   23,   25,    0,    3,
+       18,   13,   17,    2,    1,   26,   19,    3,    0
     } ;
 
 static yyconst flex_int32_t yy_ec[256] =
@@ -828,143 +828,148 @@ return DEC;
 case 7:
 YY_RULE_SETUP
 #line 44 "delbrot.l"
-{ yylval = mkValNode('+');  return '+';   }
+{ yylval = mkValNode('+');  return '+';    }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
 #line 45 "delbrot.l"
-{ yylval = mkValNode('-');  return '-';   }
+{ yylval = mkValNode('-');  return '-';    }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
 #line 46 "delbrot.l"
-{ yylval = mkValNode('*');  return '*';   }
+{ yylval = mkValNode('*');  return '*';    }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 47 "delbrot.l"
-{ yylval = mkValNode('/');  return '/';   }
+{ yylval = mkValNode('/');  return '/';    }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 48 "delbrot.l"
-{ yylval = mkValNode('^');  return '^';   }
+{ yylval = mkValNode('^');  return '^';    }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 49 "delbrot.l"
-{ yylval = mkValNode('%');  return '%';   }
+{ yylval = mkValNode('%');  return '%';    }
 	YY_BREAK
 /* comparator or boolean operator */
 case 13:
 YY_RULE_SETUP
 #line 51 "delbrot.l"
-{ yylval = mkValNode(EQ);   return EQ;   }
+{ yylval = mkValNode(EQ);   return EQ;     }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 52 "delbrot.l"
-{ yylval = mkValNode(NE);   return NE;   }
+{ yylval = mkValNode(NE);   return NE;     }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 53 "delbrot.l"
-{ yylval = mkValNode(GT);   return GT;   }
+{ yylval = mkValNode(GT);   return GT;     }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 54 "delbrot.l"
-{ yylval = mkValNode(LT);   return LT;   }
+{ yylval = mkValNode(LT);   return LT;     }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 55 "delbrot.l"
-{ yylval = mkValNode(GE);   return GE;   }
+{ yylval = mkValNode(GE);   return GE;     }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 56 "delbrot.l"
-{ yylval = mkValNode(LE);   return LE;   }
+{ yylval = mkValNode(LE);   return LE;     }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 57 "delbrot.l"
-{ yylval = mkValNode(LOR);  return LOR;  }
+{ yylval = mkValNode(LOR);  return LOR;    }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 58 "delbrot.l"
-{ yylval = mkValNode(LAND); return LAND; }
+{ yylval = mkValNode(LAND); return LAND;   }
 	YY_BREAK
-/* arithmetic assignment operator */
+/*assignment operator */
 case 21:
 YY_RULE_SETUP
 #line 61 "delbrot.l"
-return ADDEQ;
+{ yylval = mkValNode('=');   return '=';   }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 62 "delbrot.l"
-return SUBEQ;
+{ yylval = mkValNode(ADDEQ); return ADDEQ; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 63 "delbrot.l"
-return MULEQ;
+{ yylval = mkValNode(SUBEQ); return SUBEQ; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 64 "delbrot.l"
-return DIVEQ;
+{ yylval = mkValNode(MULEQ); return MULEQ; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 65 "delbrot.l"
-return POWEQ;
+{ yylval = mkValNode(DIVEQ); return DIVEQ; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
 #line 66 "delbrot.l"
-return MODEQ;
+{ yylval = mkValNode(POWEQ); return POWEQ; }
 	YY_BREAK
-/* miscellaneous character */
 case 27:
 YY_RULE_SETUP
-#line 69 "delbrot.l"
+#line 67 "delbrot.l"
+{ yylval = mkValNode(MODEQ); return MODEQ; }
+	YY_BREAK
+/* miscellaneous character */
+case 28:
+YY_RULE_SETUP
+#line 70 "delbrot.l"
 return *yytext;
 	YY_BREAK
 /* comment */
-case 28:
-/* rule 28 can match eol */
+case 29:
+/* rule 29 can match eol */
 YY_RULE_SETUP
-#line 72 "delbrot.l"
+#line 73 "delbrot.l"
 ; 
 	YY_BREAK
 /* ignore whitespace (2D languages are pig disgusting) */
-case 29:
+case 30:
 YY_RULE_SETUP
-#line 75 "delbrot.l"
+#line 76 "delbrot.l"
 ; 
 	YY_BREAK
 /* used for error messages */
-case 30:
-/* rule 30 can match eol */
+case 31:
+/* rule 31 can match eol */
 YY_RULE_SETUP
-#line 78 "delbrot.l"
+#line 79 "delbrot.l"
 linenumber++; 
 	YY_BREAK
 /* anything else is an error */
-case 31:
-YY_RULE_SETUP
-#line 81 "delbrot.l"
-yyerror("unknown character");
-	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 83 "delbrot.l"
+#line 82 "delbrot.l"
+yyerror("unknown character");
+	YY_BREAK
+case 33:
+YY_RULE_SETUP
+#line 84 "delbrot.l"
 ECHO;
 	YY_BREAK
-#line 968 "lex.yy.c"
+#line 973 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1962,7 +1967,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 83 "delbrot.l"
+#line 84 "delbrot.l"
 
 
 

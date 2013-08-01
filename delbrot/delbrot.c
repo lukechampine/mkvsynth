@@ -41,17 +41,6 @@
 /* useful for error messages */
 static char *typeNames[] = {"integer", "identifier", "string", "function", "variable", "optional argument", "operation"};
 
-/* assign a variable */
-ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
-    if (varNode->type != typeVar)
-        yyerror("can't assign to a constant value (got %s)", typeNames[varNode->type]);
-    /* new variable */
-    if (UNDEFINED(varNode))
-        varNode->var.value = newNode();
-    /* copy new value */
-    return memcpy(varNode->var.value, valueNode, sizeof(ASTnode));
-}
-
 /* dereference a variable */
 ASTnode* dereference(ASTnode *p) {
     if (UNDEFINED(p))
@@ -62,27 +51,36 @@ ASTnode* dereference(ASTnode *p) {
     return d;
 }
 
-/* modify the value of a numeric variable */
-ASTnode* modvar(ASTnode *varNode, char op, ASTnode *modNode) {
+/* assign or modify a variable */
+ASTnode* assign(ASTnode *varNode, char op, ASTnode *valueNode) {
+    if (varNode->type != typeVar)
+        yyerror("can't assign to a constant value (got %s)", typeNames[varNode->type]);
+    /* standard assignment */
+    if (op == '=') {
+        /* new variable */
+        if (UNDEFINED(varNode))
+            varNode->var.value = newNode();
+        /* copy new value */
+        return memcpy(varNode->var.value, valueNode, sizeof(ASTnode));
+    }
+    /* arithmetic operation + assignment */
     if (UNDEFINED(varNode))
         yyerror("reference to uninitialized variable \"%s\"", varNode->var.name);
-    if (varNode->type != typeVar)
-        yyerror("can't modify constant");
     if (varNode->var.value->type != typeVal)
         yyerror("can't modify non-numeric variable \"%s\"", varNode->var.name);
-    if (modNode && modNode->type != typeVal)
-        yyerror("can't modify variable %s with non-numeric type (expected integer, got %s)\n", varNode->var.name, typeNames[modNode->type]);
+    if (valueNode && valueNode->type != typeVal)
+        yyerror("can't modify variable %s with non-numeric type (expected integer, got %s)\n", varNode->var.name, typeNames[valueNode->type]);
 
     int mod;
-    if (!modNode)
+    if (!valueNode)
         mod = 1;
     else
-        mod = modNode->val;
+        mod = valueNode->val;
 
     switch (op) {
         case '+': varNode->var.value->val += mod; break;
         case '-': varNode->var.value->val -= mod; break;
-        case '*': varNode->var.value->val *= mod;   break;
+        case '*': varNode->var.value->val *= mod; break;
         case '/': varNode->var.value->val /= mod; break;
         case '^': varNode->var.value->val = pow(varNode->var.value->val, mod); break;
         case '%': varNode->var.value->val = ((int)varNode->var.value->val % (int)mod); break;
@@ -106,7 +104,7 @@ ASTnode* identify(Env *e, ASTnode *p) {
     return p;
 }
 
-/* copy a node and it's children */
+/* copy a node and its children */
 ASTnode* copy(ASTnode *p) {
     if (!p)
         return NULL;
@@ -170,7 +168,7 @@ ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
             yyerror("type mismatch: arg %d of %s expected %s, got %s", i, fnNode->fn.name, typeNames[pTraverse->type], typeNames[aTraverse->type]);
 
         /* all is well; record var in local table and assign value */
-        assign(putVar(local, pTraverse->id), aTraverse);
+        assign(putVar(local, pTraverse->id), '=', aTraverse);
 
         pTraverse = pTraverse->next;
         aTraverse = aTraverse->next;
@@ -183,6 +181,8 @@ ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
         ex(local, copy(fnNode->fn.user.body));
     else
         ret = local->returnValue;
+
+    /* TODO: free local env without breaking stuff */
     
     /* return */
     return ret;
@@ -195,8 +195,6 @@ ASTnode* reduceArgs(Env *e, ASTnode *p) {
 
     ASTnode *next = reduceArgs(e, p->next);
     p = ex(e, p);
-    if (UNDEFINED(p))
-        yyerror("reference to undefined variable \"%s\"", p->var.name);
     p->next = next;
     return p;
 }
@@ -207,6 +205,7 @@ ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
         yyerror("reference to undefined function \"%s\"", fnNode->var.name);
     if (fnNode->type != typeFn)
         yyerror("expected function name before '(' (got %s)", typeNames[fnNode->type]);
+
     if (fnNode->fn.type == fnCore)
         p = (*(fnNode->fn.core.fnPtr))(p, args);
     else
@@ -237,32 +236,26 @@ ASTnode* ex(Env *e, ASTnode *p) {
 
     switch(p->op.oper) {
         /* declarations */
-        case FNDEF: funcDefine(e, child[0], child[1], child[2]); break;
-        case '=':   p = assign(identify(e, child[0]), ex(e, child[1])); break;
+        case FNDEF:  funcDefine(e, child[0], child[1], child[2]); break;
         /* keywords */
-        case IF:    if (ex(e, child[0])->val) ex(e, child[1]); else if (p->op.nops > 2) ex(e, child[2]); p->type = typeOp; break;
-        case WHILE: while(ex(e, copy(child[0]))->val) ex(e, copy(child[1])); p->type = typeOp; break;
-        case FOR:   for(ex(e, child[0]); ex(e, copy(child[1]))->val; ex(e, copy(child[2]))) ex(e, copy(child[3])); p->type = typeOp; break;
+        case IF:     if (ex(e, child[0])->val) ex(e, child[1]); else if (p->op.nops > 2) ex(e, child[2]); p->type = typeOp; break;
+        case WHILE:  while(ex(e, copy(child[0]))->val) ex(e, copy(child[1])); p->type = typeOp; break;
+        case FOR:    for(ex(e, child[0]); ex(e, copy(child[1]))->val; ex(e, copy(child[2]))) ex(e, copy(child[3])); p->type = typeOp; break;
         /* functions */
-        case FNCT:  p = fnctCall(e, p, ex(e, child[0]), reduceArgs(e, child[1])); break;
-        case '.':   child[0]->next = child[2]; p = fnctCall(e, p, ex(e, child[1]), ex(e, child[0])); break;
-        case RETURN:e->returnValue = ex(e, child[0]); longjmp(e->returnContext, 1); break;
+        case FNCT:   p = fnctCall(e, p, ex(e, child[0]), reduceArgs(e, child[1])); break;
+        case '.':    child[0]->next = child[2]; p = fnctCall(e, p, ex(e, child[1]), ex(e, child[0])); break;
+        case RETURN: e->returnValue = ex(e, child[0]); longjmp(e->returnContext, 1); break;
         /* assignment */
-        case ADDEQ: p = modvar(identify(e, child[0]), '+', ex(e, child[1])); break;
-        case SUBEQ: p = modvar(identify(e, child[0]), '-', ex(e, child[1])); break;
-        case MULEQ: p = modvar(identify(e, child[0]), '*', ex(e, child[1])); break;
-        case DIVEQ: p = modvar(identify(e, child[0]), '/', ex(e, child[1])); break;
-        case POWEQ: p = modvar(identify(e, child[0]), '^', ex(e, child[1])); break;
-        case MODEQ: p = modvar(identify(e, child[0]), '%', ex(e, child[1])); break;
-        case INC:   p = modvar(identify(e, child[0]), '+', NULL); break; /* bit of a hack, maybe use mkValNode(1) instead? */
-        case DEC:   p = modvar(identify(e, child[0]), '-', NULL); break;
+        case ASSIGN: p = assign(identify(e, child[0]), child[1]->val, ex(e, child[2])); break;
+        case INC:    p = assign(identify(e, child[0]), '+', NULL); break; /* bit of a hack, maybe use mkValNode(1) instead? */
+        case DEC:    p = assign(identify(e, child[0]), '-', NULL); break;
         /* unary operators */
-        case NEG:   p = nneg(p, ex(e, child[0])); break;
-        case '!':   p = nnot(p, ex(e, child[0])); break;
+        case NEG:    p = nneg(p, ex(e, child[0])); break;
+        case '!':    p = nnot(p, ex(e, child[0])); break;
         /* arithmetic / boolean operators */
-        case BINOP: p = binOp(p, child[1]->val, ex(e, child[0]), ex(e, child[2])); break;
+        case BINOP:  p = binOp(p, child[1]->val, ex(e, child[0]), ex(e, child[2])); break;
         /* compound statements */
-        case ';':   ex(e, child[0]); p = ex(e, child[1]); break;
+        case ';':    ex(e, child[0]); p = ex(e, child[1]); break;
         /* should never wind up here */
         default: yyerror("Unknown operator");
     }
@@ -406,19 +399,19 @@ ASTnode* nnot(ASTnode *p, ASTnode *c1) {
 }
 
 /* standard mathematical functions, modified to use ASTnode */
-ASTnode* nsin (ASTnode *p, ASTnode *args) {
+ASTnode* nsin(ASTnode *p, ASTnode *args) {
     checkArgs("sin", args, 1, typeVal);
     p->type = typeVal;
     p->val = sin(args->val); 
     return p;
 }
-ASTnode* ncos (ASTnode *p, ASTnode *args) {
+ASTnode* ncos(ASTnode *p, ASTnode *args) {
     checkArgs("cos", args, 1, typeVal);
     p->type = typeVal;
     p->val = cos(args->val); 
     return p;
 }
-ASTnode* nlog (ASTnode *p, ASTnode *args) {
+ASTnode* nlog(ASTnode *p, ASTnode *args) {
     checkArgs("log", args, 1, typeVal);
     p->type = typeVal;
     p->val = log(args->val); 
