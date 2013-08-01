@@ -6,36 +6,6 @@
 #include "delbrot.h"
 #include "y.tab.h"
 
-/* SCRAP IT ALL: how to fix stuff
-
-    - DESIGN GOALS:
-        - data structures are key! If the data is well-organized, the algorithms benefit greatly
-            - verbosity in the data structures is okay, as long as it's logical
-            - don't pack multiple objects into one struct; just make a new one
-        - know your audience:
-            - scripts are generally written on a per-video basis
-                - people want to be able to write a script in as few keystrokes as possible
-                - make sugar available to the experts, but never do so at the expense of newbies
-            - are looping constructs really needed? What about ternary operators?
-                - what are people already using in AviSynth? What could be improved?
-            - don't strive for purity: this language is going to be dirty, there's no avoiding it
-        - don't get ahead of yourself; focus on the core aspects of the language first
-        - keep it simple, stupid! Other people are (hopefully) going to have to work on this code
-
-    - IMPLEMENTATION DETAILS:
-    - ex(e, ) should take an environment variable
-        - environment means: variable table and parent environment
-            - when variable lookup fails, check parent environment
-        - jmp_buf location? Might be needed to implement return
-    - an ASTnode should be nothing more than:
-        - a type
-        - a union of pointers to type-specific structs
-    - variables and functions are also ASTnodes, they just don't get garbage collected
-        - speaking of which, garbage collection: just do it.
-    - eventually: WRITE A PREPROCESSOR!
-    
-*/
-
 #define UNDEFINED(n) n->type == typeVar && n->var.value == NULL
 
 /* useful for error messages */
@@ -128,6 +98,7 @@ ASTnode* copy(ASTnode *p) {
 }
 
 /* process a run-time function definition */
+/* TODO: handle optional arguments */
 void funcDefine(Env *e, ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
     if (nameNode->type != typeId)
         yyerror("function name \"%s\" is already in use", nameNode->var.name);
@@ -195,6 +166,9 @@ ASTnode* reduceArgs(Env *e, ASTnode *p) {
 
     ASTnode *next = reduceArgs(e, p->next);
     p = ex(e, p);
+    /* reduce optional arguments */
+    if (p->type == typeOptArg)
+        p->opt.value = ex(e, p->opt.value);
     p->next = next;
     return p;
 }
@@ -291,10 +265,10 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
 void* getOptArg(ASTnode *args, char *name, int type) {
     ASTnode *traverse = args;
     for (traverse = args; traverse != NULL; traverse = traverse->next)
-        if (traverse->type == typeOptArg && !(strncmp(traverse->var.name,name, strlen(name)))) {
+        if (traverse->type == typeOptArg && !(strncmp(traverse->opt.name, name, strlen(name)))) {
             switch (type) {
-                case typeVal: return &traverse->var.value->val;
-                case typeStr: return traverse->var.value->str;
+                case typeVal: return &traverse->opt.value->val;
+                case typeStr: return traverse->opt.value->str;
             }
         }
     return NULL;
