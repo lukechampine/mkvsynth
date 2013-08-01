@@ -14,16 +14,14 @@ print(total); # prints "233168"
 
 # recursive version
 total = 0;
-function euler(int x) {
+function euler(int acc, int x) {
 	if (x == 1000)
-		print(total);
-	else {
-		if (!(x % 3 && x % 5))
-			total += x;
-		euler(x + 1);
-	}
+		return acc;
+	if (!(x % 3 && x % 5))
+		acc += x;
+	return euler(acc, x + 1);
 }
-euler(0) # prints "233168"
+print(euler(0,0)) # prints "233168"
 
 # method chaining
 0.sin.cos.print; # equivalent to print(cos(sin(0))), prints "1"

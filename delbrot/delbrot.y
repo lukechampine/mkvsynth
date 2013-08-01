@@ -5,9 +5,9 @@
     #include <stdarg.h>
     #include "delbrot.h"
     /* prototypes */
+    Env *global;
     void yyerror(char *, ...);
     extern int linenumber;
-    int mem = 0;
     #define YYDEBUG 1
 %}
 
@@ -32,7 +32,7 @@
 
 program
     : /* empty program */
-    | program item                                            { ex($2); free($2->op.ops); free($2);   }
+    | program item                                            { ex(global, $2);                        }
     ;
 
 item
@@ -47,7 +47,7 @@ function_declaration
 param_list
     : /* empty */                                             { $$ = NULL;                             }
     | param                                                   { $$ = $1;                               }
-    | param_list ',' param                                    { $$ = append($3, $1);                   }
+    | param_list ',' param                                    { $$ = append($1, $3);                   }
     ;
 
 param
@@ -80,6 +80,7 @@ iteration_stmt
 
 return_stmt
     : RETURN expr ';'                                         { $$ = mkOpNode(RETURN, 1, $2);          }
+    | RETURN ';'                                              { $$ = mkOpNode(RETURN, 1, NULL);        }
     ;
 
 block
@@ -152,7 +153,7 @@ arg_list
 
 function_arg
     : expr                                                    { $$ = $1;                               }
-    | OPTARG expr                                             { $1->var->value = $2;                   }
+    | OPTARG expr                                             { $1->opt.value = $2;                    }
     ;
 
 primary_expr
@@ -168,18 +169,14 @@ ASTnode *newNode() {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
-    p->returnContext = NULL;
+    /* record in unfreed table */
     p->next = NULL;
     return p;
 }
 
-/* free a node */
-void freeNode(ASTnode *p) {
-    if (!p)
-        return;
-    /* recurse to linked node */
-    freeNode(p->next);
-    free(p);
+/* collect garbage */
+void freeNodes() {
+    /* free */
 }
 
 /* create a value node in the AST */
@@ -204,21 +201,15 @@ ASTnode *mkStrNode(char *str) {
 ASTnode *mkIdNode(char *ident) {
     ASTnode *p = newNode();
     p->type = typeId;
-    p->str = strdup(ident);
-    p->scope = &globalVars;
+    p->id = strdup(ident);
     return p;
 }
 
 /* create an optional argument node in the AST */
-/* reuse the var struct, it's close enough */
 ASTnode *mkOptArgNode(char *name) {
     ASTnode *p = newNode();
-    /* allocate space for var */
-    if ((p->var = malloc(sizeof(varRec))) == NULL)
-        yyerror("out of memory");
-    /* copy information */
     p->type = typeOptArg;
-    p->var->name = name;
+    p->opt.name = strdup(name);
     return p;
 }
 
@@ -240,60 +231,68 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
     return p;
 }
 
-/* add an ASTnode to the end of a linked list of arguments */
+/* add an ASTnode to a linked list of arguments */
 ASTnode *append(ASTnode *root, ASTnode *node) {
-    if (!root || !node)
+    if (!root)
         yyerror("invalid argument");
     ASTnode *traverse;
-    for (traverse = root; traverse->next != NULL; traverse = traverse->next);
+    for(traverse = root; traverse->next; traverse = traverse->next);
     traverse->next = node;
     return root;
 }
 
-/* the function table */
-funcRec *fnTable;
-
-funcRec *putFn(funcRec *fn) {
-    fn->next = fnTable;
-    fnTable = fn;
-    return fn;
+/* add a core function to the function table */
+ASTnode *putCoreFn(Env *e, fnEntry fn) {
+    /* create entry */
+    ASTnode *ptr;
+    if ((ptr = malloc(sizeof(ASTnode))) == NULL)
+        yyerror("out of memory");
+    ptr->type = typeFn;
+    ptr->fn.name = fn.name;
+    ptr->fn.core.fnPtr = fn.fnPtr;
+    /* add to function table */
+    ptr->next = e->fnTable;
+    e->fnTable = ptr;
+    return ptr;
 }
 
-/* look up a function name's corresponding pointer */
-funcRec *getFn(char const *fnName) {
-    funcRec *fn;
-    for (fn = fnTable; fn != NULL; fn = fn->next)
-        if (strcmp (fn->name,fnName) == 0)
-            return fn;
-    return NULL;
+/* look up a function */
+ASTnode *getFn(Env const *e, char const *fnName) {
+    if (!e)
+        return NULL;
+    ASTnode *traverse;
+    for (traverse = e->fnTable; traverse != NULL; traverse = traverse->next)
+        if (strcmp(traverse->fn.name, fnName) == 0)
+            return traverse;
+    /* check parent environment */
+    return getFn(e->parent, fnName);
 }
-
-/* the global variable table */
-varRec *globalVars;
 
 /* allocate a new variable */
-varRec *putVar(ASTnode *p) {
-    varRec *ptr;
-    if ((ptr = malloc(sizeof(varRec))) == NULL)
+ASTnode *putVar(Env *e, char const *varName) {
+    /* create entry */
+    ASTnode *ptr;
+    if ((ptr = malloc(sizeof(ASTnode))) == NULL)
         yyerror("out of memory");
-    ptr->name = strdup(p->str);
-    ptr->next = *p->scope;
-    *p->scope = ptr;
+    ptr->type = typeVar;
+    ptr->var.name = strdup(varName);
+    ptr->var.value = NULL;
+    /* add to variable table */
+    ptr->next = e->varTable;
+    e->varTable = ptr;
     return ptr;
 }
 
 /* look up a variable's corresponding ASTnode */
-varRec *getVar(ASTnode *p) {
-    varRec *ptr;
-    for (ptr = *p->scope; ptr && ptr->name; ptr = ptr->next)
-        if (strcmp(ptr->name, p->str) == 0)
-            return ptr;
-    /* check global scope after local scope */
-    if (*p->scope != globalVars)
-        for (ptr = globalVars; ptr && ptr->name; ptr = ptr->next)
-            if (strcmp(ptr->name, p->str) == 0)
-                return ptr;
-    return NULL;
+ASTnode *getVar(Env const *e, char const *varName) {
+    if (!e)
+        return NULL;
+    ASTnode *traverse;
+    for (traverse = e->varTable; traverse != NULL; traverse = traverse->next)
+        if (strcmp(traverse->var.name, varName) == 0)
+            return traverse;
+    /* check parent environment */
+    return getVar(e->parent, varName);
 }
 
 /* Called by yyparse on error. */
@@ -308,29 +307,33 @@ void yyerror(char *error, ...) {
 }
 
 /* built-in functions */
-static funcRec coreFunctions[] = {
-    "ffmpegDecode", ffmpegDecode_AST, NULL, NULL, NULL,
-    "print", print, NULL, NULL, NULL,
-    "sin", nsin, NULL, NULL, NULL,
-    "cos", ncos, NULL, NULL, NULL,
-    "ln", nlog, NULL, NULL, NULL,
-    "sqrt", nsqrt, NULL, NULL, NULL,
-    0, 0, 0, 0, 0
+static fnEntry coreFunctions[] = {
+    "ffmpegDecode", ffmpegDecode_AST,
+    "print", print,
+    "sin", nsin,
+    "cos", ncos,
+    "ln", nlog,
+    "sqrt", nsqrt,
+    0, 0,
 };
 
 int main () {
     int i;
     //yydebug = 1;
 
-    /* initialize global variable table */
-    /* TODO: can this be removed? */
-    globalVars = (varRec *) malloc(sizeof(varRec));
+    /* create global environment */
+    global = (Env *) malloc(sizeof(Env));
+    global->varTable = NULL;
+    global->parent = NULL;
+
+    if (setjmp(global->returnContext) != 0)
+        exit(0);
 
     /* initialize function table */
     for(i = 0; coreFunctions[i].name != 0; i++)
-        putFn(&coreFunctions[i]);
+        putCoreFn(global, coreFunctions[i]);
     for(i = 0; pluginFunctions[i].name != 0; i++)
-        putFn(&pluginFunctions[i]);
+        putCoreFn(global, pluginFunctions[i]);
 
     /* main parse loop */
     return yyparse();

@@ -1,79 +1,100 @@
 #include <setjmp.h>
 
-/* types */
+typedef struct ASTnode ASTnode;
+typedef struct Env Env;
+
+/* an environment */
+struct Env {
+    ASTnode *varTable;      /* the local variable table */
+    ASTnode *fnTable;       /* the local function table */
+    jmp_buf returnContext;  /* where to jump to when returning */
+    ASTnode *returnValue;   /* the return value */
+    struct Env *parent;     /* the calling environment */
+};
+
+/* the global environment */
+extern Env *global;
+
+/* types of nodes */
 typedef enum { typeVal, typeId, typeStr, typeFn, typeVar, typeOptArg, typeOp } nodeType;
 
-/* an operator node */
-typedef struct ASTnode ASTnode;
+/* a core or plugin function */
 typedef struct {
-    int oper;               /* operator */
+    ASTnode * (*fnPtr) (ASTnode *, ASTnode *);
+} coreFn;
+
+/* a user-defined function */
+typedef struct {
+    ASTnode *params;
+    ASTnode *body;
+} userFn;
+
+/* a function node */
+typedef enum { fnCore, fnUser } fnType;
+typedef struct {
+    fnType type;
+    char *name;
+    union {
+        coreFn core;
+        userFn user;
+    };
+} fnNode;
+
+/* a variable node (also used for optional arguments) */
+typedef struct {
+    char *name;
+    ASTnode *value;
+} varNode;
+
+/* an operator node */
+typedef struct {
+    int oper;               /* operator symbol */
     int nops;               /* number of operands */
     struct ASTnode **ops;   /* operands */
 } opNode;
 
-/* a generic node in the AST */
-/* TOOD: add line number field for error messages */
-typedef struct funcRec funcRec;
-typedef struct varRec varRec;
+/* a node in the AST */
 struct ASTnode {
-    nodeType type;          /* type of node */
+    nodeType type;
     union {
-        double  val;        /* value */
-        char   *str;        /* string */
-        funcRec *fn;        /* function pointer */
-        varRec *var;        /* variable */
-        opNode   op;        /* operator */
+        double  val;
+        char    *id;
+        char   *str;
+        fnNode   fn;
+        varNode var;
+        varNode opt;
+        opNode   op;
     };
-    varRec **scope;         /* variable scope */
-    jmp_buf *returnContext; /* where to jump to when returning */
-    struct ASTnode *next;   /* used for argument linked lists */
+    struct ASTnode *next;
 };
 
 #define YYSTYPE ASTnode*
 
 /* ASTnode prototypes */
 ASTnode* newNode();
-void     freeNode();
-void     freeAll();
+void     freeNodes();
 void     protect(ASTnode *);
 ASTnode* mkIdNode(char *);
 ASTnode* mkValNode(double);
 ASTnode* mkStrNode(char *);
 ASTnode* mkOpNode(int, int, ...);
 ASTnode* mkOptArgNode(char *);
+ASTnode* initList(ASTnode *);
 ASTnode* append(ASTnode *, ASTnode *);
-ASTnode* ex(ASTnode *);
+ASTnode* ex(Env *, ASTnode *);
 
-/* a function */
-/* arg1 is passed by reference, and will contain result of the function */
-/* arg2 is a linked list of ASTnodes, allowing an arbitrary number of arguments to be passed */
-typedef ASTnode * (*func) (ASTnode *, ASTnode *);
-struct funcRec {
-    char *name;             /* function name */
-    func ptr;               /* BUILT-IN: function pointer */
-    ASTnode *body;          /* USER-DEFINED: function body */
-    varRec *localVars;      /* USER-DEFINED: local variables */
-    struct funcRec *next;   /* link field */
-};
-
-/* the function table */
-extern funcRec *fnTable;
-
-/* a variable  */
-struct varRec {
-    char *name;             /* variable name */
-    ASTnode *value;         /* ASTnode it references */
-    struct varRec *next;    /* link field */
-};
-
-/* the global variable table */
-extern varRec *globalVars;
+/* used for defining core/plugin functions */
+typedef struct {
+    char *name;
+    ASTnode * (*fnPtr) (ASTnode *, ASTnode *);
+} fnEntry;
 
 /* variable/function access prototypes */
-varRec* putVar(ASTnode *);
-varRec* getVar(ASTnode *);
-funcRec* putFn(funcRec *);
-funcRec* getFn(char const *);
+ASTnode* putVar(Env *, char const *);
+ASTnode* getVar(Env const *, char const *);
+ASTnode* putCoreFn(Env *, fnEntry);
+ASTnode* putUserFn(Env *, ASTnode *);
+ASTnode* getFn(Env const *, char const *);
 void* getOptArg(ASTnode *args, char *name, int type);
 void checkArgs(char *funcName, ASTnode *args, int numArgs, ...);
 
@@ -91,7 +112,7 @@ ASTnode* ffmpegDecode_AST(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);
 
 /* user-defined functions */
-extern funcRec pluginFunctions[];
+extern fnEntry pluginFunctions[];
 
 /* helpful plugin macros */
 #define MANDVAL() args->val; args = args->next
