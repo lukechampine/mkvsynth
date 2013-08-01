@@ -9,7 +9,7 @@
 #define UNDEFINED(n) n->type == typeVar && n->var.value == NULL
 
 /* useful for error messages */
-static char *typeNames[] = {"integer", "identifier", "string", "function", "variable", "optional argument", "operation"};
+static char *typeNames[] = {"integer", "identifier", "string", "clip", "function", "variable", "optional argument", "operation"};
 
 /* dereference a variable */
 ASTnode* dereference(ASTnode *p) {
@@ -303,7 +303,7 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
         switch(args->type) {
             case typeVal: printf("%.10g ", args->val); break;
             case typeStr: printf("%s ", unesc(args->str)); break;
-            default: /* should never wind up here */ break;
+            default: printf("[could not print type: %s]", typeNames[args->type]); break;
         }
         args = args->next;
     }
@@ -313,20 +313,12 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
     return p;
 }
 
-/* toy ffmpeg decoding function, showcasing optional arguments */
-ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
-
-    checkArgs("ffmpegDecode", args, 1, typeStr);
-
-    char *filename = MANDSTR();
-    double numFrames = OPTVAL("frames", -1);
-
-    if (numFrames != -1)
-        printf("decoded %d frames of %s\n", (int) numFrames, filename);
-    else
-        printf("decoded %s\n", filename);
-
-    RETURNVAL(0);
+/* create a clip from a filename... eventually */
+ASTnode* MKVsource(ASTnode *p, ASTnode *args) {
+    checkArgs("MKVsource", args, 1, typeStr);
+    p->type = typeClip;
+    p->clipIn = NULL;
+    return p;
 }
 
 /* handle arithmetic / boolean operators */

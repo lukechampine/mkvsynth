@@ -1,8 +1,8 @@
 #include "delbrot.h"
 
-ASTnode* myPlugin_AST(ASTnode *p, ASTnode *args);
+ASTnode* fakeFilter_AST(ASTnode *p, ASTnode *args);
 
 fnEntry pluginFunctions[] = {
-	"myPlugin", myPlugin_AST,
+	"fakeFilter", fakeFilter_AST,
 	0, 0
 };

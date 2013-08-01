@@ -1,4 +1,5 @@
 #include <setjmp.h>
+#include "../jarvis/datatypes.h"
 
 typedef struct ASTnode ASTnode;
 typedef struct Env Env;
@@ -9,14 +10,14 @@ struct Env {
     ASTnode *fnTable;       /* the local function table */
     jmp_buf returnContext;  /* where to jump to when returning */
     ASTnode *returnValue;   /* the return value */
-    struct Env *parent;     /* the calling environment */
+    Env *parent;            /* the calling environment */
 };
 
 /* the global environment */
 extern Env *global;
 
 /* types of nodes */
-typedef enum { typeVal, typeId, typeStr, typeFn, typeVar, typeOptArg, typeOp } nodeType;
+typedef enum { typeVal, typeId, typeStr, typeClip, typeFn, typeVar, typeOptArg, typeOp } nodeType;
 
 /* a core or plugin function */
 typedef struct {
@@ -48,9 +49,9 @@ typedef struct {
 
 /* an operator node */
 typedef struct {
-    int oper;               /* operator symbol */
-    int nops;               /* number of operands */
-    struct ASTnode **ops;   /* operands */
+    int oper;        /* operator symbol */
+    int nops;        /* number of operands */
+    ASTnode **ops;   /* operands */
 } opNode;
 
 /* a node in the AST */
@@ -60,12 +61,14 @@ struct ASTnode {
         double  val;
         char    *id;
         char   *str;
+        MkvsynthInput *clipIn;
+        MkvsynthOutput *clipOut;
         fnNode   fn;
         varNode var;
         varNode opt;
         opNode   op;
     };
-    struct ASTnode *next;
+    ASTnode *next;
 };
 
 #define YYSTYPE ASTnode*
@@ -92,11 +95,10 @@ typedef struct {
 /* variable/function access prototypes */
 ASTnode* putVar(Env *, char const *);
 ASTnode* getVar(Env const *, char const *);
-ASTnode* putCoreFn(Env *, fnEntry);
-ASTnode* putUserFn(Env *, ASTnode *);
+ASTnode* putFn(Env *, fnEntry);
 ASTnode* getFn(Env const *, char const *);
-void* getOptArg(ASTnode *args, char *name, int type);
 void checkArgs(char *funcName, ASTnode *args, int numArgs, ...);
+void* getOptArg(ASTnode *args, char *name, int type);
 
 /* standard mathematical function prototypes */
 ASTnode* nneg(ASTnode *, ASTnode *);
@@ -108,17 +110,20 @@ ASTnode* nsqrt(ASTnode *, ASTnode *);
 ASTnode* binOp(ASTnode *, int op, ASTnode *, ASTnode *);
 
 /* mkvsynth function prototypes */
-ASTnode* ffmpegDecode_AST(ASTnode *, ASTnode *);
+ASTnode* MKVsource(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);
 
 /* user-defined functions */
 extern fnEntry pluginFunctions[];
 
 /* helpful plugin macros */
-#define MANDVAL() args->val; args = args->next
-#define MANDSTR() args->str; args = args->next
-#define OPTVAL(name, default) getOptArg(args, name, typeVal) ? *((double *) getOptArg(args, name, typeVal)) : default
-#define OPTSTR(name, default) getOptArg(args, name, typeStr) ?     (char *) getOptArg(args, name, typeStr)  : default
+#define MANDVAL()  args->val;    args = args->next
+#define MANDSTR()  args->str;    args = args->next
+#define MANDCLIP() args->clipIn; args = args->next
+#define OPTVAL(name, default)  getOptArg(args, name, typeVal)  ?       *((double *) getOptArg(args, name, typeVal)) : default
+#define OPTSTR(name, default)  getOptArg(args, name, typeStr)  ?           (char *) getOptArg(args, name, typeStr)  : default
+#define OPTCLIP(name, default) getOptArg(args, name, typeClip) ? (MkvsynthInput *) getOptArg(args, name, typeClip) : default
 
-#define RETURNVAL(value) p->type = typeVal; p->val = value; return p
-#define RETURNSTR(str)   p->type = typeStr; p->str = str;   return p
+#define RETURNVAL(value) p->type = typeVal;  p->val     = value; return p
+#define RETURNSTR(str)   p->type = typeStr;  p->str     = str;   return p
+#define RETURNCLIP(clip) p->type = typeClip; p->clipOut = clip;  return p

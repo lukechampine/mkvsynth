@@ -49,7 +49,7 @@ function_declaration
 
 expression_stmt
     : ';'                                                     { $$ = mkOpNode(';', 2, NULL, NULL);     }
-    | expr ';'                                                { $$ = mkOpNode(';', 2, $1, NULL);       }
+    | expr ';'                                                { $$ = $1;                               }
     ;
 
 selection_stmt
@@ -236,7 +236,7 @@ ASTnode *append(ASTnode *root, ASTnode *node) {
 }
 
 /* add a core function to the function table */
-ASTnode *putCoreFn(Env *e, fnEntry fn) {
+ASTnode *putFn(Env *e, fnEntry fn) {
     /* create entry */
     ASTnode *ptr;
     if ((ptr = malloc(sizeof(ASTnode))) == NULL)
@@ -302,7 +302,7 @@ void yyerror(char *error, ...) {
 
 /* built-in functions */
 static fnEntry coreFunctions[] = {
-    "ffmpegDecode", ffmpegDecode_AST,
+    "MKVsource", MKVsource,
     "print", print,
     "sin", nsin,
     "cos", ncos,
@@ -311,7 +311,7 @@ static fnEntry coreFunctions[] = {
     0, 0,
 };
 
-int main () {
+int main() {
     int i;
     //yydebug = 1;
 
@@ -325,9 +325,9 @@ int main () {
 
     /* initialize function table */
     for(i = 0; coreFunctions[i].name != 0; i++)
-        putCoreFn(global, coreFunctions[i]);
+        putFn(global, coreFunctions[i]);
     for(i = 0; pluginFunctions[i].name != 0; i++)
-        putCoreFn(global, pluginFunctions[i]);
+        putFn(global, pluginFunctions[i]);
 
     /* main parse loop */
     return yyparse();
