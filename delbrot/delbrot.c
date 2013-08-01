@@ -250,7 +250,7 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
         /* check type */
         int argType = va_arg(ap, int);
         if (traverse->type != argType)
-            yyerror("arg %d of %s expected %s, got %s", i+1, funcName, typeNames[argType], typeNames[traverse->type]);
+            yyerror("type mismatch: arg %d of %s expected %s, got %s", i+1, funcName, typeNames[argType], typeNames[traverse->type]);
     }
     va_end(ap);
     /* check for excess arguments */
@@ -261,11 +261,12 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
 }
 
 /* helper function to get optional arguments in a function call */
-/* TODO: add type checking */
 void* getOptArg(ASTnode *args, char *name, int type) {
     ASTnode *traverse = args;
     for (traverse = args; traverse != NULL; traverse = traverse->next)
         if (traverse->type == typeOptArg && !(strncmp(traverse->opt.name, name, strlen(name)))) {
+            if (type != traverse->opt.value->type)
+                yyerror("type mismatch: optional argument \"%s\" expected %s, got %s", name, typeNames[type], typeNames[traverse->opt.value->type]);
             switch (type) {
                 case typeVal: return &traverse->opt.value->val;
                 case typeStr: return traverse->opt.value->str;
@@ -330,8 +331,8 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 
 /* handle arithmetic / boolean operators */
 ASTnode* binOp(ASTnode* p, int op, ASTnode* c1, ASTnode* c2) {
-    if (c1->type != typeVal) yyerror("arg 1 of %c expected integer, got %s", op, typeNames[c1->type]);
-    if (c2->type != typeVal) yyerror("arg 2 of %c expected integer, got %s", op, typeNames[c2->type]);
+    if (c1->type != typeVal) yyerror("type mismatch: LHS of %c expected integer, got %s", op, typeNames[c1->type]);
+    if (c2->type != typeVal) yyerror("type mismatch: RHS of %c expected integer, got %s", op, typeNames[c2->type]);
 
     p->type = typeVal;
     switch(op) {
