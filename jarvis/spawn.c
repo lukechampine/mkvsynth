@@ -1,15 +1,15 @@
-#ifndef spawn_c_
-#define spawn_c_
-
+#include <stdio.h>
 #include <stdlib.h>
 #include "datatypes.h"
+#include "spawn.h"
+#include "../delbrot/delbrot.h"
 
-static struct MkvsynthFilterQueue *head = 0;
-static struct MkvsynthFilterQueue *tail = 0;
+static MkvsynthFilterQueue *head = 0;
+static MkvsynthFilterQueue *tail = 0;
 // Hopefully these will be visible between function calls
 
-void queueFunction(void *filterParams, void *(*filter) (void *)) {
-	struct MkvsynthFilterQueue *new = malloc(sizeof(struct MkvsynthFilterQueue));
+void mkvsynthQueue(void *filterParams, void *(*filter) (void *)) {
+	MkvsynthFilterQueue *new = malloc(sizeof(MkvsynthFilterQueue));
 	new->filter = filter;
 	new->filterParams = filterParams;
 	new->next = NULL;
@@ -19,25 +19,40 @@ void queueFunction(void *filterParams, void *(*filter) (void *)) {
 		tail = new;
 	} else {
 		tail->next = new;
-		tail = tail->next;
+		tail = new;
 	}
 }
 
-void spawnFunctions() {
-	struct MkvsynthFilterQueue *current = head;
+void mkvsynthSpawn() {
+	MkvsynthFilterQueue *current = head;
 	while(current != NULL) {
 		pthread_create(&current->thread, NULL, current->filter, current->filterParams);
 		current = current->next;
 	}
 }
 
-void joinFunctions() {
-	struct MkvsynthFilterQueue *current = head;
+void mkvsynthJoin() {
+	MkvsynthFilterQueue *current = head;
+	MkvsynthFilterQueue *prev;
 	while(current != NULL) {
 		void *retval;
 		pthread_join(current->thread, &retval);
+		prev = current;
 		current = current->next;
+		free(prev->filterParams);
+		free(prev);
 	}
+
+	head = NULL;
 }
 
-#endif
+ASTnode *go_AST(ASTnode *p, ASTnode *args) {
+	checkArgs("go", args, 0);
+	printf("Initiating Multithreading\n");
+	mkvsynthSpawn();
+	printf("All filters are running\n");
+	mkvsynthJoin();
+	printf("All filters have completed\n");
+
+	RETURNVAL(0);
+}

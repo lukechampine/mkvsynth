@@ -1,4 +1,5 @@
 #include "../delbrot/delbrot.h"
+#include "../jarvis/bufferAllocation.h"
 #include <stdio.h>
 
 /* standard function definition */
