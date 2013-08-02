@@ -3,8 +3,7 @@
 #ifndef frameControl_c_
 #define frameControl_c_
 
-#include <string.h>
-#include "datatypes.h"
+#include "frameControl.h"
 
 struct MkvsynthFrame *getFrame(struct MkvsynthInput *params) {
 	sem_wait(params->remainingBuffer);
