@@ -119,7 +119,7 @@ extern fnEntry pluginFunctions[];
 /* helpful plugin macros */
 #define MANDVAL()  args->val;    args = args->next
 #define MANDSTR()  args->str;    args = args->next
-#define MANDCLIP() args->clipIn; args = args->next
+#define MANDCLIP() args->clipOut; args = args->next
 #define OPTVAL(name, default)  getOptArg(args, name, typeVal)  ?       *((double *) getOptArg(args, name, typeVal)) : default
 #define OPTSTR(name, default)  getOptArg(args, name, typeStr)  ?           (char *) getOptArg(args, name, typeStr)  : default
 #define OPTCLIP(name, default) getOptArg(args, name, typeClip) ? (MkvsynthInput *) getOptArg(args, name, typeClip) : default

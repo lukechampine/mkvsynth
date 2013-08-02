@@ -2,9 +2,8 @@
 #include <stdio.h>
 
 /* standard function definition */
-MkvsynthOutput *fakeFilter(MkvsynthInput *input, int frames) {
-    /* do stuff here... */
-    return NULL;
+MkvsynthOutput *fakeFilter(MkvsynthOutput *input) {
+	printf("secret value revealed: %i\n", input->outputBreadth);
 }
 
 /* ASTnode function definition */
@@ -13,13 +12,8 @@ ASTnode* fakeFilter_AST(ASTnode *p, ASTnode *args) {
     checkArgs("fakeFilter", args, 1, typeClip);
 
     /* get arguments */
-    MkvsynthInput *input = MANDCLIP();
-    /* get optional arguments */
-    double frames = OPTVAL("frames", -1);
+    MkvsynthOutput *input = MANDCLIP();
 
     /* pass arguments to standard definition */
-    MkvsynthOutput *result = fakeFilter(input, frames);
-
-    /* return value */
-	RETURNCLIP(result);
+    fakeFilter(input);
 }

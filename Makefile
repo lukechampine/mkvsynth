@@ -1,5 +1,5 @@
 del: delbrot/lex.yy.c delbrot/y.tab.c delbrot/delbrot.c delbrot/plugins.c
-	@cc -lm delbrot/lex.yy.c delbrot/y.tab.c delbrot/delbrot.c delbrot/plugins.c jarvis/fakeFilter.c -o del
+	@cc -lm delbrot/lex.yy.c delbrot/y.tab.c delbrot/delbrot.c delbrot/plugins.c filters/fakeFilter.c filters/fakeSource.c -o del
 
 delbrot/lex.yy.c: delbrot/delbrot.l
 	@flex delbrot/delbrot.l
