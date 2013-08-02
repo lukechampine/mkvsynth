@@ -6,7 +6,6 @@
     #include "delbrot.h"
     /* prototypes */
     Env *global;
-    void yyerror(char *, ...);
     extern int linenumber;
     #define YYDEBUG 1
 %}
@@ -302,13 +301,13 @@ void yyerror(char *error, ...) {
 
 /* built-in functions */
 static fnEntry coreFunctions[] = {
-    "MKVsource", MKVsource,
-    "print", print,
-    "sin", nsin,
-    "cos", ncos,
-    "ln", nlog,
-    "sqrt", nsqrt,
-    0, 0,
+    { "MKVsource", MKVsource },
+    { "print",     print     },
+    { "sin",       nsin      },
+    { "cos",       ncos      },
+    { "ln",        nlog      },
+    { "sqrt",      nsqrt     },
+    { 0,           0         },
 };
 
 int main() {

@@ -71,12 +71,15 @@ struct ASTnode {
     ASTnode *next;
 };
 
+/* all tokens are ASTnodes */
 #define YYSTYPE ASTnode*
+
+/* error handling function */
+void yyerror(char *, ...);
 
 /* ASTnode prototypes */
 ASTnode* newNode();
 void     freeNodes();
-void     protect(ASTnode *);
 ASTnode* mkIdNode(char *);
 ASTnode* mkValNode(double);
 ASTnode* mkStrNode(char *);
@@ -113,7 +116,7 @@ ASTnode* binOp(ASTnode *, int op, ASTnode *, ASTnode *);
 ASTnode* MKVsource(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);
 
-/* user-defined functions */
+/* plugin functions */
 extern fnEntry pluginFunctions[];
 
 /* helpful plugin macros */

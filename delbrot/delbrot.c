@@ -23,10 +23,10 @@ ASTnode* dereference(ASTnode *p) {
 
 /* assign or modify a variable */
 ASTnode* assign(ASTnode *varNode, char op, ASTnode *valueNode) {
-    if (varNode->type != typeVar)
-        yyerror("can't assign to a constant value (got %s)", typeNames[varNode->type]);
     /* standard assignment */
     if (op == '=') {
+        if (varNode->type != typeVar)
+            yyerror("can't assign to a constant value (got %s)", typeNames[varNode->type]);
         /* new variable */
         if (UNDEFINED(varNode))
             varNode->var.value = newNode();
@@ -34,6 +34,8 @@ ASTnode* assign(ASTnode *varNode, char op, ASTnode *valueNode) {
         return memcpy(varNode->var.value, valueNode, sizeof(ASTnode));
     }
     /* arithmetic operation + assignment */
+    if (varNode->type != typeVar)
+        yyerror("can't modify constant value (got %s)", typeNames[varNode->type]);
     if (UNDEFINED(varNode))
         yyerror("reference to uninitialized variable \"%s\"", varNode->var.name);
     if (varNode->var.value->type != typeVal)
@@ -60,6 +62,9 @@ ASTnode* assign(ASTnode *varNode, char op, ASTnode *valueNode) {
 
 /* resolve an identifier */
 ASTnode* identify(Env *e, ASTnode *p) {
+    if (p->type != typeId)
+        return p;
+
     ASTnode *i;
     /* function */
     if ((i = getFn(e, p->id)) != NULL)
@@ -141,9 +146,8 @@ ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
         /* all is well; record var in local table and assign value */
         assign(putVar(local, pTraverse->id), '=', aTraverse);
 
-        pTraverse = pTraverse->next;
-        aTraverse = aTraverse->next;
-        i++; j++;
+        pTraverse = pTraverse->next; i++;
+        aTraverse = aTraverse->next; j++;
     }
 
     /* execute a copy of the function body in the local environment */
@@ -164,11 +168,14 @@ ASTnode* reduceArgs(Env *e, ASTnode *p) {
     if (!p)
         return NULL;
 
+    /* recurse to next argument */
     ASTnode *next = reduceArgs(e, p->next);
+    /* reduce argument */
     p = ex(e, p);
-    /* reduce optional arguments */
+    /* reduce optional argument */
     if (p->type == typeOptArg)
         p->opt.value = ex(e, p->opt.value);
+    /* link nodes back together */
     p->next = next;
     return p;
 }
@@ -216,13 +223,13 @@ ASTnode* ex(Env *e, ASTnode *p) {
         case WHILE:  while(ex(e, copy(child[0]))->val) ex(e, copy(child[1])); p->type = typeOp; break;
         case FOR:    for(ex(e, child[0]); ex(e, copy(child[1]))->val; ex(e, copy(child[2]))) ex(e, copy(child[3])); p->type = typeOp; break;
         /* functions */
-        case FNCT:   p = fnctCall(e, p, ex(e, child[0]), reduceArgs(e, child[1])); break;
+        case FNCT:   p = fnctCall(e, p, identify(e, child[0]), reduceArgs(e, child[1])); break;
         case '.':    child[0]->next = child[2]; p = fnctCall(e, p, ex(e, child[1]), ex(e, child[0])); break;
         case RETURN: e->returnValue = ex(e, child[0]); longjmp(e->returnContext, 1); break;
         /* assignment */
         case ASSIGN: p = assign(identify(e, child[0]), child[1]->val, ex(e, child[2])); break;
-        case INC:    p = assign(identify(e, child[0]), '+', NULL); break; /* bit of a hack, maybe use mkValNode(1) instead? */
-        case DEC:    p = assign(identify(e, child[0]), '-', NULL); break;
+        case INC:    p = assign(identify(e, child[0]), '+', mkValNode(1)); break; /* bit of a hack, maybe use mkValNode(1) instead? */
+        case DEC:    p = assign(identify(e, child[0]), '-', mkValNode(1)); break;
         /* unary operators */
         case NEG:    p = nneg(p, ex(e, child[0])); break;
         case '!':    p = nnot(p, ex(e, child[0])); break;
@@ -246,7 +253,7 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
     /* check for missing/uninitialized/mistyped arguments */
     for (i = 0; i < numArgs; i++, traverse = traverse->next) {
         if (traverse == NULL)
-            yyerror("%s expected %d argument(s), got %d", funcName, numArgs, i);
+            yyerror("%s expected %d argument%s, got %d", funcName, numArgs, (numArgs == 1 ? "" : "s"), i);
         /* check type */
         int argType = va_arg(ap, int);
         if (traverse->type != argType)
@@ -256,7 +263,7 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
     /* check for excess arguments */
     if (traverse != NULL && traverse->type != typeOptArg) {
         while ((traverse = traverse->next) != NULL) i++;
-        yyerror("%s expected %d argument(s), got %d", funcName, numArgs, ++i);
+        yyerror("%s expected %d argument%s, got %d", funcName, numArgs, (numArgs == 1 ? "" : "s"), ++i);
     }
 }
 
