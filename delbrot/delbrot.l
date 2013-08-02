@@ -1,5 +1,5 @@
-L      [a-zA-Z]
-D      [0-9]
+L    [a-zA-Z]
+D    [0-9]
 
 %{
     #include <stdlib.h>

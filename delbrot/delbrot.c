@@ -60,25 +60,6 @@ ASTnode* assign(ASTnode *varNode, char op, ASTnode *valueNode) {
     return dereference(varNode);
 }
 
-/* resolve an identifier */
-ASTnode* identify(Env *e, ASTnode *p) {
-    if (p->type != typeId)
-        return p;
-
-    ASTnode *i;
-    /* function */
-    if ((i = getFn(e, p->id)) != NULL)
-        p = i;
-    /* existing variable */
-    else if ((i = getVar(e, p->id)) != NULL)
-        p = i;
-    /* new variable */
-    else
-        p = putVar(e, p->var.name);
-
-    return p;
-}
-
 /* copy a node and its children */
 ASTnode* copy(ASTnode *p) {
     if (!p)
@@ -100,6 +81,25 @@ ASTnode* copy(ASTnode *p) {
     dup->next = copy(dup->next);
     
     return dup;
+}
+
+/* resolve an identifier */
+ASTnode* identify(Env *e, ASTnode *p) {
+    if (p->type != typeId)
+        return p;
+
+    ASTnode *i;
+    /* function */
+    if ((i = getFn(e, p->id)) != NULL)
+        p = copy(i);
+    /* existing variable */
+    else if ((i = getVar(e, p->id)) != NULL)
+        p = copy(i);
+    /* new variable */
+    else
+        p = putVar(e, p->id);
+
+    return p;
 }
 
 /* process a run-time function definition */
@@ -310,7 +310,7 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
         switch(args->type) {
             case typeVal: printf("%.10g ", args->val); break;
             case typeStr: printf("%s ", unesc(args->str)); break;
-            default: printf("[could not print type: %s]", typeNames[args->type]); break;
+            default: printf("[could not print type: %s] ", typeNames[args->type]); break;
         }
         args = args->next;
     }
