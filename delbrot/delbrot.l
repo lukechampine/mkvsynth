@@ -1,3 +1,6 @@
+L      [a-zA-Z]
+D      [0-9]
+
 %{
     #include <stdlib.h>
     #include <stdio.h>
@@ -13,7 +16,7 @@
 %%  /* rule definition section */
 
     /* keyword, function, or variable */
-[a-zA-Z]+           {
+{L}({L}|{D})*       {
                         /* reserved word */
                         if (resWord(yytext))
                             return resWord(yytext);
@@ -22,12 +25,12 @@
                         return IDENTIFIER;
                     }
     /* optional function argument */
-[a-zA-Z]+:          {
+{L}({L}|{D})*:      {
                         yylval = mkOptArgNode(yytext);
                         return OPTARG;
                     }
     /* number, with optional decimal */
-[0-9]+(\.[0-9]+)?   {
+{D}+(\.{D}+)?       {
                         yylval = mkValNode(atof(yytext));
                         return CONSTANT;
                     }
