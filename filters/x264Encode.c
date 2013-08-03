@@ -1,5 +1,5 @@
-#ifndef WriteRawFile_c_
-#define writeRawFile_c_
+#ifndef x264Encode_c_
+#define x264Encode_c_
 
 #include "../delbrot/delbrot.h"
 #include "../jarvis/bufferAllocation.h"

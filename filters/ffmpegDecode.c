@@ -1,177 +1,98 @@
 #ifndef ffmpegDecode_c_
 #define ffmpegDecode_c_
 
+#include "../delbrot/delbrot.h"
+#include "../jarvis/bufferAllocation.h"
+#include "../jarvis/frameControl.h"
+#include "../jarvis/spawn.h"
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
+#include <stdio.h>
 
 /////////////////////////////////////
 // The Threaded Function Arguments //
 /////////////////////////////////////
 struct ffmpegDecode {
-	int videoStream;
 	AVFormatContext *formatContext;
 	AVCodecContext *codecContext;
+	AVCodec *codec;
 	AVFrame *frame;
+	AVFrame *rgbFrame;
+	AVPacket packet;
+	AVDictionary *dictionary;
 	struct SwsContext *resizeContext;
+	int i;
+	int videoStream;
+	int frameFinished;
+	int bytes;
+	uint8_t *payload;
+	uint8_t *payload2;
+
 	MkvsynthOutput *output;
 };
 
-MkvsynthOutput* ffmpegDecodeDefinition(ASTnode *p, ASTnode *args) {
+void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
+  FILE *pFile;
+  char szFilename[32];
+  int  y;
 
-	///////////////////////////
-	// Parse Input Arguments //
-	///////////////////////////
-	checkArgs("ffmpegDecode", args, 1, typeStr);
-	char *filename = MANDSTR();
-
-	struct ffmpegDecode *params = malloc(sizeof(struct ffmpegDecode));
-	params->output = createOutputBuffer();
-	
-	//////////////////////////////////////
-	// Error Checking And Initializtion //
-	//////////////////////////////////////
-	AVFormatContext *formatContext = NULL;
-	AVCodecContext *codecContext = NULL;
-	AVCodec *codec = NULL;
-	AVDictionary *optionsDictionary = NULL;
-	int videoStream = -1;
-	int frameFinished;
-	struct SwsContext *resizeContext;
-	
-	av_register_all();
-	
-	int avOpen = avformat_open_input(
-		&formatContext,
-		(struct ffmpegDecode *)filterParams->filename,
-		NULL,
-		NULL);
-
-	if(avOpen != 0) {
-		filterError("Input file could not be opened.");
-	}
-	
-	if(avformat_find_stream_info(formatContext, NULL) < 0) {
-		filterError("Input file does not seem to be a video.");
-	}
-	
-	int i;
-	for(i=0; i<formatContext->nb_streams; i++) {
-		if(formatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-			videoStream = i;
-			break;
-		}
-	}
-	
-	if(videoStream == -1) {
-		filterError("Input file does not seem to have a video stream.");
-	}
-
-	codecContext = formatContext->streams[videoStream]->codec;
-
-	codec = avcodec_find_decoder(codecContext->codec_id);
-	if(decodeContext->codec == NULL) {
-		filterError("Unrecognized video codec.");
-	}
-
-	int openCodec = avcodec_open2(
-		codecContext,
-		codec,
-		&optionsDictionary);
-
-	if(openCodec < 0) {
-		filterError("Failed to open codec.");
-	}
-	
-	resizeContext = sws_getContext (
-		codecContext->width,
-		codecContext->height,
-		codecContext->pix_fmt,
-		codecContext->width,
-		codecContext->height,
-		PIX_FMT_RGB24,
-		SWS_SPLINE,
-		NULL,
-		NULL,
-		NULL);
-
-	///////////////////////
-	// Memory Allocation //
-	///////////////////////
-	AVFrame *frame = avcodec_alloc_frame();
-	if(frame == NULL) {
-		filterError("Failed to allocate the decoding frame.");
-	}
-	
-	///////////////
-	// Meta Data //
-	///////////////
-	ffmpegParams->output->metaData->width = codecContext->width;
-	ffmpegParams->output->metaData->height = codecContext->height;
-	ffmpegParams->output->metaData->channels = 3;
-	ffmpegParams->output->metaData->depth = 8;
-	ffmpegParams->output->metaData->colorspace = 0;
-	ffmpegParams->output->metaData->bytes = 3*codecContext->width*codecContext->height;
-	
-	/////////////////////////
-	// Pass Decode Context //
-	/////////////////////////
-	params->videoStream = videoStream;
-	params->formatContext = formatContext;
-	params->codecContext = codecContext;
-	params->frame = frame;
-	params->resizeContext = resizeContext;
-	
-	//////////////////////
-	// Queue and Return //
-	//////////////////////
-	mkvsynthQueue((void *)ffmpegParams, ffmpegDecode);
-	return ffmpegParams->output;
+	printf("trying to save image!\n");
+  
+  // Open file
+  sprintf(szFilename, "frame%d.ppm", iFrame);
+  pFile=fopen(szFilename, "wb");
+  if(pFile==NULL)
+    return;
+  
+  // Write header
+  fprintf(pFile, "P6\n%d %d\n255\n", width, height);
+  
+  // Write pixel data
+  // Close file
+  fclose(pFile);
 }
 
-void ffmpegDecode(void *filterParams) {
-	//////////////////////
-	// Decode Variables //
-	//////////////////////
-	int frameFinished;
-	int newLinesize = 3*width;
-	AVPacket packet;
-	
-	struct ffmpegDecode *params = (ffmpegDecode *)filterParams;
-	
+void *ffmpegDecode(void *filterParams) {
+	struct ffmpegDecode *params = (struct ffmpegDecode *)filterParams;
+
 	/////////////////
 	// Decode Loop //
 	/////////////////
-	while(av_read_frame(params->formatContext, &packet) >= 0) {
-		if(packet.stream_index == params->videoStream) {
+	while(av_read_frame(params->formatContext, &params->packet) >= 0) {
+		if(params->packet.stream_index == params->videoStream) {
 			avcodec_decode_video2(
 				params->codecContext,
 				params->frame,
-				&frameFinished,
-				&packet);
+				&params->frameFinished,
+				&params->packet);
 
-			if(frameFinished) {
-				uint8_t *payload = malloc(3*width*height);
+			if(params->frameFinished) {
 				sws_scale (
 					params->resizeContext,
 					(uint8_t const * const *)params->frame->data,
 					params->frame->linesize,
 					0,
-					params->frame->height,
-					payload,
-					newLinesize);
+					params->codecContext->height,
+					params->rgbFrame->data,
+					params->rgbFrame->linesize);
 			
-				putFrame(params->output, payload);
+				int y;
+				params->payload2 = malloc(3*params->codecContext->width*params->codecContext->height);
+  			for(y=0; y<params->codecContext->height; y++)
+					memcpy(params->payload2+y*params->rgbFrame->linesize[0], params->rgbFrame->data[0]+y*params->rgbFrame->linesize[0], params->codecContext->width*3);
+  
+				putFrame(params->output, params->payload2);
 			}
 		}
 		
-		av_free_packet(&packet);
+		av_free_packet(&params->packet);
 	}
 
 	////////////////////////
 	// Stream Termination //
 	////////////////////////
-	putFrame(NULL);
+	putFrame(params->output, NULL);
 	
 	/////////////////////////
 	// Memory Deallocation //
@@ -180,6 +101,111 @@ void ffmpegDecode(void *filterParams) {
 	avcodec_close(params->codecContext);
 	avformat_close_input(&params->formatContext);
 	free(params);
+}
+
+ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
+
+	///////////////////////////
+	// Parse Input Arguments //
+	///////////////////////////
+	struct ffmpegDecode *params = malloc(sizeof(struct ffmpegDecode));
+	checkArgs("ffmpegDecode", args, 1, typeStr);
+	char *filename = MANDSTR();
+	params->output = createOutputBuffer();
+
+	//////////////////////////////
+	// Initialize Stuff To NULL //
+	//////////////////////////////
+	params->formatContext = NULL;
+	params->codecContext = NULL;
+	params->codec = NULL;
+	params->frame = NULL;
+	params->rgbFrame = NULL;
+	params->payload = NULL;
+	
+	//////////////////////////////////////
+	// Error Checking And Initializtion //
+	//////////////////////////////////////
+	av_register_all();
+	
+	int avOpen = avformat_open_input(&params->formatContext, filename, NULL, NULL);
+
+	if(avOpen != 0) {
+		printf("Input file could not be opened.\n");
+		exit(0);
+	}
+	
+	if(avformat_find_stream_info(params->formatContext, NULL) < 0) {
+		printf("Input file does not seem to be a video.\n");
+		exit(0);
+	}
+
+	av_dump_format(params->formatContext, 0, filename, 0);
+	
+	for(params->i=0; params->i<params->formatContext->nb_streams; params->i++) {
+		if(params->formatContext->streams[params->i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+			params->videoStream = params->i;
+			break;
+		}
+	}
+	
+	if(params->videoStream == -1) {
+		printf("Input file does not seem to have a video stream.\n");
+		exit(0);
+	}
+
+	params->codecContext = params->formatContext->streams[params->videoStream]->codec;
+
+	params->codec = avcodec_find_decoder(params->codecContext->codec_id);
+	if(params->codec == NULL) {
+		printf("Unrecognized video codec.\n");
+		exit(0);
+	}
+
+	int openCodec = avcodec_open2(params->codecContext, params->codec, &params->dictionary);
+
+	if(openCodec < 0) {
+		printf("Failed to open codec.\n");
+		exit(0);
+	}
+
+	params->frame = avcodec_alloc_frame();
+	params->rgbFrame = avcodec_alloc_frame();
+
+	params->bytes = avpicture_get_size(PIX_FMT_RGB24, params->codecContext->width, params->codecContext->height);
+	params->payload = (uint8_t *)av_malloc(params->bytes*sizeof(uint8_t));
+	
+	params->resizeContext = sws_getContext (
+		params->codecContext->width,
+		params->codecContext->height,
+		params->codecContext->pix_fmt,
+		params->codecContext->width,
+		params->codecContext->height,
+		PIX_FMT_RGB24,
+		SWS_SPLINE,
+		NULL,
+		NULL,
+		NULL);
+
+	avpicture_fill((AVPicture *)params->rgbFrame, params->payload, PIX_FMT_RGB24, params->codecContext->width, params->codecContext->height);
+
+	///////////////
+	// Meta Data //
+	///////////////
+	params->output->metaData->width = params->codecContext->width;
+	params->output->metaData->height = params->codecContext->height;
+	params->output->metaData->channels = 3;
+	params->output->metaData->depth = 8;
+	params->output->metaData->colorspace = 0;
+	params->output->metaData->bytes = params->bytes;
+	params->output->metaData->fpsNumerator = 60;
+	params->output->metaData->fpsDenominator = 1;
+	
+	//////////////////////
+	// Queue and Return //
+	//////////////////////
+	mkvsynthQueue((void *)params, ffmpegDecode);
+	RETURNCLIP(params->output);
 }
 
 #endif

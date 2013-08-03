@@ -22,7 +22,7 @@ void *writeRawFile(void *filterParams) {
 
 	while(workingFrame->payload != NULL) {
 		fwrite(workingFrame->payload, 1, params->input->metaData->bytes, params->file);
-		clearFrame(workingFrame, 1);
+		//clearFrame(workingFrame, 1);
 		workingFrame = getFrame(params->input);
 	}
 
@@ -32,9 +32,9 @@ void *writeRawFile(void *filterParams) {
 void writeRawFile_AST(ASTnode *p, ASTnode *args) {
 	struct writeRawFileParams *params = malloc(sizeof(struct writeRawFileParams));
 
-	checkArgs("writeRawFile", args, 2, typeStr, typeClip);
-	char *filename = MANDSTR();
+	checkArgs("writeRawFile", args, 2, typeClip, typeStr);
 	MkvsynthOutput *output = MANDCLIP();
+	char *filename = MANDSTR();
 
 	////////////////////
 	// Error Checking //
