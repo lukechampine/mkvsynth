@@ -1,48 +1,51 @@
-#ifndef writeRawFile_c_
+#ifndef WriteRawFile_c_
 #define writeRawFile_c_
 
-#include "../jarvis/datatypes.h"
+#include "../delbrot/delbrot.h"
+#include "../jarvis/bufferAllocation.h"
+#include "../jarvis/frameControl.h"
+#include "../jarvis/spawn.h"
+#include <stdio.h>
 
 struct writeRawFileParams {
 	FILE *file;
 	MkvsynthInput *input;
 };
 
-MkvsynthOutput *writeRawFileDefinition(ASTnode *p, ASTnode *args) {
-	struct writeRawFileParams *params = malloc(sizeof(struct writeRawFileParams));
-	
-	checkArgs("writeRawFile", args, 2, typeStr, typeOut);
-	MkvsynthOutput *output = MANDOUT();
-	char *filename = MANDSTR();
-	
-	////////////////////
-	// Error Checking //
-	////////////////////
-	params->file = fopen(outputFileName, "w");
-	if(outputFile == NULL)
-		filterError("Could not open the output file!");	
-
-	params->output = createInputBuffer(output);
-	
-	mkvsynthQueue((void *)params, writeRawFile);
-	return NULL;
-}
-
-void writeRawFile(void *filterParams) {
+void *writeRawFile(void *filterParams) {
 	struct writeRawFileParams *params = (struct writeRawFileParams *)filterParams;
-	
+
 	/////////////////
 	// Filter Loop //
 	/////////////////
 	MkvsynthFrame *workingFrame = getFrame(params->input);
 
-	while(workingFrame != NULL) {
+	while(workingFrame->payload != NULL) {
 		fwrite(workingFrame->payload, 1, params->input->metaData->bytes, params->file);
-		clearFrame(workingFrame, NULL);
-		workingFrame = getFrame(input);
+		clearFrame(workingFrame, 1);
+		workingFrame = getFrame(params->input);
+	}
+}
+
+MkvsynthOutput *writeRawFile_AST(ASTnode *p, ASTnode *args) {
+	struct writeRawFileParams *params = malloc(sizeof(struct writeRawFileParams));
+
+	checkArgs("writeRawFile", args, 2, typeStr, typeClip);
+	char *filename = MANDSTR();
+	MkvsynthOutput *output = MANDCLIP();
+
+	////////////////////
+	// Error Checking //
+	////////////////////
+	params->file = fopen(filename, "w");
+	if(params->file == NULL) {
+		printf("Could not open the output file!\n");	
+		exit(0);
 	}
 
-	putFrame(NULL);
+	params->input = createInputBuffer(output);
+
+	mkvsynthQueue((void *)params, writeRawFile);
 }
 
 #endif

@@ -1,5 +1,6 @@
 #include "../delbrot/delbrot.h"
 #include "../jarvis/bufferAllocation.h"
+#include "../jarvis/frameControl.h"
 #include "../jarvis/spawn.h"
 #include <stdio.h>
 
@@ -10,16 +11,40 @@ struct gradientVideoGenerateParams {
 
 void *gradientVideoGenerate(void *filterParams) {
 	struct gradientVideoGenerateParams *params = (struct gradientVideoGenerateParams*)filterParams;
-	printf("frames:width:height - %i:%i:%i\n", params->frames, params->output->metaData->width, params->output->metaData->height);
+
+	printf("frames:width:height - %i:%i:%i\n",
+	       params->frames,
+				 params->output->metaData->width,
+				 params->output->metaData->height);
+
+	int i, j;
+	for(i = 0; i < params->frames; i++) {
+		uint8_t *payload = malloc(params->output->metaData->bytes);
+
+		for(j = 0; j < params->output->metaData->bytes; j++)
+			payload[j] = i % 256;
+
+		putFrame(params->output, payload);
+	}
+
+	putFrame(params->output, NULL);
 }
 
 ASTnode *gradientVideoGenerate_AST(ASTnode *p, ASTnode *args) {
 	checkArgs("gradientVideoGenerate", args, 0);
-	double numFrames = OPTVAL("frames", 1000);
-	double width = OPTVAL("width", 200);
-	double height = OPTVAL("height", 200);
+	long long numFrames = (long long)OPTVAL("frames", 1000);
+	long long width = (long long)OPTVAL("width", 200);
+	long long height = (long long)OPTVAL("height", 200);
 
-	printf("Intent to build %f frames at resolution %fx%f\n", numFrames, width, height);
+	////////////////////
+	// Error Checking //
+	////////////////////
+	if(numFrames < 0 || width < 0 || height < 0) {
+		printf("Error: width, height, and frames must be numbers greater than 0\n");
+		exit(0);
+	}
+
+	printf("Intent to build %lld frames at resolution %lldx%lld\n", numFrames, width, height);
 
 	MkvsynthOutput *output = createOutputBuffer();
 

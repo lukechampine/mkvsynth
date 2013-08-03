@@ -6,6 +6,6 @@
 
 struct MkvsynthFrame *getFrame(struct MkvsynthInput *params);
 void putFrame(struct MkvsynthOutput *params, uint8_t *payload);
-void clearFrame(struct MkvsynthFrame *usedFrame);
+void clearFrame(struct MkvsynthFrame *usedFrame, int freePayload);
 
 #endif

@@ -34,9 +34,14 @@ void mkvsynthSpawn() {
 void mkvsynthJoin() {
 	MkvsynthFilterQueue *current = head;
 	MkvsynthFilterQueue *prev;
+	void *retval;
+
 	while(current != NULL) {
-		void *retval;
 		pthread_join(current->thread, &retval);
+		current = current->next;
+	}
+
+	while(current != NULL) {
 		prev = current;
 		current = current->next;
 		free(prev->filterParams);
@@ -48,7 +53,7 @@ void mkvsynthJoin() {
 
 ASTnode *go_AST(ASTnode *p, ASTnode *args) {
 	checkArgs("go", args, 0);
-	printf("Initiating Multithreading\n");
+	printf("Initiating Multithreaded Filters\n");
 	mkvsynthSpawn();
 	printf("All filters are running\n");
 	mkvsynthJoin();
