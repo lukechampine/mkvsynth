@@ -2,6 +2,7 @@
 
 ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args);
 ASTnode* gradientVideoGenerate_AST(ASTnode *p, ASTnode *args);
+ASTnode* rgb24Crop_AST(ASTnode *p, ASTnode *args);
 ASTnode* writeRawFile_AST(ASTnode *p, ASTnode *args);
 ASTnode* x264Encode_AST(ASTnode *p, ASTnode *args);
 ASTnode* go_AST(ASTnode *p, ASTnode *args);
@@ -9,6 +10,7 @@ ASTnode* go_AST(ASTnode *p, ASTnode *args);
 fnEntry pluginFunctions[] = {
 	{ "ffmpegDecode",          ffmpegDecode_AST          },
 	{ "gradientVideoGenerate", gradientVideoGenerate_AST },
+	{ "rgb24Crop",             rgb24Crop_AST             },
 	{ "writeRawFile",          writeRawFile_AST          },
 	{ "x264Encode",            x264Encode_AST            },
 	{ "go",                    go_AST                    },

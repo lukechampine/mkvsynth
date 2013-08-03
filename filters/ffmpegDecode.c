@@ -98,6 +98,8 @@ void *ffmpegDecode(void *filterParams) {
 	// Memory Deallocation //
 	/////////////////////////
 	av_free(params->frame);
+	av_free(params->rgbFrame);
+	av_free(params->payload);
 	avcodec_close(params->codecContext);
 	avformat_close_input(&params->formatContext);
 	free(params);
