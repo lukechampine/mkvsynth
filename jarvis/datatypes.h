@@ -14,6 +14,8 @@ struct MkvsynthMetaData {
 	int channels;
 	int depth;
 	int bytes;
+	int fpsNumerator;
+	int fpsDenominator;
 };
 
 typedef struct MkvsynthSemaphoreList MkvsynthSemaphoreList;

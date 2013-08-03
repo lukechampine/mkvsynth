@@ -2,11 +2,13 @@
 
 ASTnode* gradientVideoGenerate_AST(ASTnode *p, ASTnode *args);
 ASTnode* writeRawFile_AST(ASTnode *p, ASTnode *args);
+ASTnode* x264Encode_AST(ASTnode *p, ASTnode *args);
 ASTnode* go_AST(ASTnode *p, ASTnode *args);
 
 fnEntry pluginFunctions[] = {
 	{ "gradientVideoGenerate", gradientVideoGenerate_AST },
 	{ "writeRawFile",          writeRawFile_AST          },
+	{ "x264Encode",            x264Encode_AST            },
 	{ "go",                    go_AST                    },
 	{ 0,                       0                         },
 };

@@ -28,6 +28,7 @@ void *gradientVideoGenerate(void *filterParams) {
 	}
 
 	putFrame(params->output, NULL);
+	free(params);
 }
 
 ASTnode *gradientVideoGenerate_AST(ASTnode *p, ASTnode *args) {
@@ -57,6 +58,8 @@ ASTnode *gradientVideoGenerate_AST(ASTnode *p, ASTnode *args) {
 	output->metaData->channels = 3;
 	output->metaData->depth = 8;
 	output->metaData->bytes = width*height*3;
+	output->metaData->fpsNumerator = 60;
+	output->metaData->fpsDenominator = 1;
 
 	////////////////////////
 	// Pthread Parameters //

@@ -17,7 +17,10 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	if(params->currentFrame->filtersRemaining > 1) {
 		newFrame = malloc(sizeof(MkvsynthFrame));
 		newFrame->payload = malloc(params->metaData->bytes);
-		memcpy(newFrame->payload, params->currentFrame->payload, params->metaData->bytes);
+		if(params->currentFrame->payload != NULL)
+			memcpy(newFrame->payload, params->currentFrame->payload, params->metaData->bytes);
+		else
+			newFrame->payload = NULL;
 		newFrame->filtersRemaining = 0;
 		pthread_mutex_init(&newFrame->lock, NULL);
 		newFrame->nextFrame = params->currentFrame->nextFrame;

@@ -1,4 +1,4 @@
-#ifndef WriteRawFile_c_
+#ifndef writeRawFile_c_
 #define writeRawFile_c_
 
 #include "../delbrot/delbrot.h"
@@ -25,9 +25,11 @@ void *writeRawFile(void *filterParams) {
 		clearFrame(workingFrame, 1);
 		workingFrame = getFrame(params->input);
 	}
+
+	free(params);
 }
 
-MkvsynthOutput *writeRawFile_AST(ASTnode *p, ASTnode *args) {
+void writeRawFile_AST(ASTnode *p, ASTnode *args) {
 	struct writeRawFileParams *params = malloc(sizeof(struct writeRawFileParams));
 
 	checkArgs("writeRawFile", args, 2, typeStr, typeClip);
