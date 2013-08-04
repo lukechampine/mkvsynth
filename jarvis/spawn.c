@@ -4,10 +4,16 @@
 #include "spawn.h"
 #include "../delbrot/delbrot.h"
 
+// these variables are used to prevent a need to
+// put an MkvsynthFilterQueue in a struct that 
+// travels around with the Inputs and Outputs
 static MkvsynthFilterQueue *head = 0;
 static MkvsynthFilterQueue *tail = 0;
-// Hopefully these will be visible between function calls
 
+// first create the node associated with the incoming filter
+// then chain it to the existing linked list
+//
+// eventually, more features may be added
 void mkvsynthQueue(void *filterParams, void *(*filter) (void *)) {
 	MkvsynthFilterQueue *new = malloc(sizeof(MkvsynthFilterQueue));
 	new->filter = filter;
@@ -23,6 +29,8 @@ void mkvsynthQueue(void *filterParams, void *(*filter) (void *)) {
 	}
 }
 
+// go through the linked list and call pthread_create
+// more features may be added
 void mkvsynthSpawn() {
 	MkvsynthFilterQueue *current = head;
 	while(current != NULL) {
@@ -31,6 +39,8 @@ void mkvsynthSpawn() {
 	}
 }
 
+// first go through the linked list and wait for all filters to finish
+// then deallocate the linked list
 void mkvsynthJoin() {
 	MkvsynthFilterQueue *current = head;
 	MkvsynthFilterQueue *prev;
@@ -51,6 +61,7 @@ void mkvsynthJoin() {
 	head = NULL;
 }
 
+// cheater function for delbrot.
 ASTnode *go_AST(ASTnode *p, ASTnode *args) {
 	checkArgs("go", args, 0);
 	printf("Initiating Multithreaded Filters\n");

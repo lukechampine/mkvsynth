@@ -1,14 +1,20 @@
-// There should probably be error checking statements around all of the mallocs(), frees(), and inits()
-
 #ifndef frameControl_c_
 #define frameControl_c_
 
 #include "frameControl.h"
 #include <stdio.h>
 
+// producer-consumer problem: first step is to wait for the frame
+// second step is to lock the frame
+//
+// second to last step is to unlock the frame
+// last step is to post on the frame
+//
+// if there are multiple filters remaining, make a complete copy
+// of the frame and return it to the requesting filter.
+//
+// if this is the last filter, just return a pointer to the frame
 MkvsynthFrame *getFrame(MkvsynthInput *params) {
-	int value;
-	sem_getvalue(params->remainingBuffer, &value);
 	sem_wait(params->remainingBuffer);
 	pthread_mutex_lock(&params->currentFrame->lock);
 	
@@ -17,10 +23,14 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	if(params->currentFrame->filtersRemaining > 1) {
 		newFrame = malloc(sizeof(MkvsynthFrame));
 		newFrame->payload = malloc(params->metaData->bytes);
+
+		// ugly situation: without this if-else block, a
+		// memcpy will happen on a pointer that's not initialized: seg fault
 		if(params->currentFrame->payload != NULL)
 			memcpy(newFrame->payload, params->currentFrame->payload, params->metaData->bytes);
 		else
 			newFrame->payload = NULL;
+
 		newFrame->filtersRemaining = 0;
 		pthread_mutex_init(&newFrame->lock, NULL);
 		newFrame->nextFrame = params->currentFrame->nextFrame;
@@ -37,6 +47,21 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	return newFrame;
 }
 
+// producer-consumer problem: first make sure there's room
+// in the buffer by insuring that all input frames have finished
+// remember that each input has a unique semaphore
+// (no mutex needed)
+//
+// finish by doing sem_post for every input filter
+//
+// recentFrame points to an allocated-but-empty frame,
+// we fill it out with the payload data and set the filtersRemaining value
+//
+// then we allocate a new frame and make it recentFrame.
+//
+// It's done this way so that at the very beginnning, the 
+// inputs and outputs can be pointed to an existing first frame
+// even though no data has been filled out
 void putFrame(MkvsynthOutput *params, uint8_t *payload) {	
 	int i;
 	MkvsynthSemaphoreList *tmp = params->semaphores;
@@ -62,8 +87,10 @@ void putFrame(MkvsynthOutput *params, uint8_t *payload) {
 	}
 }
 
+// right now it's pretty simple because getFrame does all the work.
+// if freePayload = 1, then deallocate payload.
+// otherwise assume that the payload was passed to the next filter
 void clearFrame(MkvsynthFrame *usedFrame, int freePayload) {
-// the mutex needs to be used
 	if(usedFrame->filtersRemaining == 0) {
 		pthread_mutex_destroy(&usedFrame->lock);
 
@@ -72,14 +99,8 @@ void clearFrame(MkvsynthFrame *usedFrame, int freePayload) {
 
 		free(usedFrame);
 	} else {
-		// case not implemented yet
-		// will need to be implemented, because there's another
-		// consumer that I forgot about: the producer. The frame
-		// can't be cleared until the producer has pointed to the
-		// next one.
+		// will be used if getReadOnlyFrame() is added
 	}
 }
-
-// There should probably be error checking statements around all of the mallocs(), frees(), and inits()
 
 #endif
