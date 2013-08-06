@@ -47,6 +47,17 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	return newFrame;
 }
 
+// frame is read-only, which means we just wait on the semaphores
+// and return the frame. No values get modified (much faster)
+MkvsynthFrame *getReadOnlyFrame(MkvsynthInput *params) {
+	sem_wait(params->remainingBuffer);
+	sem_post(params->consumedBuffer);
+
+	MkvsynthFrame *newFrame = params->currentFrame;
+	params->currentFrame = params->currentFrame->nextFrame;
+	return newFrame;
+}
+
 // producer-consumer problem: first make sure there's room
 // in the buffer by insuring that all input frames have finished
 // remember that each input has a unique semaphore
@@ -88,18 +99,24 @@ void putFrame(MkvsynthOutput *params, uint8_t *payload) {
 }
 
 // right now it's pretty simple because getFrame does all the work.
-// if freePayload = 1, then deallocate payload.
-// otherwise assume that the payload was passed to the next filter
-void clearFrame(MkvsynthFrame *usedFrame, int freePayload) {
-	if(usedFrame->filtersRemaining == 0) {
+void clearFrame(MkvsynthFrame *usedFrame) {
+	pthread_mutex_destroy(&usedFrame->lock);
+	free(usedFrame);
+}
+
+// have to check filtersRemaining, because getReadOnlyFrame
+// doesn't modify the value
+void clearReadOnlyFrame(MkvsynthFrame *usedFrame) {
+	pthread_mutex_lock(&usedFrame->lock);
+	if(usedFrame->filtersRemaining == 1) {
+		// kill the frame
+		pthread_mutex_unlock(&usedFrame->lock);
+		free(usedFrame->payload);
 		pthread_mutex_destroy(&usedFrame->lock);
-
-		if(freePayload == 1)
-			free(usedFrame->payload);
-
 		free(usedFrame);
 	} else {
-		// will be used if getReadOnlyFrame() is added
+		pthread_mutex_unlock(&usedFrame->lock);
+		usedFrame->filtersRemaining--;
 	}
 }
 

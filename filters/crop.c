@@ -4,7 +4,7 @@
 #include "../jarvis/spawn.h"
 #include <stdio.h>
 
-struct rgb24CropParams {
+struct CropParams {
 	unsigned long long left;
 	unsigned long long top;
 	unsigned long long right;
@@ -13,34 +13,34 @@ struct rgb24CropParams {
 	MkvsynthOutput *output;
 };
 
-void *rgb24Crop(void *filterParams) {
-	struct rgb24CropParams *params = (struct rgb24CropParams*)filterParams;
+void *crop(void *filterParams) {
+	struct CropParams *params = (struct CropParams *)filterParams;
 
-	MkvsynthFrame *workingFrame = getFrame(params->input);
+	MkvsynthFrame *workingFrame = getReadOnlyFrame(params->input);
 
 	while(workingFrame->payload != NULL) {
 		uint8_t *payload = malloc(params->output->metaData->bytes);
 
 		int i, j;
 		for(i = 0; i < params->output->metaData->height; i++) {
-			int sourceOffset = (i + params->top) * 3 * params->input->metaData->width + params->left * 3;
-			int offsetSize = 3 * params->output->metaData->width;
+			int sourceOffset = (i + params->top) * 6 * params->input->metaData->width + params->left * 6;
+			int offsetSize = 6 * params->output->metaData->width;
 			int destOffset = i * offsetSize;
 			memcpy(payload+destOffset, workingFrame->payload+sourceOffset, offsetSize);
 		}
  
-		clearFrame(workingFrame, 1);
+		clearReadOnlyFrame(workingFrame);
 		putFrame(params->output, payload);
-		workingFrame = getFrame(params->input);
+		workingFrame = getReadOnlyFrame(params->input);
 	}
 
 	putFrame(params->output, NULL);
-
+	clearReadOnlyFrame(workingFrame);
 	free(params);
 }
 
-ASTnode *rgb24Crop_AST(ASTnode *p, ASTnode *args) {
-	struct rgb24CropParams *params = malloc(sizeof(struct rgb24CropParams));
+ASTnode *crop_AST(ASTnode *p, ASTnode *args) {
+	struct CropParams *params = malloc(sizeof(struct CropParams));
 
 	///////////////////////
 	// Parameter Parsing //
@@ -58,12 +58,19 @@ ASTnode *rgb24Crop_AST(ASTnode *p, ASTnode *args) {
 	////////////////////
 	// Error Checking //
 	////////////////////
+	if(input->metaData->colorspace != MKVS_RGB48) {
+		printf("Crop only works with RGB48 colorspace!\n");
+		exit(0);
+	}
+
 	if((params->left + params->right) > input->metaData->width) {
 		printf("You cannot crop that many columns! Insufficient video width!\n");
+		exit(0);
 	}
    
 	if((params->top + params->bottom) > input->metaData->height) {
 		printf("You cannot crop that many rows! Insufficient video height!\n");
+		exit(0);
 	}
 
 	///////////////
@@ -72,12 +79,10 @@ ASTnode *rgb24Crop_AST(ASTnode *p, ASTnode *args) {
 	params->output->metaData->colorspace = input->metaData->colorspace;
 	params->output->metaData->width = input->metaData->width - params->left - params->right;
 	params->output->metaData->height = input->metaData->height - params->top - params->bottom;
-	params->output->metaData->channels = input->metaData->channels;
-	params->output->metaData->depth = input->metaData->depth;
-	params->output->metaData->bytes = 3 * params->output->metaData->width * params->output->metaData->height;
+	params->output->metaData->bytes = 6 * params->output->metaData->width * params->output->metaData->height;
 	params->output->metaData->fpsNumerator = input->metaData->fpsNumerator;
 	params->output->metaData->fpsDenominator = input->metaData->fpsDenominator;
 
-	mkvsynthQueue((void *)params, rgb24Crop);
+	mkvsynthQueue((void *)params, crop);
 	RETURNCLIP(params->output);
 }

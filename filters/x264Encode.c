@@ -17,7 +17,8 @@ void *x264Encode(void *filterParams) {
 	struct x264EncodeParams *params = (struct x264EncodeParams*)filterParams;
 
 	char fullCommand[1024];
-	snprintf(fullCommand, sizeof(fullCommand), "x264 - --input-csp rgb --fps %i/%i --input-res %ix%i %s -o %s",
+	
+	snprintf(fullCommand, sizeof(fullCommand), "x264 - --input-csp rgb --input-depth 16 --fps %i/%i --input-res %ix%i %s -o %s",
 		params->input->metaData->fpsNumerator,
 		params->input->metaData->fpsDenominator,
 		params->input->metaData->width,
@@ -27,13 +28,13 @@ void *x264Encode(void *filterParams) {
 
 	FILE *x264Proc = popen(fullCommand, "w");
 
-	MkvsynthFrame *workingFrame = getFrame(params->input);
+	MkvsynthFrame *workingFrame = getReadOnlyFrame(params->input);
 
 	int i = 0;
 	while(workingFrame->payload != NULL) {
 		fwrite(workingFrame->payload, 1, params->input->metaData->bytes, x264Proc);
-		clearFrame(workingFrame, 1);
-		workingFrame = getFrame(params->input);
+		clearReadOnlyFrame(workingFrame);
+		workingFrame = getReadOnlyFrame(params->input);
 	}
 
 	pclose(x264Proc);

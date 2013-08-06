@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define MKVS_RGB48 1
+
 // I've been very uncertain what metaData to add.
 // In most systems, the 'colorspace' field is
 // sufficient, but I wanted a more generic approach.
@@ -16,8 +18,6 @@ struct MkvsynthMetaData {
 	int colorspace;
 	int width;
 	int height;
-	int channels;
-	int depth;
 	int bytes;
 	int fpsNumerator;
 	int fpsDenominator;

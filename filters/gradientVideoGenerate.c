@@ -12,17 +12,13 @@ struct gradientVideoGenerateParams {
 void *gradientVideoGenerate(void *filterParams) {
 	struct gradientVideoGenerateParams *params = (struct gradientVideoGenerateParams*)filterParams;
 
-	printf("frames:width:height - %i:%i:%i\n",
-	       params->frames,
-				 params->output->metaData->width,
-				 params->output->metaData->height);
-
 	int i, j;
 	for(i = 0; i < params->frames; i++) {
 		uint8_t *payload = malloc(params->output->metaData->bytes);
+		uint16_t *shortPayload = (uint16_t *)payload;
 
-		for(j = 0; j < params->output->metaData->bytes; j++)
-			payload[j] = i % 256;
+		for(j = 0; j < params->output->metaData->bytes / 2; j++)
+			shortPayload[j] = (i % 256) << 8;
 
 		putFrame(params->output, payload);
 	}
@@ -45,19 +41,15 @@ ASTnode *gradientVideoGenerate_AST(ASTnode *p, ASTnode *args) {
 		exit(0);
 	}
 
-	printf("Intent to build %lld frames at resolution %lldx%lld\n", numFrames, width, height);
-
 	MkvsynthOutput *output = createOutputBuffer();
 
 	///////////////
 	// Meta Data //
 	///////////////
-	output->metaData->colorspace = 0;
+	output->metaData->colorspace = MKVS_RGB48;
 	output->metaData->width = (int)width;
 	output->metaData->height = (int)height;
-	output->metaData->channels = 3;
-	output->metaData->depth = 8;
-	output->metaData->bytes = width*height*3;
+	output->metaData->bytes = width*height*6;
 	output->metaData->fpsNumerator = 60;
 	output->metaData->fpsDenominator = 1;
 

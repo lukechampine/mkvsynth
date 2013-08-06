@@ -19,7 +19,6 @@ struct ffmpegDecode {
 	AVCodec *codec;
 	AVFrame *frame;
 	AVFrame *rgbFrame;
-	AVPacket packet;
 	AVDictionary *dictionary;
 	struct SwsContext *resizeContext;
 	int i;
@@ -32,40 +31,21 @@ struct ffmpegDecode {
 	MkvsynthOutput *output;
 };
 
-void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
-  FILE *pFile;
-  char szFilename[32];
-  int  y;
-
-	printf("trying to save image!\n");
-  
-  // Open file
-  sprintf(szFilename, "frame%d.ppm", iFrame);
-  pFile=fopen(szFilename, "wb");
-  if(pFile==NULL)
-    return;
-  
-  // Write header
-  fprintf(pFile, "P6\n%d %d\n255\n", width, height);
-  
-  // Write pixel data
-  // Close file
-  fclose(pFile);
-}
-
 void *ffmpegDecode(void *filterParams) {
 	struct ffmpegDecode *params = (struct ffmpegDecode *)filterParams;
+
+	AVPacket packet;
 
 	/////////////////
 	// Decode Loop //
 	/////////////////
-	while(av_read_frame(params->formatContext, &params->packet) >= 0) {
-		if(params->packet.stream_index == params->videoStream) {
+	while(av_read_frame(params->formatContext, &packet) >= 0) {
+		if(packet.stream_index == params->videoStream) {
 			avcodec_decode_video2(
 				params->codecContext,
 				params->frame,
 				&params->frameFinished,
-				&params->packet);
+				&packet);
 
 			if(params->frameFinished) {
 				sws_scale (
@@ -78,15 +58,17 @@ void *ffmpegDecode(void *filterParams) {
 					params->rgbFrame->linesize);
 			
 				int y;
-				params->payload2 = malloc(3*params->codecContext->width*params->codecContext->height);
-  			for(y=0; y<params->codecContext->height; y++)
-					memcpy(params->payload2+y*params->rgbFrame->linesize[0], params->rgbFrame->data[0]+y*params->rgbFrame->linesize[0], params->codecContext->width*3);
+				params->payload2 = malloc(6*params->codecContext->width*params->codecContext->height);
   
+				for(y = 0; y < 3*params->codecContext->width*params->codecContext->height; y++) {
+					params->payload2[y*2] = 0;
+					params->payload2[y*2+1] = *(params->rgbFrame->data[0]+y);
+				}
 				putFrame(params->output, params->payload2);
 			}
 		}
 		
-		av_free_packet(&params->packet);
+		av_free_packet(&packet);
 	}
 
 	////////////////////////
@@ -196,10 +178,8 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 	///////////////
 	params->output->metaData->width = params->codecContext->width;
 	params->output->metaData->height = params->codecContext->height;
-	params->output->metaData->channels = 3;
-	params->output->metaData->depth = 8;
-	params->output->metaData->colorspace = 0;
-	params->output->metaData->bytes = params->bytes;
+	params->output->metaData->colorspace = MKVS_RGB48;
+	params->output->metaData->bytes = params->bytes * 2;
 	params->output->metaData->fpsNumerator = 60;
 	params->output->metaData->fpsDenominator = 1;
 	
