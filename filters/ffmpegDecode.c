@@ -176,11 +176,9 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 	params->output->metaData->height = params->codecContext->height;
 	params->output->metaData->colorspace = MKVS_RGB48;
 	params->output->metaData->bytes = params->bytes * 2;
-	//params->output->metaData->fpsNumerator = params->codecContext->time_base.num;
-	//params->output->metaData->fpsDenominator = params->codecContext->time_base.den;
-	params->output->metaData->fpsNumerator = 60;
-	params->output->metaData->fpsDenominator = 1;
-	
+	params->output->metaData->fpsNumerator   = params->formatContext->streams[params->videoStream]->avg_frame_rate.num;
+	params->output->metaData->fpsDenominator = params->formatContext->streams[params->videoStream]->avg_frame_rate.den;
+
 	//////////////////////
 	// Queue and Return //
 	//////////////////////
