@@ -1,10 +1,7 @@
 #ifndef ffmpegDecode_c_
 #define ffmpegDecode_c_
 
-#include "../delbrot/delbrot.h"
-#include "../jarvis/bufferAllocation.h"
-#include "../jarvis/frameControl.h"
-#include "../jarvis/spawn.h"
+#include "../jarvis/jarvis.h"
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
@@ -34,11 +31,10 @@ struct ffmpegDecode {
 void *ffmpegDecode(void *filterParams) {
 	struct ffmpegDecode *params = (struct ffmpegDecode *)filterParams;
 
-	AVPacket packet;
-
 	/////////////////
 	// Decode Loop //
 	/////////////////
+	AVPacket packet;
 	while(av_read_frame(params->formatContext, &packet) >= 0) {
 		if(packet.stream_index == params->videoStream) {
 			avcodec_decode_video2(
@@ -180,8 +176,8 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 	params->output->metaData->height = params->codecContext->height;
 	params->output->metaData->colorspace = MKVS_RGB48;
 	params->output->metaData->bytes = params->bytes * 2;
-	params->output->metaData->fpsNumerator = 60;
-	params->output->metaData->fpsDenominator = 1;
+	params->output->metaData->fpsNumerator = params->codecContext->time_base.num;
+	params->output->metaData->fpsDenominator = params->codecContext->time_base.den;
 	
 	//////////////////////
 	// Queue and Return //

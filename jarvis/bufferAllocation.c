@@ -34,8 +34,8 @@ MkvsynthInput *createInputBuffer(MkvsynthOutput *output) {
 	input->remainingBuffer = &tmp->remainingBuffer;
 	input->consumedBuffer = &tmp->consumedBuffer;
 	
-	sem_init(input->remainingBuffer, 5, 0);
-	sem_init(input->consumedBuffer, 0, 5);
+	sem_init(input->remainingBuffer, 10, 0);
+	sem_init(input->consumedBuffer, 0, 10);
 	
 	input->currentFrame = output->recentFrame;
 	input->metaData = output->metaData;

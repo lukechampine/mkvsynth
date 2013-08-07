@@ -1,3 +1,6 @@
+#ifndef delbrot_h_
+#define delbrot_h_
+
 #include <setjmp.h>
 #include "../jarvis/datatypes.h"
 
@@ -130,3 +133,5 @@ extern fnEntry pluginFunctions[];
 #define RETURNVAL(value) p->type = typeVal;  p->val     = value; return p
 #define RETURNSTR(str)   p->type = typeStr;  p->str     = str;   return p
 #define RETURNCLIP(clip) p->type = typeClip; p->clipOut = clip;  return p
+
+#endif

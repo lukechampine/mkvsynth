@@ -7,6 +7,9 @@
 #include <stdlib.h>
 
 #define MKVS_RGB48 1
+#define MKVS_RGB24 2
+#define YUV_444_48 3
+#define YUV_444_24 4
 
 // I've been very uncertain what metaData to add.
 // In most systems, the 'colorspace' field is

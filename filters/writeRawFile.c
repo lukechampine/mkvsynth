@@ -1,10 +1,7 @@
 #ifndef writeRawFile_c_
 #define writeRawFile_c_
 
-#include "../delbrot/delbrot.h"
-#include "../jarvis/bufferAllocation.h"
-#include "../jarvis/frameControl.h"
-#include "../jarvis/spawn.h"
+#include "../jarvis/jarvis.h"
 #include <stdio.h>
 
 struct writeRawFileParams {

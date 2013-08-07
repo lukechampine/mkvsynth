@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "datatypes.h"
 #include "spawn.h"
-#include "../delbrot/delbrot.h"
 
 // these variables are used to prevent a need to
 // put an MkvsynthFilterQueue in a struct that 
