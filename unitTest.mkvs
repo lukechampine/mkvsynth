@@ -1,0 +1,22 @@
+# some very basic unit tests
+# hash values for the output files will eventually be calculated
+
+# Test 1: decode a video, outputs to 1 filter
+a = ffmpegDecode("unitTest.mkv");
+
+# Test 2: crop, outputs to multiple filters
+b = crop(a, 5, 5, 5, 5);
+
+# Test 3: removeRange
+c = removeRange(b, 0, 100);
+
+# Test 4: crop again
+d = crop(b, 25, 25, 25, 25);
+
+# Test 5: x264Encode
+x264Encode(c, "uTOut1.mkv");
+
+# Test 6: x264Encode with i444 colorspace
+x264Encode(d, "uTOut2.mkv", params:"--output-csp i444 --crf 16.5");
+
+go();

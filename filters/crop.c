@@ -32,8 +32,8 @@ void *crop(void *filterParams) {
 		workingFrame = getReadOnlyFrame(params->input);
 	}
 
-	putFrame(params->output, NULL);
 	clearReadOnlyFrame(workingFrame);
+	putFrame(params->output, NULL);
 	free(params);
 }
 

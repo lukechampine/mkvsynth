@@ -77,8 +77,9 @@ MkvsynthFrame *getReadOnlyFrame(MkvsynthInput *params) {
 void putFrame(MkvsynthOutput *params, uint8_t *payload) {	
 	int i;
 	MkvsynthSemaphoreList *tmp = params->semaphores;
-
 	for(i = 0; i < params->outputBreadth; i++) {
+		int value;
+		sem_getvalue(&tmp->consumedBuffer, &value);
 		sem_wait(&tmp->consumedBuffer);
 		tmp = tmp->next;
 	}

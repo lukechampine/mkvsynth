@@ -59,6 +59,7 @@ void *ffmpegDecode(void *filterParams) {
 					params->payload2[y*2] = 0;
 					params->payload2[y*2+1] = *(params->rgbFrame->data[0]+y);
 				}
+
 				putFrame(params->output, params->payload2);
 			}
 		}
