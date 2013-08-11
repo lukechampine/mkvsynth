@@ -2,6 +2,7 @@
 #define frameControl_c_
 
 #include "frameControl.h"
+#include "properties.h"
 #include <stdio.h>
 
 // producer-consumer problem: first step is to wait for the frame
@@ -22,12 +23,12 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 
 	if(params->currentFrame->filtersRemaining > 1) {
 		newFrame = malloc(sizeof(MkvsynthFrame));
-		newFrame->payload = malloc(params->metaData->bytes);
+		newFrame->payload = malloc(getBytes(params->metaData));
 
 		// ugly situation: without this if-else block, a
 		// memcpy will happen on a pointer that's not initialized: seg fault
 		if(params->currentFrame->payload != NULL)
-			memcpy(newFrame->payload, params->currentFrame->payload, params->metaData->bytes);
+			memcpy(newFrame->payload, params->currentFrame->payload, getBytes(params->metaData));
 		else
 			newFrame->payload = NULL;
 

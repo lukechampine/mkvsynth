@@ -16,16 +16,17 @@ void *crop(void *filterParams) {
 	MkvsynthFrame *workingFrame = getReadOnlyFrame(params->input);
 
 	while(workingFrame->payload != NULL) {
-		uint8_t *payload = malloc(params->output->metaData->bytes);
+		uint8_t *payload = malloc(getBytes(params->output->metaData));
 
 		int i, j;
 		for(i = 0; i < params->output->metaData->height; i++) {
-			int sourceOffset = (i + params->top) * 6 * params->input->metaData->width + params->left * 6;
-			int offsetSize = 6 * params->output->metaData->width;
+			int sourceOffset = (double)((double)params->left / (double)params->input->metaData->width) * (double)getLinesize(params->input->metaData);
+			sourceOffset += (i + params->top) * getLinesize(params->input->metaData);
+			int offsetSize = getLinesize(params->output->metaData);
 			int destOffset = i * offsetSize;
 			memcpy(payload+destOffset, workingFrame->payload+sourceOffset, offsetSize);
 		}
- 
+		
 		clearReadOnlyFrame(workingFrame);
 		putFrame(params->output, payload);
 		workingFrame = getReadOnlyFrame(params->input);
@@ -42,7 +43,7 @@ ASTnode *crop_AST(ASTnode *p, ASTnode *args) {
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("rgb24Crop", args, 5, typeClip, typeVal, typeVal, typeVal, typeVal);
+	checkArgs("crop", args, 5, typeClip, typeVal, typeVal, typeVal, typeVal);
 	MkvsynthOutput *input = MANDCLIP();
 	params->left = (unsigned long long)MANDVAL();
 	params->top = (unsigned long long)MANDVAL();
@@ -52,11 +53,38 @@ ASTnode *crop_AST(ASTnode *p, ASTnode *args) {
 	params->input = createInputBuffer(input);
 	params->output = createOutputBuffer();
 
+	///////////////
+	// Meta Data //
+	///////////////
+	params->output->metaData->colorspace = input->metaData->colorspace;
+	params->output->metaData->width = input->metaData->width - params->left - params->right;
+	params->output->metaData->height = input->metaData->height - params->top - params->bottom;
+	params->output->metaData->fpsNumerator = input->metaData->fpsNumerator;
+	params->output->metaData->fpsDenominator = input->metaData->fpsDenominator;
+
 	////////////////////
 	// Error Checking //
 	////////////////////
-	if(input->metaData->colorspace != MKVS_RGB48) {
-		printf("Crop only works with RGB48 colorspace!\n");
+	if(isMetaDataValid(params->input->metaData) != 1) {
+		printf("Crop Error: invalid input!\n");
+		exit(0);
+	}
+
+	if(isMetaDataValid(params->output->metaData) != 1) {
+		printf("Crop Error: invalid ouput resolution!\n");
+		exit(0);
+	}
+
+	MkvsynthMetaData temp = *params->output->metaData;
+	temp.width = params->left;
+	if(isMetaDataValid(&temp) != 1) {
+		printf("Crop Error: invalid crop value (left)\n");
+		exit(0);
+	}
+
+	temp.width = params->right;
+	if(isMetaDataValid(&temp) != 1) {
+		printf("Crop Error: invalid crop value (right)\n");
 		exit(0);
 	}
 
@@ -69,16 +97,6 @@ ASTnode *crop_AST(ASTnode *p, ASTnode *args) {
 		printf("You cannot crop that many rows! Insufficient video height!\n");
 		exit(0);
 	}
-
-	///////////////
-	// Meta Data //
-	///////////////
-	params->output->metaData->colorspace = input->metaData->colorspace;
-	params->output->metaData->width = input->metaData->width - params->left - params->right;
-	params->output->metaData->height = input->metaData->height - params->top - params->bottom;
-	params->output->metaData->bytes = 6 * params->output->metaData->width * params->output->metaData->height;
-	params->output->metaData->fpsNumerator = input->metaData->fpsNumerator;
-	params->output->metaData->fpsDenominator = input->metaData->fpsDenominator;
 
 	mkvsynthQueue((void *)params, crop);
 	RETURNCLIP(params->output);

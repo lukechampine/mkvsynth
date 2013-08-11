@@ -15,7 +15,8 @@ void *x264Encode(void *filterParams) {
 
 	char fullCommand[1024];
 	
-	snprintf(fullCommand, sizeof(fullCommand), "x264 - --input-csp rgb --input-depth 16 --fps %i/%i --input-res %ix%i %s -o %s",
+	snprintf(fullCommand, sizeof(fullCommand), "x264 - --input-csp rgb --input-depth %i --fps %i/%i --input-res %ix%i %s -o %s",
+		getDepth(params->input->metaData),
 		params->input->metaData->fpsNumerator,
 		params->input->metaData->fpsDenominator,
 		params->input->metaData->width,
@@ -29,7 +30,7 @@ void *x264Encode(void *filterParams) {
 
 	int i = 0;
 	while(workingFrame->payload != NULL) {
-		fwrite(workingFrame->payload, 1, params->input->metaData->bytes, x264Proc);
+		fwrite(workingFrame->payload, 1, getBytes(params->input->metaData), x264Proc);
 		clearReadOnlyFrame(workingFrame);
 		workingFrame = getReadOnlyFrame(params->input);
 	}
@@ -46,6 +47,11 @@ void x264Encode_AST(ASTnode *p, ASTnode *args) {
 	params->filename = MANDSTR();
 	params->x264params = OPTSTR("params", "");
 	params->input = createInputBuffer(output);
+
+	if(isMetaDataValid(params->input->metaData) != 1) {
+		printf("x264Encode Error: invalid colorspace!\n");
+		exit(0);
+	}
 
 	mkvsynthQueue((void *)params, x264Encode);
 }

@@ -8,8 +8,8 @@
 
 #define MKVS_RGB48 1
 #define MKVS_RGB24 2
-#define YUV_444_48 3
-#define YUV_444_24 4
+#define MKVS_YUV444_48 3
+#define MKVS_YUV444_24 4
 
 // I've been very uncertain what metaData to add.
 // In most systems, the 'colorspace' field is
@@ -21,9 +21,9 @@ struct MkvsynthMetaData {
 	int colorspace;
 	int width;
 	int height;
-	int bytes;
 	int fpsNumerator;
 	int fpsDenominator;
+	void *extraData;
 };
 
 // Linked list structure, containing 2 semaphores to

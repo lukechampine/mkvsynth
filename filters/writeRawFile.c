@@ -18,7 +18,7 @@ void *writeRawFile(void *filterParams) {
 	MkvsynthFrame *workingFrame = getReadOnlyFrame(params->input);
 
 	while(workingFrame->payload != NULL) {
-		fwrite(workingFrame->payload, 1, params->input->metaData->bytes, params->file);
+		fwrite(workingFrame->payload, 1, getBytes(params->input->metaData), params->file);
 		clearReadOnlyFrame(workingFrame);
 		workingFrame = getReadOnlyFrame(params->input);
 	}

@@ -21,7 +21,6 @@ struct ffmpegDecode {
 	int i;
 	int videoStream;
 	int frameFinished;
-	int bytes;
 	uint8_t *payload;
 	uint8_t *payload2;
 
@@ -152,8 +151,8 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 	params->frame = avcodec_alloc_frame();
 	params->rgbFrame = avcodec_alloc_frame();
 
-	params->bytes = avpicture_get_size(PIX_FMT_RGB24, params->codecContext->width, params->codecContext->height);
-	params->payload = (uint8_t *)av_malloc(params->bytes*sizeof(uint8_t));
+	int bytes = avpicture_get_size(PIX_FMT_RGB24, params->codecContext->width, params->codecContext->height);
+	params->payload = (uint8_t *)av_malloc(bytes*sizeof(uint8_t));
 	
 	params->resizeContext = sws_getContext (
 		params->codecContext->width,
@@ -175,7 +174,6 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 	params->output->metaData->width = params->codecContext->width;
 	params->output->metaData->height = params->codecContext->height;
 	params->output->metaData->colorspace = MKVS_RGB48;
-	params->output->metaData->bytes = params->bytes * 2;
 	params->output->metaData->fpsNumerator   = params->formatContext->streams[params->videoStream]->avg_frame_rate.num;
 	params->output->metaData->fpsDenominator = params->formatContext->streams[params->videoStream]->avg_frame_rate.den;
 
