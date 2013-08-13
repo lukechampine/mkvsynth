@@ -94,4 +94,10 @@ struct MkvsynthInput {
 	MkvsynthMetaData *metaData;
 };
 
+typedef struct MkvsynthPixel MkvsynthPixel;
+struct MkvsynthPixel {
+	int colorspace;
+	short channel[3];
+};
+
 #endif

@@ -4,6 +4,7 @@
 #include "datatypes.h"
 
 MkvsynthPixel getPixel               (MkvsynthFrame *frame, int widthOffset, int heightOffset);
+void          putPixel               (MkvsynthPixel *pixel, uint8_t *payload, int widthOffset, int heightOffset);
 
 int getRed                           (MkvsynthPixel *pixel);
 int getGreen                         (MkvsynthPixel *pixel);
@@ -27,5 +28,7 @@ MkvsynthPixel adjustHue              (MkvsynthPixel *pixel, double degrees);
 MkvsynthPixel adjustLightness        (MkvsynthPixel *pixel, double intensity);
 MkvsynthPixel adjustSaturation       (MkvsynthPixel *pixel, double intensity);
 MkvsynthPixel adjustValue            (MkvsynthPixel *pixel, double intensity);
+
+void overlay                         (MkvsynthPixel *destination, MkvsynthPixel *source, double strength);
 
 #endif

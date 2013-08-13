@@ -4,6 +4,7 @@
 #include "../delbrot/delbrot.h"
 #include "bufferAllocation.h"
 #include "frameControl.h"
+#include "pixels.h"
 #include "properties.h"
 #include "spawn.h"
 
