@@ -1,5 +1,5 @@
 # some very basic unit tests
-# hash values for the output files will eventually be calculated
+# unit tests mostly meant to test jarvis
 
 # Test 1: decode a video, outputs to 1 filter
 a = ffmpegDecode("unitTest.mkv");
