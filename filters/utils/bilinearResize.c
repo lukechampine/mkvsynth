@@ -18,62 +18,40 @@ void *bilinearResize(void *filterParams) {
 	while(workingFrame->payload != NULL) {
 		uint8_t *payload = malloc(getBytes(params->output->metaData));
 
-		// for every pixel in the new grid
-		// map that pixel to a point on the previous map
-		// get the 4 pixels nearest to the point
-		// use weight to average them together
-		//
-		// to get the point... you can get the width percentage by dividing current width by new width
-		// and do the same for height
-		// then use the 2 numbers to find 4 pixels and use multiplication to find the weight for each
-		// then avg the values to get the new pixel value
-		double widthRatio = params->input->metaData->width / params->output->metaData->width;
-		double heightRatio = params->input->metaData->height / params->output->metaData->height;
+		double widthRatio = (double)params->input->metaData->width / (double)params->output->metaData->width;
+		double heightRatio = (double)params->input->metaData->height / (double)params->output->metaData->height;
 
 		int i, j;
 		for(i = 0; i < params->output->metaData->width; i++) {
 			for(j = 0; j < params->output->metaData->height; j++) {
-				// do stuff
-				//
-				// Every row will match to an equivalent row, so for each video you can go 1 row at a time
-				// to cover all colorspaces, use getPixel and putPixel. Memory management might be tough here
-
 				// Find top left neighbor corner
-				double x = j * widthRatio;
-				double y = i * heightRatio;
+				double x = (double)j * widthRatio;
+				double y = (double)i * heightRatio;
 
 				// get the integral versions
 				int xLeft   = floor(x);
-				int xRight  = ceil(x);
+				int xRight  = floor(x+1);
 				int yTop    = floor(y);
-				int yBottom = ceil(y);
-				printf("xl-xr-yt-yb: %i-%i-%i-%i\n", xLeft, xRight, yTop, yBottom);
+				int yBottom = floor(y+1);
 
-				MkvsynthPixel topLeft     = getPixel(workingFrame, xLeft,  yTop);
-				MkvsynthPixel topRight    = getPixel(workingFrame, xRight, yTop);
-				MkvsynthPixel bottomLeft  = getPixel(workingFrame, xLeft,  yBottom);
-				MkvsynthPixel bottomRight = getPixel(workingFrame, xRight, yBottom);
+				MkvsynthPixel topLeft     = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yTop);
+				MkvsynthPixel topRight    = getPixel(workingFrame->payload, params->input->metaData, xRight, yTop);
+				MkvsynthPixel bottomLeft  = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yBottom);
+				MkvsynthPixel bottomRight = getPixel(workingFrame->payload, params->input->metaData, xRight, yBottom);
 				
 				// merge them together according to weight.
-				double topLeftWeight     = (x - xLeft)  * (y - yTop);
-				double topRightWeight    = (xRight - x) * (y - yTop);
-				double bottomLeftWeight  = (x - xLeft)  * (yBottom - y);
-				double bottomRightWeight = (xRight - x) * (yBottom - y);
-				printf("tlw-trw-blw-brw: %g-%g-%g-%g\n", topLeftWeight, topRightWeight, bottomLeftWeight, bottomRightWeight);
-				printf("total: %g\n", topLeftWeight + topRightWeight + bottomLeftWeight + bottomRightWeight);
+				double topLeftWeight     = (xRight - x) * (yBottom - y);
+				double topRightWeight    = (x - xLeft)  * (yBottom - y);
+				double bottomLeftWeight  = (xRight - x) * (y - yTop);
+				double bottomRightWeight = (x - xLeft)  * (y - yTop);
 
-				// Need some type of plan for resizing based on colorspace...
-				// Maybe just a blend/overlayer or something
-				// the blend funtion takes 2 pixels of the same colorspace and
-				// adds the one to the other accoreding to the double value
 				MkvsynthPixel newPixel = {0};
-				newPixel.colorspace = params->output->metaData->colorspace;
-				overlay(&newPixel, &topLeft,     topLeftWeight);
-				overlay(&newPixel, &topRight,    topRightWeight);
-				overlay(&newPixel, &bottomLeft,  bottomLeftWeight);
-				overlay(&newPixel, &bottomRight, bottomRightWeight);
+				overlay(&newPixel, &topLeft,     params->output->metaData->colorspace, topLeftWeight);
+				overlay(&newPixel, &topRight,    params->output->metaData->colorspace, topRightWeight);
+				overlay(&newPixel, &bottomLeft,  params->output->metaData->colorspace, bottomLeftWeight);
+				overlay(&newPixel, &bottomRight, params->output->metaData->colorspace, bottomRightWeight);
 
-				putPixel(&newPixel, payload, i, j);
+				putPixel(&newPixel, payload, params->input->metaData, i, j);
 			}
 		}
 

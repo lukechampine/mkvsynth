@@ -2,7 +2,7 @@
 # unit tests mostly meant to test jarvis
 
 # Test 1: decode a video, outputs to 1 filter
-a = ffmpegDecode("unitTest.mkv");
+a = ffmpegDecode("testVid.mkv");
 
 # Test 2: crop, outputs to multiple filters
 b = crop(a, 5, 5, 5, 5);
@@ -13,10 +13,12 @@ c = removeRange(b, 0, 100);
 # Test 4: crop again
 d = crop(b, 25, 25, 25, 25);
 
+d = bilinearResize(d, 160, 100);
+
 # Test 5: x264Encode
-x264Encode(c, "uTOut1.mkv");
+x264Encode(c, "testOut1.mkv");
 
 # Test 6: x264Encode with i444 colorspace
-x264Encode(d, "uTOut2.mkv", params:"--output-csp i444 --crf 16.5");
+x264Encode(d, "testOut2.mkv", params:"--output-csp i444 --crf 16.5");
 
 go();

@@ -6,8 +6,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define MKVS_RGB48 1
-#define MKVS_RGB24 2
+#define MKVS_RGB48     1
+#define MKVS_RGB24     2
 #define MKVS_YUV444_48 3
 #define MKVS_YUV444_24 4
 
@@ -18,7 +18,7 @@
 // I'm still not happy with these values
 typedef struct MkvsynthMetaData MkvsynthMetaData;
 struct MkvsynthMetaData {
-	int colorspace;
+	short colorspace;
 	int width;
 	int height;
 	int fpsNumerator;
@@ -94,10 +94,12 @@ struct MkvsynthInput {
 	MkvsynthMetaData *metaData;
 };
 
+// A pixel is just a 64bit field for data.
+// if your depth is 16, you can have up to 4 channels
+// if your depth is 8, you can have up to 8 channels
 typedef struct MkvsynthPixel MkvsynthPixel;
 struct MkvsynthPixel {
-	int colorspace;
-	short channel[3];
+	uint8_t channel[8];
 };
 
 #endif

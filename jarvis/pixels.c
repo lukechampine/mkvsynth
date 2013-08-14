@@ -3,53 +3,114 @@
 
 #include "pixels.h"
 
-MkvsynthPixel getPixel(MkvsynthFrame *frame, int widthOffset, int heightOffset) {
-	MkvsynthPixel returnVal = {0};
-	return returnVal;
+MkvsynthPixel getPixel(uint8_t *payload, MkvsynthMetaData *metaData, int widthOffset, int heightOffset) {
+
+#ifdef DEBUG
+	if(metaData->colorspace < 1 || metaData->colorspace > 4) {
+		prints("getPixel() debug error: colorspace is not valid.\n");
+		exit(0);
+	}
+#endif
+
+	MkvsynthPixel pixel;
+	uint16_t *deepChannel = (uint16_t *)pixel.channel;
+	uint16_t *deepPayload = (uint16_t *)payload;
+	int offset = heightOffset * metaData->width + widthOffset;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			deepChannel[0]           = deepPayload[offset];
+			deepChannel[1]           = deepPayload[offset+1];
+			deepChannel[2]           = deepPayload[offset+2];
+			break;
+		case MKVS_RGB24:
+			pixel.channel[0]         = payload[offset];
+			pixel.channel[1]         = payload[offset+1];
+			pixel.channel[2]         = payload[offset+2];
+			break;
+		case MKVS_YUV444_48:
+			deepChannel[0]           = deepPayload[offset];
+			deepChannel[1]           = deepPayload[offset+1];
+			deepChannel[2]           = deepPayload[offset+2];
+			break;
+		case MKVS_YUV444_24:
+			pixel.channel[0]         = payload[offset];
+			pixel.channel[1]         = payload[offset+1];
+			pixel.channel[2]         = payload[offset+2];
+			break;
+	}
+
+	return pixel;
 }
 
-void putPixel(MkvsynthPixel *pixel, uint8_t *payload, int widthOffset, int heightOffset) {
-	// do something
+void putPixel(MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaData, int widthOffset, int heightOffset) {
+	
+#ifdef DEBUG
+	if(metaData->colorspace < 1 || metaData->colorspace > 4) {
+		prints("getPixel() debug error: colorspace is not valid.\n");
+		exit(0);
+	}
+#endif
+
+	uint16_t *deepChannel = (uint16_t *)pixel->channel;
+	uint16_t *deepPayload = (uint16_t *)payload;
+	int offset = heightOffset * metaData->width + widthOffset;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			deepPayload[offset]      = deepChannel[0];
+			deepPayload[offset+1]    = deepChannel[1];
+			deepPayload[offset+2]    = deepChannel[2];
+			break;
+		case MKVS_RGB24:
+			payload[offset]          = pixel->channel[0];
+			payload[offset+1]        = pixel->channel[1];
+			payload[offset+2]        = pixel->channel[2];
+			break;
+		case MKVS_YUV444_48:
+			deepPayload[offset]      = deepChannel[0];
+			deepPayload[offset+1]    = deepChannel[1];
+			deepPayload[offset+2]    = deepChannel[2];
+			break;
+		case MKVS_YUV444_24:
+			payload[offset]          = pixel->channel[0];
+			payload[offset+1]        = pixel->channel[1];
+			payload[offset+2]        = pixel->channel[2];
+			break;
+	}
 }
 
 // Overlay takes one pixel and adds values based on the overlay.
-// currently there is no check for overflow, but that will be added.
-void overlay(MkvsynthPixel *destination, MkvsynthPixel *source, double strength) {
+// overflow checks will need to be added
+void overlay(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspace, double strength) {
 
 #ifdef DEBUG
-	if(destination->colorspace != source->colorspace) {
-		printf("overlay() debug error: source and destination colorspace must match\n");
-		exit(0);
-	}
-
-	if(destination->colorspace < 1 || destination->colorspace > 4) {
+	if(colorspace < 1 || colorspace > 4) {
 		prints("overlay() debug error: colorspace is not valid.\n");
 		exit(0);
 	}
 #endif
 
-	uint8_t *destChars       = (uint8_t *)destination->channel;
-	uint8_t *sourceChars     = (uint8_t *)source->channel;
-	switch(destination->colorspace) {
+	uint16_t *destChars       = (uint16_t *)destination->channel;
+	uint16_t *sourceChars     = (uint16_t *)source->channel;
+	switch(colorspace) {
 		case MKVS_RGB48:
-			destination->channel[0] += source->channel[0] * strength;
-			destination->channel[1] += source->channel[1] * strength;
-			destination->channel[2] += source->channel[2] * strength;
+			destChars[0]            += source->channel[0] * strength;
+			destChars[1]            += source->channel[1] * strength;
+			destChars[2]            += source->channel[2] * strength;
 			break;
 		case MKVS_RGB24:
-			destChars[0]            += source->channel[0] * strength;
-			destChars[1]            += source->channel[1] * strength;
-			destChars[2]            += source->channel[2] * strength;
-			break;
-		case MKVS_YUV444_48:
 			destination->channel[0] += source->channel[0] * strength;
 			destination->channel[1] += source->channel[1] * strength;
 			destination->channel[2] += source->channel[2] * strength;
 			break;
-		case MKVS_YUV444_24:
+		case MKVS_YUV444_48:
 			destChars[0]            += source->channel[0] * strength;
 			destChars[1]            += source->channel[1] * strength;
 			destChars[2]            += source->channel[2] * strength;
+			break;
+		case MKVS_YUV444_24:
+			destination->channel[0] += source->channel[0] * strength;
+			destination->channel[1] += source->channel[1] * strength;
+			destination->channel[2] += source->channel[2] * strength;
 			break;
 	}
 }
