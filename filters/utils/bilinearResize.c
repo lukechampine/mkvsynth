@@ -40,7 +40,7 @@ void *bilinearResize(void *filterParams) {
 				double bottomLeftWeight  = (xRight - x) * (y - yTop);
 				double bottomRightWeight = (x - xLeft)  * (y - yTop);
 
-				MkvsynthPixel topLeft     = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yTop);
+				/*MkvsynthPixel topLeft     = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yTop);
 				MkvsynthPixel topRight    = getPixel(workingFrame->payload, params->input->metaData, xRight, yTop);
 				MkvsynthPixel bottomLeft  = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yBottom);
 				MkvsynthPixel bottomRight = getPixel(workingFrame->payload, params->input->metaData, xRight, yBottom);
@@ -51,7 +51,7 @@ void *bilinearResize(void *filterParams) {
 				overlay(&newPixel, &bottomLeft,  params->output->metaData->colorspace, bottomLeftWeight);
 				overlay(&newPixel, &bottomRight, params->output->metaData->colorspace, bottomRightWeight);
 
-				putPixel(&newPixel, payload, params->input->metaData, i, j);
+				putPixel(&newPixel, payload, params->input->metaData, i, j);*/
 			}
 		}
 

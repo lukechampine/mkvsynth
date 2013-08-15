@@ -18,24 +18,24 @@ MkvsynthPixel getPixel(uint8_t *payload, MkvsynthMetaData *metaData, int widthOf
 	int offset = heightOffset * metaData->width + widthOffset;
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
-			deepChannel[0]           = deepPayload[offset];
-			deepChannel[1]           = deepPayload[offset+1];
-			deepChannel[2]           = deepPayload[offset+2];
+			deepChannel[0]           = deepPayload[offset*3];
+			deepChannel[1]           = deepPayload[offset*3+1];
+			deepChannel[2]           = deepPayload[offset*3+2];
 			break;
 		case MKVS_RGB24:
-			pixel.channel[0]         = payload[offset];
-			pixel.channel[1]         = payload[offset+1];
-			pixel.channel[2]         = payload[offset+2];
+			pixel.channel[0]         = payload[offset*3];
+			pixel.channel[1]         = payload[offset*3+1];
+			pixel.channel[2]         = payload[offset*3+2];
 			break;
 		case MKVS_YUV444_48:
-			deepChannel[0]           = deepPayload[offset];
-			deepChannel[1]           = deepPayload[offset+1];
-			deepChannel[2]           = deepPayload[offset+2];
+			deepChannel[0]           = deepPayload[offset*3];
+			deepChannel[1]           = deepPayload[offset*3+1];
+			deepChannel[2]           = deepPayload[offset*3+2];
 			break;
 		case MKVS_YUV444_24:
-			pixel.channel[0]         = payload[offset];
-			pixel.channel[1]         = payload[offset+1];
-			pixel.channel[2]         = payload[offset+2];
+			pixel.channel[0]         = payload[offset*3];
+			pixel.channel[1]         = payload[offset*3+1];
+			pixel.channel[2]         = payload[offset*3+2];
 			break;
 	}
 
