@@ -30,21 +30,21 @@ void *bilinearResize(void *filterParams) {
 
 				// get the integral versions
 				int xLeft   = floor(x);
-				int xRight  = floor(x+1);
+				int xRight  = xLeft + 1;
 				int yTop    = floor(y);
-				int yBottom = floor(y+1);
+				int yBottom = yTop + 1;
 
-				MkvsynthPixel topLeft     = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yTop);
-				MkvsynthPixel topRight    = getPixel(workingFrame->payload, params->input->metaData, xRight, yTop);
-				MkvsynthPixel bottomLeft  = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yBottom);
-				MkvsynthPixel bottomRight = getPixel(workingFrame->payload, params->input->metaData, xRight, yBottom);
-				
 				// merge them together according to weight.
 				double topLeftWeight     = (xRight - x) * (yBottom - y);
 				double topRightWeight    = (x - xLeft)  * (yBottom - y);
 				double bottomLeftWeight  = (xRight - x) * (y - yTop);
 				double bottomRightWeight = (x - xLeft)  * (y - yTop);
 
+				MkvsynthPixel topLeft     = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yTop);
+				MkvsynthPixel topRight    = getPixel(workingFrame->payload, params->input->metaData, xRight, yTop);
+				MkvsynthPixel bottomLeft  = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yBottom);
+				MkvsynthPixel bottomRight = getPixel(workingFrame->payload, params->input->metaData, xRight, yBottom);
+				
 				MkvsynthPixel newPixel = {0};
 				overlay(&newPixel, &topLeft,     params->output->metaData->colorspace, topLeftWeight);
 				overlay(&newPixel, &topRight,    params->output->metaData->colorspace, topRightWeight);

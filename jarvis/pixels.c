@@ -89,8 +89,8 @@ void overlay(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspace
 	}
 #endif
 
-	uint16_t *destChars       = (uint16_t *)destination->channel;
-	uint16_t *sourceChars     = (uint16_t *)source->channel;
+	uint16_t *destChars          = (uint16_t *)destination->channel;
+	uint16_t *sourceChars        = (uint16_t *)source->channel;
 	switch(colorspace) {
 		case MKVS_RGB48:
 			destChars[0]            += source->channel[0] * strength;
