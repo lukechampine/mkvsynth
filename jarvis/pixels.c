@@ -2,6 +2,7 @@
 #define pixels_c_
 
 #include "pixels.h"
+#include <stdio.h>
 
 MkvsynthPixel getPixel(uint8_t *payload, MkvsynthMetaData *metaData, int widthOffset, int heightOffset) {
 
@@ -54,6 +55,8 @@ void putPixel(MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaData
 	uint16_t *deepChannel = (uint16_t *)pixel->channel;
 	uint16_t *deepPayload = (uint16_t *)payload;
 	int offset = heightOffset * metaData->width + widthOffset;
+	offset *= 3;
+	//printf("%i\n", offset);
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
 			deepPayload[offset]      = deepChannel[0];
@@ -80,7 +83,7 @@ void putPixel(MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaData
 
 // Overlay takes one pixel and adds values based on the overlay.
 // overflow checks will need to be added
-void overlay(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspace, double strength) {
+void addPixel(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspace, double strength) {
 
 #ifdef DEBUG
 	if(colorspace < 1 || colorspace > 4) {
@@ -93,9 +96,11 @@ void overlay(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspace
 	uint16_t *sourceChars        = (uint16_t *)source->channel;
 	switch(colorspace) {
 		case MKVS_RGB48:
-			destChars[0]            += source->channel[0] * strength;
-			destChars[1]            += source->channel[1] * strength;
-			destChars[2]            += source->channel[2] * strength;
+			//printf("[%llx] + [%llx] * %g= ", *((unsigned long long *)&destination->channel[0]), *((unsigned long long *)&source->channel[0]), strength);
+			destChars[0]            += sourceChars[0] * strength;
+			destChars[1]            += sourceChars[1] * strength;
+			destChars[2]            += sourceChars[2] * strength;
+			//printf("[%llx]\n", *((unsigned long long *)&destination->channel[0]));
 			break;
 		case MKVS_RGB24:
 			destination->channel[0] += source->channel[0] * strength;
