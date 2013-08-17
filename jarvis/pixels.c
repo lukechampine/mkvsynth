@@ -8,7 +8,7 @@ MkvsynthPixel getPixel(uint8_t *payload, MkvsynthMetaData *metaData, int widthOf
 
 #ifdef DEBUG
 	if(metaData->colorspace < 1 || metaData->colorspace > 4) {
-		prints("getPixel() debug error: colorspace is not valid.\n");
+		printf("getPixel() debug error: colorspace is not valid.\n");
 		exit(0);
 	}
 #endif
@@ -17,26 +17,28 @@ MkvsynthPixel getPixel(uint8_t *payload, MkvsynthMetaData *metaData, int widthOf
 	uint16_t *deepChannel = (uint16_t *)pixel.channel;
 	uint16_t *deepPayload = (uint16_t *)payload;
 	int offset = heightOffset * metaData->width + widthOffset;
+	offset *= 3;
+
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
-			deepChannel[0]           = deepPayload[offset*3];
-			deepChannel[1]           = deepPayload[offset*3+1];
-			deepChannel[2]           = deepPayload[offset*3+2];
+			deepChannel[0]           = deepPayload[offset];
+			deepChannel[1]           = deepPayload[offset+1];
+			deepChannel[2]           = deepPayload[offset+2];
 			break;
 		case MKVS_RGB24:
-			pixel.channel[0]         = payload[offset*3];
-			pixel.channel[1]         = payload[offset*3+1];
-			pixel.channel[2]         = payload[offset*3+2];
+			pixel.channel[0]         = payload[offset];
+			pixel.channel[1]         = payload[offset+1];
+			pixel.channel[2]         = payload[offset+2];
 			break;
 		case MKVS_YUV444_48:
-			deepChannel[0]           = deepPayload[offset*3];
-			deepChannel[1]           = deepPayload[offset*3+1];
-			deepChannel[2]           = deepPayload[offset*3+2];
+			deepChannel[0]           = deepPayload[offset];
+			deepChannel[1]           = deepPayload[offset+1];
+			deepChannel[2]           = deepPayload[offset+2];
 			break;
 		case MKVS_YUV444_24:
-			pixel.channel[0]         = payload[offset*3];
-			pixel.channel[1]         = payload[offset*3+1];
-			pixel.channel[2]         = payload[offset*3+2];
+			pixel.channel[0]         = payload[offset];
+			pixel.channel[1]         = payload[offset+1];
+			pixel.channel[2]         = payload[offset+2];
 			break;
 	}
 
@@ -47,7 +49,7 @@ void putPixel(MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaData
 	
 #ifdef DEBUG
 	if(metaData->colorspace < 1 || metaData->colorspace > 4) {
-		prints("getPixel() debug error: colorspace is not valid.\n");
+		printf("putPixel() debug error: colorspace is not valid.\n");
 		exit(0);
 	}
 #endif
@@ -56,7 +58,6 @@ void putPixel(MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaData
 	uint16_t *deepPayload = (uint16_t *)payload;
 	int offset = heightOffset * metaData->width + widthOffset;
 	offset *= 3;
-	//printf("%i\n", offset);
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
 			deepPayload[offset]      = deepChannel[0];
@@ -87,7 +88,7 @@ void addPixel(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspac
 
 #ifdef DEBUG
 	if(colorspace < 1 || colorspace > 4) {
-		prints("overlay() debug error: colorspace is not valid.\n");
+		printf("overlay() debug error: colorspace is not valid.\n");
 		exit(0);
 	}
 #endif
@@ -108,9 +109,9 @@ void addPixel(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspac
 			destination->channel[2] += source->channel[2] * strength;
 			break;
 		case MKVS_YUV444_48:
-			destChars[0]            += source->channel[0] * strength;
-			destChars[1]            += source->channel[1] * strength;
-			destChars[2]            += source->channel[2] * strength;
+			destChars[0]            += sourceChars[0] * strength;
+			destChars[1]            += sourceChars[1] * strength;
+			destChars[2]            += sourceChars[2] * strength;
 			break;
 		case MKVS_YUV444_24:
 			destination->channel[0] += source->channel[0] * strength;

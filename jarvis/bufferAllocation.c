@@ -5,15 +5,12 @@
 // Semaphores will be added to SempahoreList as inputs add themselves
 // First frame starts empty, but will be filled out by first call to putFrame
 MkvsynthOutput *createOutputBuffer() {
-	MkvsynthMetaData *metaData = malloc(sizeof(MkvsynthMetaData));
 	MkvsynthOutput *output = malloc(sizeof(MkvsynthOutput));
-	
 	output->outputBreadth = 0;
 	output->semaphores = malloc(sizeof(MkvsynthSemaphoreList));
 	output->recentFrame = malloc(sizeof(MkvsynthFrame));
 	output->recentFrame->filtersRemaining = 0;
-	output->metaData = metaData;
-	
+	output->metaData = malloc(sizeof(MkvsynthMetaData));
 	return output;
 }
 

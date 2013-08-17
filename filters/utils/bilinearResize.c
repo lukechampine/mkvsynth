@@ -18,50 +18,58 @@ void *bilinearResize(void *filterParams) {
 	while(workingFrame->payload != NULL) {
 		uint8_t *payload = malloc(getBytes(params->output->metaData));
 
-		double widthRatio = (double)params->input->metaData->width / (double)params->output->metaData->width;
-		double heightRatio = (double)params->input->metaData->height / (double)params->output->metaData->height;
-
+		double xRatio = ((double)params->input->metaData->width - 1) / ((double)params->output->metaData->width - 1);
+		double yRatio = ((double)params->input->metaData->height - 1) / ((double)params->output->metaData->height - 1);
+		
 		int i, j;
-		for(i = 0; i < params->output->metaData->width; i++) {
-			for(j = 0; j < params->output->metaData->height; j++) {
-				// Find top left neighbor corner
-				double x = (double)j * widthRatio;
-				double y = (double)i * heightRatio;
+		for(i = 0; i < params->output->metaData->height; i++) {
+			for(j = 0; j < params->output->metaData->width; j++) {
+				double x = (double)j * xRatio;
+				double y = (double)i * yRatio;
 
-				// get the integral versions
 				int xLeft   = floor(x);
-				int xRight  = xLeft + 1;
+				int xRight  = ceil((float)x);
 				int yTop    = floor(y);
-				int yBottom = yTop + 1;
+				int yBottom = ceil((float)y);
 
-				// merge them together according to weight.
-				double topLeftWeight     = (xRight - x) * (yBottom - y);
-				double topRightWeight    = (x - xLeft)  * (yBottom - y);
-				double bottomLeftWeight  = (xRight - x) * (y - yTop);
-				double bottomRightWeight = (x - xLeft)  * (y - yTop);
+				double rightDiff = xRight - x;
+				double leftDiff = x - xLeft;
+				double bottomDiff = yBottom - y;
+				double topDiff = y - yTop;
 
-				/*MkvsynthPixel topLeft     = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yTop);
+				if(leftDiff == 0)
+					leftDiff = 1;
+
+				if(topDiff == 0)
+					topDiff = 1;
+
+				double topLeftWeight     = rightDiff * bottomDiff;
+				double topRightWeight    = leftDiff  * bottomDiff;
+				double bottomLeftWeight  = rightDiff * topDiff;
+				double bottomRightWeight = leftDiff  * topDiff;
+
+				MkvsynthPixel topLeft     = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yTop);
 				MkvsynthPixel topRight    = getPixel(workingFrame->payload, params->input->metaData, xRight, yTop);
 				MkvsynthPixel bottomLeft  = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yBottom);
 				MkvsynthPixel bottomRight = getPixel(workingFrame->payload, params->input->metaData, xRight, yBottom);
-				
-				MkvsynthPixel newPixel = {0};
-				overlay(&newPixel, &topLeft,     params->output->metaData->colorspace, topLeftWeight);
-				overlay(&newPixel, &topRight,    params->output->metaData->colorspace, topRightWeight);
-				overlay(&newPixel, &bottomLeft,  params->output->metaData->colorspace, bottomLeftWeight);
-				overlay(&newPixel, &bottomRight, params->output->metaData->colorspace, bottomRightWeight);
 
-				putPixel(&newPixel, payload, params->input->metaData, i, j);*/
+				MkvsynthPixel newPixel = {0};
+				addPixel(&newPixel, &topLeft,     params->output->metaData->colorspace, topLeftWeight);
+				addPixel(&newPixel, &topRight,    params->output->metaData->colorspace, topRightWeight);
+				addPixel(&newPixel, &bottomLeft,  params->output->metaData->colorspace, bottomLeftWeight);
+				addPixel(&newPixel, &bottomRight, params->output->metaData->colorspace, bottomRightWeight);
+
+				putPixel(&newPixel, payload, params->output->metaData, j, i);
 			}
 		}
 
-		clearReadOnlyFrame(workingFrame);
 		putFrame(params->output, payload);
+		clearReadOnlyFrame(workingFrame);
 		workingFrame = getReadOnlyFrame(params->input);
 	}
 
-	clearReadOnlyFrame(workingFrame);
 	putFrame(params->output, NULL);
+	clearReadOnlyFrame(workingFrame);
 	free(params);
 }
 
