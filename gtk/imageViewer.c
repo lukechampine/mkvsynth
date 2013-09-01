@@ -24,8 +24,10 @@ void nextFrame(GtkWidget *button, struct ViewerParams *params) {
 		gtk_image_set_from_pixbuf(GTK_IMAGE(params->imageViewer), params->pixbuf);
 		clearReadOnlyFrame(params->workingFrame);
 		params->workingFrame = getReadOnlyFrame(params->input);
-		//if(params->workingFrame->payload == NULL)
-			//free(params);
+		if(params->workingFrame->payload == NULL) {
+			free(params);
+			gtk_main_quit();
+		}
 	}
 }
 

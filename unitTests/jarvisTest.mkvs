@@ -4,21 +4,28 @@
 # Test 1: decode a video, outputs to 1 filter
 a = ffmpegDecode("unitTests/testVid.mkv");
 
-# Test 2: crop, outputs to multiple filters
-b = crop(a, 5, 5, 5, 5);
+# Test 2: crop, outputs to a single filter
+a = crop(a, 5, 5, 5, 5);
 
-# Test 3: removeRange
-c = removeRange(b, 0, 100);
+# Test 3: removeRange, outputs to 2 filters
+a = removeRange(a, 0, 140);
 
-# Test 4: crop again
-d = crop(b, 25, 25, 25, 25);
+# Test 4: crop 'a' again to get 'b'
+b = crop(a, 25, 25, 25, 25);
 
-d = bilinearResize(d, 460, 150);
+# Test 5: resize 'a' to get 'c'
+c = bilinearResize(a, 460, 150);
 
-# Test 5: x264Encode
-x264Encode(c, "unitTests/testOut1.mkv");
+# Test 6: encode 'b'
+x264Encode(b, "unitTests/testOut1.mkv");
 
-# Test 6: x264Encode with i444 colorspace
-x264Encode(d, "unitTests/testOut2.mkv", params:"--output-csp i444 --crf 16.5");
+# Test 7: x264Encode 'c' in i444 colorspace
+x264Encode(c, "unitTests/testOut2.mkv", params:"--output-csp i444 --crf 16.5");
+
+# Test 8: convert 'c' from rgb48 to rgb24
+c = convertColorspace(c, "rgb24");
+
+# Test 9: open a gui to read 'c'
+viewer(c);
 
 go();
