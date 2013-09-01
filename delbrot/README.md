@@ -39,8 +39,6 @@ The syntax of delbrot has fluctuated wildly over the course of its development, 
 ## implementation ##
 delbrot uses flex and bison for lexing and parsing operations. flex scans the input and returns tokens that satisfy a set of regex-based rules. bison matches the tokens to a BNF-style grammar and executes any associated C code. These tools confer all the advantages of a native C interpreter without the hassle of scanning, tokenizing, and parsing the source file. For a more detailed explanation of how the interpreter works, see the documentation file.
 
-To try out the interpreter, simply run `make && ./del` to enter an interactive session. Control-D exits.
-
 ## a short history ##
 
 delbrot has had a rough life. It started out as a C "transpiler" written in Perl by Luke, which offended the sensibilities of a lot of people. In response, Forest started work on a native C interpreter, but his implementation suffered from a lack of good compiler principles (i.e. the standard model of scanner -> tokenizer -> parser, etc.).
