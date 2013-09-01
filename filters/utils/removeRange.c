@@ -30,6 +30,7 @@ void *removeRange(void *filterParams) {
 	putFrame(params->output, NULL);
 	clearFrame(workingFrame);
 	free(params);
+	return NULL;
 }
 
 ASTnode *removeRange_AST(ASTnode *p, ASTnode *args) {

@@ -53,7 +53,7 @@ void *bilinearResize(void *filterParams) {
 				MkvsynthPixel bottomLeft  = getPixel(workingFrame->payload, params->input->metaData, xLeft,  yBottom);
 				MkvsynthPixel bottomRight = getPixel(workingFrame->payload, params->input->metaData, xRight, yBottom);
 
-				MkvsynthPixel newPixel = {0};
+				MkvsynthPixel newPixel = {{0}};
 				addPixel(&newPixel, &topLeft,     params->output->metaData->colorspace, topLeftWeight);
 				addPixel(&newPixel, &topRight,    params->output->metaData->colorspace, topRightWeight);
 				addPixel(&newPixel, &bottomLeft,  params->output->metaData->colorspace, bottomLeftWeight);
@@ -71,6 +71,7 @@ void *bilinearResize(void *filterParams) {
 	putFrame(params->output, NULL);
 	clearReadOnlyFrame(workingFrame);
 	free(params);
+	return NULL;
 }
 
 ASTnode *bilinearResize_AST(ASTnode *p, ASTnode *args) {

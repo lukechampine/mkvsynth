@@ -1,16 +1,28 @@
-del: delbrot/lex.yy.c delbrot/y.tab.c delbrot/delbrot.c delbrot/plugins.c
-	@cc -lm -lpthread -lavformat -lswscale                                       \
-	jarvis/bufferAllocation.c            jarvis/frameControl.c                   \
-	jarvis/spawn.c                       jarvis/properties.c                     \
-	jarvis/pixels.c                                                              \
-	delbrot/lex.yy.c                     delbrot/y.tab.c                         \
-	delbrot/delbrot.c                    delbrot/plugins.c                       \
-	filters/coding/ffmpegDecode.c        filters/coding/x264Encode.c             \
-	filters/debug/writeRawFile.c         filters/debug/gradientVideoGenerate.c   \
-	filters/debug/testingGradient.c                                              \
-	filters/utils/bilinearResize.c                                               \
-	filters/utils/crop.c                 filters/utils/removeRange.c             \
-	-o del
+CC = gcc
+CFLAGS = -Wall
+DEPS = delbrot/delbrot.h jarvis/jarvis.h jarvis/bufferAllocation.h             \
+       jarvis/frameControl.h jarvis/pixels.h jarvis/properties.h               \
+       jarvis/spawn.h
+LIBS = -lm -lpthread -lavformat -lswscale
+OBJ = jarvis/bufferAllocation.o jarvis/frameControl.o jarvis/spawn.o           \
+      jarvis/properties.o jarvis/pixels.o                                      \
+			delbrot/lex.yy.o delbrot/y.tab.o delbrot/delbrot.o delbrot/plugins.o     \
+			filters/coding/ffmpegDecode.o filters/coding/x264Encode.o                \
+			filters/debug/writeRawFile.o filters/debug/gradientVideoGenerate.o       \
+			filters/debug/testingGradient.o filters/utils/bilinearResize.o           \
+			filters/utils/crop.o filters/utils/removeRange.o                         \
+			filters/utils/convertColorspace.o                                        \
+			gtk/imageViewer.c
+
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+mkvsynth: $(OBJ)
+	$(CC) `pkg-config --cflags gtk+-3.0` -o $@ $^ $(CFLAGS) $(LIBS) `pkg-config --libs gtk+-3.0`
+
+clean:
+	find . -type f -name "*.o" -delete
+	rm -rf mkvsynth test
 
 test: unitTests/testAll.c
 	@cc unitTests/testAll.c jarvis/pixels.c jarvis/properties.c unitTests/pixelTest.c -o test

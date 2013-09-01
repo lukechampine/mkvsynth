@@ -18,11 +18,10 @@ struct ffmpegDecode {
 	AVFrame *rgbFrame;
 	AVDictionary *dictionary;
 	struct SwsContext *resizeContext;
-	int i;
 	int videoStream;
 	int frameFinished;
-	uint8_t *payload;
-	uint8_t *payload2;
+	uint8_t *rgbFramePayload;
+	uint8_t *outputPayload;
 
 	MkvsynthOutput *output;
 };
@@ -52,15 +51,9 @@ void *ffmpegDecode(void *filterParams) {
 					params->rgbFrame->data,
 					params->rgbFrame->linesize);
 			
-				int y;
-				params->payload2 = malloc(6*params->codecContext->width*params->codecContext->height);
-  
-				for(y = 0; y < 3*params->codecContext->width*params->codecContext->height; y++) {
-					params->payload2[y*2] = 0;
-					params->payload2[y*2+1] = *(params->rgbFrame->data[0]+y);
-				}
-
-				putFrame(params->output, params->payload2);
+				params->outputPayload = malloc(getBytes(params->output->metaData));
+  			memcpy(params->outputPayload, params->rgbFrame->data[0], getBytes(params->output->metaData));
+				putFrame(params->output, params->outputPayload);
 			}
 		}
 		
@@ -77,10 +70,11 @@ void *ffmpegDecode(void *filterParams) {
 	/////////////////////////
 	av_free(params->frame);
 	av_free(params->rgbFrame);
-	av_free(params->payload);
+	av_free(params->rgbFramePayload);
 	avcodec_close(params->codecContext);
 	avformat_close_input(&params->formatContext);
 	free(params);
+	return NULL;
 }
 
 ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
@@ -101,7 +95,7 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 	params->codec = NULL;
 	params->frame = NULL;
 	params->rgbFrame = NULL;
-	params->payload = NULL;
+	params->rgbFramePayload = NULL;
 	
 	//////////////////////////////////////
 	// Error Checking And Initializtion //
@@ -122,9 +116,10 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 
 	av_dump_format(params->formatContext, 0, filename, 0);
 	
-	for(params->i=0; params->i<params->formatContext->nb_streams; params->i++) {
-		if(params->formatContext->streams[params->i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-			params->videoStream = params->i;
+	int i;
+	for(i = 0; i < params->formatContext->nb_streams; i++) {
+		if(params->formatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+			params->videoStream = i;
 			break;
 		}
 	}
@@ -152,8 +147,8 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 	params->frame = avcodec_alloc_frame();
 	params->rgbFrame = avcodec_alloc_frame();
 
-	int bytes = avpicture_get_size(PIX_FMT_RGB24, params->codecContext->width, params->codecContext->height);
-	params->payload = (uint8_t *)av_malloc(bytes*sizeof(uint8_t));
+	int bytes = avpicture_get_size(PIX_FMT_RGB48, params->codecContext->width, params->codecContext->height);
+	params->rgbFramePayload = (uint8_t *)av_malloc(bytes*sizeof(uint8_t));
 	
 	params->resizeContext = sws_getContext (
 		params->codecContext->width,
@@ -161,13 +156,13 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 		params->codecContext->pix_fmt,
 		params->codecContext->width,
 		params->codecContext->height,
-		PIX_FMT_RGB24,
+		PIX_FMT_RGB48,
 		SWS_SPLINE,
 		NULL,
 		NULL,
 		NULL);
 
-	avpicture_fill((AVPicture *)params->rgbFrame, params->payload, PIX_FMT_RGB24, params->codecContext->width, params->codecContext->height);
+	avpicture_fill((AVPicture *)params->rgbFrame, params->rgbFramePayload, PIX_FMT_RGB48, params->codecContext->width, params->codecContext->height);
 
 	///////////////
 	// Meta Data //

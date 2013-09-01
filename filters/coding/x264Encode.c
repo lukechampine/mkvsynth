@@ -28,7 +28,6 @@ void *x264Encode(void *filterParams) {
 
 	MkvsynthFrame *workingFrame = getReadOnlyFrame(params->input);
 
-	int i = 0;
 	while(workingFrame->payload != NULL) {
 		fwrite(workingFrame->payload, 1, getBytes(params->input->metaData), x264Proc);
 		clearReadOnlyFrame(workingFrame);
@@ -37,6 +36,7 @@ void *x264Encode(void *filterParams) {
 
 	pclose(x264Proc);
 	free(params);
+	return NULL;
 }
 
 void x264Encode_AST(ASTnode *p, ASTnode *args) {

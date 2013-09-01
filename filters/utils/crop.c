@@ -18,7 +18,7 @@ void *crop(void *filterParams) {
 	while(workingFrame->payload != NULL) {
 		uint8_t *payload = malloc(getBytes(params->output->metaData));
 
-		int i, j;
+		int i;
 		for(i = 0; i < params->output->metaData->height; i++) {
 			int sourceOffset = (double)((double)params->left / (double)params->input->metaData->width) * (double)getLinesize(params->input->metaData);
 			sourceOffset += (i + params->top) * getLinesize(params->input->metaData);
@@ -27,14 +27,15 @@ void *crop(void *filterParams) {
 			memcpy(payload+destOffset, workingFrame->payload+sourceOffset, offsetSize);
 		}
 		
-		clearReadOnlyFrame(workingFrame);
 		putFrame(params->output, payload);
+		clearReadOnlyFrame(workingFrame);
 		workingFrame = getReadOnlyFrame(params->input);
 	}
 
-	clearReadOnlyFrame(workingFrame);
 	putFrame(params->output, NULL);
+	clearReadOnlyFrame(workingFrame);
 	free(params);
+	return NULL;
 }
 
 ASTnode *crop_AST(ASTnode *p, ASTnode *args) {

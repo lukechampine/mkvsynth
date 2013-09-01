@@ -12,6 +12,8 @@ int getDepth(MkvsynthMetaData *metaData) {
 		case MKVS_YUV444_24:
 			return 8;
 	}
+
+	return -1;
 }
 
 // Returns the number of bytes in the frame
@@ -26,6 +28,8 @@ int getBytes(MkvsynthMetaData *metaData) {
 		case MKVS_YUV444_24:
 			return metaData->width * metaData->height * 3;
 	}
+
+	return -1;
 }
 
 int getLinesize(MkvsynthMetaData *metaData) {
@@ -39,6 +43,8 @@ int getLinesize(MkvsynthMetaData *metaData) {
 		case MKVS_YUV444_24:
 			return metaData->width * 3;
 	}
+
+	return -1;
 }
 
 int isMetaDataValid(MkvsynthMetaData *metaData) {
@@ -58,5 +64,5 @@ int isMetaDataValid(MkvsynthMetaData *metaData) {
 		printf("Color space value: %i\n", metaData->colorspace);
 	}
 
-	return 0;
+	return -1;
 }

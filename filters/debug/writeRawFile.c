@@ -27,6 +27,7 @@ void *writeRawFile(void *filterParams) {
 	}
 
 	free(params);
+	return NULL;
 }
 
 void writeRawFile_AST(ASTnode *p, ASTnode *args) {

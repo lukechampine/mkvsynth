@@ -29,6 +29,6 @@ MkvsynthPixel adjustLightness        (MkvsynthPixel *pixel, double intensity);
 MkvsynthPixel adjustSaturation       (MkvsynthPixel *pixel, double intensity);
 MkvsynthPixel adjustValue            (MkvsynthPixel *pixel, double intensity);
 
-void overlay                         (MkvsynthPixel *destination, MkvsynthPixel *source, short colorspace, double strength);
+void addPixel                        (MkvsynthPixel *destination, MkvsynthPixel *source, short colorspace, double strength);
 
 #endif

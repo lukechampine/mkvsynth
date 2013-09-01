@@ -23,6 +23,7 @@ void *gradientVideoGenerate(void *filterParams) {
 
 	putFrame(params->output, NULL);
 	free(params);
+	return NULL;
 }
 
 ASTnode *gradientVideoGenerate_AST(ASTnode *p, ASTnode *args) {

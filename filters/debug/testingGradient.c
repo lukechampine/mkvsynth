@@ -23,6 +23,7 @@ void *testingGradient(void *filterParams) {
 
 	putFrame(params->output, NULL);
 	free(params);
+	return NULL;
 }
 
 ASTnode *testingGradient_AST(ASTnode *p, ASTnode *args) {

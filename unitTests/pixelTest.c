@@ -1,4 +1,4 @@
-#include "../jarvis.h"
+#include "../jarvis/jarvis.h"
 
 void testGetPixelAndPutPixel(int *tests, int*testsPassed) {
 	// make a generic metaData to use for testing

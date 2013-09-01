@@ -13,7 +13,7 @@ c = removeRange(b, 0, 100);
 # Test 4: crop again
 d = crop(b, 25, 25, 25, 25);
 
-d = bilinearResize(d, 260, 200);
+d = bilinearResize(d, 460, 150);
 
 # Test 5: x264Encode
 x264Encode(c, "unitTests/testOut1.mkv");
