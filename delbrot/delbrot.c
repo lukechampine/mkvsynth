@@ -133,11 +133,11 @@ ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
         if (!pTraverse && !aTraverse)
             break;
         if (pTraverse && !aTraverse) {
-            while (pTraverse = pTraverse->next) i++;
+            while ((pTraverse = pTraverse->next)) i++;
             yyerror("%s expected %d argument(s), got %d", fnNode->fn.name, ++i, j);
         }
         if (!pTraverse && aTraverse) {
-            while (aTraverse = aTraverse->next) j++;
+            while ((aTraverse = aTraverse->next)) j++;
             yyerror("%s expected %d argument(s), got %d", fnNode->fn.name, i, ++j);
         }
         if (pTraverse->type != aTraverse->type)
