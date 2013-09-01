@@ -32,6 +32,7 @@ int getBytes(MkvsynthMetaData *metaData) {
 	return -1;
 }
 
+// Returns the number of bytes in 1 line of a frame
 int getLinesize(MkvsynthMetaData *metaData) {
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
@@ -47,6 +48,8 @@ int getLinesize(MkvsynthMetaData *metaData) {
 	return -1;
 }
 
+// Some colorspaces have limitations like resolution that is divisible by 2
+// At the moment, mkvsynth does not support any colorspaces with limitations
 int isMetaDataValid(MkvsynthMetaData *metaData) {
 	if(metaData->colorspace >= 1 && metaData->colorspace <= 4) {
 		switch(metaData->colorspace) {

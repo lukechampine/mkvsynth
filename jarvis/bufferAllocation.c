@@ -1,9 +1,11 @@
 #include "bufferAllocation.h"
 
+///////////////////////////////////////////////
 // Allocate memory for all fields
 // OutputBreadth starts at 0, will be increased as inputs add themsevles
 // Semaphores will be added to SempahoreList as inputs add themselves
 // First frame starts empty, but will be filled out by first call to putFrame
+///////////////////////////////////////////////
 MkvsynthOutput *createOutputBuffer() {
 	MkvsynthOutput *output = malloc(sizeof(MkvsynthOutput));
 	output->outputBreadth = 0;
@@ -14,9 +16,11 @@ MkvsynthOutput *createOutputBuffer() {
 	return output;
 }
 
+///////////////////////////////////////////////
 // add a semaphore and increase outputBreadth
 // initialize the semaphores to a buffer of 5
 // semaphore linked list has a blank at the end
+///////////////////////////////////////////////
 MkvsynthInput *createInputBuffer(MkvsynthOutput *output) {
 	MkvsynthInput *input = malloc(sizeof(MkvsynthInput));
 	

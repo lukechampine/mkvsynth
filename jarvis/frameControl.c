@@ -5,6 +5,7 @@
 #include "properties.h"
 #include <stdio.h>
 
+/////////////////////////////////////////////////
 // producer-consumer problem: first step is to wait for the frame
 // second step is to lock the frame
 //
@@ -15,6 +16,7 @@
 // of the frame and return it to the requesting filter.
 //
 // if this is the last filter, just return a pointer to the frame
+/////////////////////////////////////////////////
 MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	sem_wait(params->remainingBuffer);
 	pthread_mutex_lock(&params->currentFrame->lock);
@@ -48,8 +50,10 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	return newFrame;
 }
 
+/////////////////////////////////////////////////
 // frame is read-only, which means we just wait on the semaphores
 // and return the frame. No values get modified (much faster)
+/////////////////////////////////////////////////
 MkvsynthFrame *getReadOnlyFrame(MkvsynthInput *params) {
 	sem_wait(params->remainingBuffer);
 
@@ -60,6 +64,7 @@ MkvsynthFrame *getReadOnlyFrame(MkvsynthInput *params) {
 	return newFrame;
 }
 
+/////////////////////////////////////////////////
 // producer-consumer problem: first make sure there's room
 // in the buffer by insuring that all input frames have finished
 // remember that each input has a unique semaphore
@@ -75,6 +80,7 @@ MkvsynthFrame *getReadOnlyFrame(MkvsynthInput *params) {
 // It's done this way so that at the very beginnning, the 
 // inputs and outputs can be pointed to an existing first frame
 // even though no data has been filled out
+/////////////////////////////////////////////////
 void putFrame(MkvsynthOutput *params, uint8_t *payload) {	
 	int i;
 	MkvsynthSemaphoreList *tmp = params->semaphores;
@@ -99,14 +105,28 @@ void putFrame(MkvsynthOutput *params, uint8_t *payload) {
 	}
 }
 
-// right now it's pretty simple because getFrame does all the work.
+/////////////////////////////////////////////////
+// clearFrame destroys the mutex and frame but
+// leaves the payload intact
+//
+// clearFrame assumes that filtersRemaining == 0
+/////////////////////////////////////////////////
 void clearFrame(MkvsynthFrame *usedFrame) {
+
+#ifdef DEBUG
+	if(usedFrame->filtersRemaining != 0) {
+		printf("clearFrame ERROR: filtersRemaining should equal 0!\n");
+		exit(0);
+	}
+#endif
+
 	pthread_mutex_destroy(&usedFrame->lock);
 	free(usedFrame);
 }
 
-// have to check filtersRemaining, because getReadOnlyFrame
-// doesn't modify the value
+/////////////////////////////////////////////////
+// clearReadOnlyFrame destroys the 
+/////////////////////////////////////////////////
 void clearReadOnlyFrame(MkvsynthFrame *usedFrame) {
 	pthread_mutex_lock(&usedFrame->lock);
 	if(usedFrame->filtersRemaining == 1) {

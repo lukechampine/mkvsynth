@@ -13,7 +13,7 @@ MkvsynthPixel getPixel(uint8_t *payload, MkvsynthMetaData *metaData, int widthOf
 	}
 #endif
 
-	MkvsynthPixel pixel;
+	MkvsynthPixel pixel = {0};
 	uint16_t *deepChannel = (uint16_t *)pixel.channel;
 	uint16_t *deepPayload = (uint16_t *)payload;
 	int offset = heightOffset * metaData->width + widthOffset;
@@ -97,11 +97,9 @@ void addPixel(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspac
 	uint16_t *sourceChars        = (uint16_t *)source->channel;
 	switch(colorspace) {
 		case MKVS_RGB48:
-			//printf("[%llx] + [%llx] * %g= ", *((unsigned long long *)&destination->channel[0]), *((unsigned long long *)&source->channel[0]), strength);
 			destChars[0]            += sourceChars[0] * strength;
 			destChars[1]            += sourceChars[1] * strength;
 			destChars[2]            += sourceChars[2] * strength;
-			//printf("[%llx]\n", *((unsigned long long *)&destination->channel[0]));
 			break;
 		case MKVS_RGB24:
 			destination->channel[0] += source->channel[0] * strength;
