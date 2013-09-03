@@ -1,19 +1,22 @@
 # MkvSynth #
 
-### Overview:
+MkvSynth is a modular set of specifications designed to enable parallel video processing. Right now, the major features include a parser and a control program. MkvSynth itself is nothing more than documentation and specification, but each piece is being implemented by separate programs (included in this project) titled 'delbrot' (the parser) and 'Jarvis' (the control program). The goal is to keep these programs fully modular, such that if either was substituted out for a different program that still perfectly followed spec, the other piece would still cooperate.
 
-Mkvsynth is a modular set of specifications designed to enable parallel video processing. Right now, the major features include a parser and a control program. Mkvsynth itself is nothing more than documentation and specification, but each piece is being implemented by separate programs (included in this project) titled 'Delbrot' (the parser) and 'Jarvis' (the control program). The goal is to keep these programs fully modular, such that if either was substituted out for a different program that still perfectly followed spec, the other piece would still cooperate.
+Installation
+------------
+To build MkvSynth, you need the FFmpeg and x264 libraries:
+```
+$ git clone https://github.com/FFmpeg/FFmpeg.git
+$ cd FFmpeg && ./configure
+$ make && make install
 
-### Nearest Milestone:
+$ git clone https://github.com/DarkShikari/x264-devel.git
+$ cd x264-devel && ./configure
+$ make && make install
+```
+Now you can simply run `make` to build MkvSynth.
 
-Create a working command line program 'mkvsynth' that can take in a text file according to a (reduced) spec that will create a raw video, filter the raw video, and then save the filtered video to a file.
-
-### Long Term Goal:
-
-Create a linux compatible program that is superior to avisynth.
-
-### Similar Projects:
-Avxsynth, FFmpeg, Avidemux, OpenShot:
+If you want to hack on the interpreter, you'll have to install Flex and Bison, which can be found through your package manager. The makefile will automatically detect changes to `delbrot.l` and `delbrot.y` and will call Flex and/or Bison accordingly.
 
 delbrot
 -------
@@ -26,8 +29,8 @@ Jarvis is the (new) codename for the program that spawns and manages filters and
 Roles
 -----
 - David: project lead, filter creation, x264 integration
-- Forest: GUI wizard, scripting language design
 - Luke: scripting language lead, delbrot implementation
+- Forest: GUI wizard, scripting language design
 
 Questions?
 ----------
