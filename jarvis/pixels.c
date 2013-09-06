@@ -4,6 +4,14 @@
 #include "pixels.h"
 #include <stdio.h>
 
+/////////////////////////////////////////////////
+// One of the major assumptions of Mkvsynth is that
+// 16 bit colorspaces will be stored as uint16_t and
+// 8 bit colorspaces will be stored as uint8_t.
+// This is only enforced by convention and is hard to
+// error-check
+/////////////////////////////////////////////////
+
 MkvsynthPixel getPixel(uint8_t *payload, MkvsynthMetaData *metaData, int widthOffset, int heightOffset) {
 
 #ifdef DEBUG
@@ -16,8 +24,7 @@ MkvsynthPixel getPixel(uint8_t *payload, MkvsynthMetaData *metaData, int widthOf
 	MkvsynthPixel pixel = {0};
 	uint16_t *deepChannel = (uint16_t *)pixel.channel;
 	uint16_t *deepPayload = (uint16_t *)payload;
-	int offset = heightOffset * metaData->width + widthOffset;
-	offset *= 3;
+	int offset = 3 * (heightOffset * metaData->width + widthOffset);
 
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
@@ -56,8 +63,8 @@ void putPixel(MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaData
 
 	uint16_t *deepChannel = (uint16_t *)pixel->channel;
 	uint16_t *deepPayload = (uint16_t *)payload;
-	int offset = heightOffset * metaData->width + widthOffset;
-	offset *= 3;
+	int offset = 3 * (heightOffset * metaData->width + widthOffset);
+
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
 			deepPayload[offset]      = deepChannel[0];
@@ -93,13 +100,14 @@ void addPixel(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspac
 	}
 #endif
 
-	uint16_t *destChars          = (uint16_t *)destination->channel;
-	uint16_t *sourceChars        = (uint16_t *)source->channel;
+	uint16_t *destDeep          = (uint16_t *)destination->channel;
+	uint16_t *sourceDeep        = (uint16_t *)source->channel;
+
 	switch(colorspace) {
 		case MKVS_RGB48:
-			destChars[0]            += sourceChars[0] * strength;
-			destChars[1]            += sourceChars[1] * strength;
-			destChars[2]            += sourceChars[2] * strength;
+			destDeep[0]             += sourceDeep[0] * strength;
+			destDeep[1]             += sourceDeep[1] * strength;
+			destDeep[2]             += sourceDeep[2] * strength;
 			break;
 		case MKVS_RGB24:
 			destination->channel[0] += source->channel[0] * strength;
@@ -107,9 +115,9 @@ void addPixel(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspac
 			destination->channel[2] += source->channel[2] * strength;
 			break;
 		case MKVS_YUV444_48:
-			destChars[0]            += sourceChars[0] * strength;
-			destChars[1]            += sourceChars[1] * strength;
-			destChars[2]            += sourceChars[2] * strength;
+			destDeep[0]             += sourceDeep[0] * strength;
+			destDeep[1]             += sourceDeep[1] * strength;
+			destDeep[2]             += sourceDeep[2] * strength;
 			break;
 		case MKVS_YUV444_24:
 			destination->channel[0] += source->channel[0] * strength;

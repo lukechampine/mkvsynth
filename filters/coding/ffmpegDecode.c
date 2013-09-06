@@ -7,6 +7,11 @@
 #include <libswscale/swscale.h>
 #include <stdio.h>
 
+/////////////////////////////////////////////////
+// It is untested but assumed that ffmpeg and swscale
+// do all rgb48 as uint16_t instead of uint8_t
+/////////////////////////////////////////////////
+
 /////////////////////////////////////
 // The Threaded Function Arguments //
 /////////////////////////////////////
@@ -148,7 +153,7 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 	params->rgbFrame = avcodec_alloc_frame();
 
 	int bytes = avpicture_get_size(PIX_FMT_RGB48, params->codecContext->width, params->codecContext->height);
-	params->rgbFramePayload = (uint8_t *)av_malloc(bytes*sizeof(uint8_t));
+	params->rgbFramePayload = (uint8_t *)av_malloc(bytes);
 	
 	params->resizeContext = sws_getContext (
 		params->codecContext->width,
