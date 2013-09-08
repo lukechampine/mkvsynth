@@ -14,7 +14,14 @@ $ git clone https://github.com/DarkShikari/x264-devel.git
 $ cd x264-devel && ./configure
 $ make && make install
 ```
-Now you can simply run `make` to build MkvSynth.
+You may also need more dev packages depending on your system. For ubuntu, you need:
+
+libavcodec-dev
+libavformat-dev
+libavutil-dev
+libgtk-3-dev
+
+Now you can run `make` to build MkvSynth.
 
 If you want to hack on the interpreter, you'll have to install Flex and Bison, which can be found through your package manager. The makefile will automatically detect changes to `delbrot.l` and `delbrot.y` and will call Flex and/or Bison accordingly.
 

@@ -21,7 +21,7 @@ MkvsynthPixel getPixel(uint8_t *payload, MkvsynthMetaData *metaData, int widthOf
 	}
 #endif
 
-	MkvsynthPixel pixel = {0};
+	MkvsynthPixel pixel = {{0}};
 	uint16_t *deepChannel = (uint16_t *)pixel.channel;
 	uint16_t *deepPayload = (uint16_t *)payload;
 	int offset = 3 * (heightOffset * metaData->width + widthOffset);
