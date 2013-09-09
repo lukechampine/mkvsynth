@@ -5,9 +5,10 @@ DELBROT_OBJ = delbrot/lex.yy.o                                                 \
               delbrot/y.tab.o                                                  \
               delbrot/delbrot.o                                                \
               delbrot/plugins.o
+DELBROT_LIBS = -lm
 
-FFMPEG_INCLUDES = $(shell pkg-config --cflags libavformat libavcodec libswscale)
-FFMPEG_LIBS = $(shell pkg-config --libs libavformat libavcodec libswscale)
+FFMPEG_INCLUDES = $(shell pkg-config --cflags libavformat libavcodec libswscale libavutil)
+FFMPEG_LIBS = $(shell pkg-config --libs libavformat libavcodec libswscale libavutil)
 FFMPEG_OBJ = filters/coding/ffmpegDecode.o
 $(FFMPEG_OBJ): EXTRA_INCLUDES := $(FFMPEG_INCLUDES)
 
@@ -20,6 +21,7 @@ JARVIS_OBJ = jarvis/bufferAllocation.o                                         \
              jarvis/spawn.o
 JARVIS_DEPS = jarvis/jarvis.h                                                  \
               jarvis/datatypes.h
+JARVIS_LIBS = -lpthread
 
 MPL_OBJ = mpl/pixels.o                                                         \
           mpl/properties.o
@@ -49,7 +51,7 @@ mkvsynth: $(DELBROT_OBJ)                                                       \
           $(FILTERS_DEBUG_OBJ)                                                 \
           $(FILTERS_UTIL_OBJ)                                                  \
           $(X264_OBJ)
-	$(CC) $(CFLAGS) $^ $(FFMPEG_LIBS) $(GUI_LIBS) -o $@
+	$(CC) $(CFLAGS) $^ $(FFMPEG_LIBS) $(GUI_LIBS) $(DELBROT_LIBS) $(JARVIS_LIBS) -o $@
 
 clean:
 	find . -type f -name "*.o" -delete
