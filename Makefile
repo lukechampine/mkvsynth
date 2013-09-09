@@ -44,7 +44,7 @@ mkvsynth: $(DELBROT_OBJ) $(FFMPEG_OBJ) $(GUI_OBJ) $(MPL_OBJ) $(JARVIS_OBJ) $(FIL
 
 clean:
 	find . -type f -name "*.o" -delete
-	rm -rf mkvsynth test
+	rm -rf mkvsynth test unitTests/testOut1.mkv unitTests/testOut2.mkv
 
 delbrot/lex.yy.c: delbrot/delbrot.l
 	@cd delbrot && flex delbrot.l && cd ..
