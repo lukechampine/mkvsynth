@@ -2,7 +2,6 @@
 #define frameControl_c_
 
 #include "frameControl.h"
-#include "properties.h"
 #include <stdio.h>
 
 /////////////////////////////////////////////////

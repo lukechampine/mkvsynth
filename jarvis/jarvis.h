@@ -2,10 +2,10 @@
 #define jarvis_h_
 
 #include "../delbrot/delbrot.h"
+#include "../mpl/pixels.h"
+#include "../mpl/properties.h"
 #include "bufferAllocation.h"
 #include "frameControl.h"
-#include "pixels.h"
-#include "properties.h"
 #include "spawn.h"
 
 #endif
