@@ -36,10 +36,19 @@ FILTERS_UTIL_OBJ =  filters/utils/bilinearResize.o                             \
 
 X264_OBJ = filters/coding/x264Encode.o
 
-%.o: %.c
+%.o: %.c                                                                       \
+     $(JARVIS_DEPS)                                                            \
+     $(MPL_DEPS)
 	$(CC) $(CFLAGS) $< $(EXTRA_INCLUDES) -c -o $@
 
-mkvsynth: $(DELBROT_OBJ) $(FFMPEG_OBJ) $(GUI_OBJ) $(MPL_OBJ) $(JARVIS_OBJ) $(FILTERS_DEBUG_OBJ) $(FILTERS_UTIL_OBJ) $(X264_OBJ)
+mkvsynth: $(DELBROT_OBJ)                                                       \
+          $(FFMPEG_OBJ)                                                        \
+          $(GUI_OBJ)                                                           \
+          $(MPL_OBJ)                                                           \
+          $(JARVIS_OBJ)                                                        \
+          $(FILTERS_DEBUG_OBJ)                                                 \
+          $(FILTERS_UTIL_OBJ)                                                  \
+          $(X264_OBJ)
 	$(CC) $(CFLAGS) $^ $(FFMPEG_LIBS) $(GUI_LIBS) -o $@
 
 clean:
