@@ -1,5 +1,5 @@
 # delbrot #
-This is the current implementation of delbrot, the MkvSynth script interpreter.
+This is the current implementation of delbrot, the mkvsynth script interpreter.
 
 ## features ##
 At present, delbrot is essentially a glorified calculator. It only has support for doubles and strings. But already it showcases a level of sophistication greater than any previous implementation. Functions can be defined (and called recursively), method calls can be chained, and optional parameters are supported:
@@ -21,7 +21,7 @@ function euler(int acc, int x) {
 		acc += x;
 	return euler(acc, x + 1);
 }
-print(euler(0,0)) # prints "233168"
+print(euler(0,0)) # prints "233168";
 
 # method chaining
 0.sin.cos.print; # equivalent to print(cos(sin(0))), prints "1"
