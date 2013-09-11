@@ -1,8 +1,4 @@
-#ifndef pixels_c_
-#define pixels_c_
-
 #include "pixels.h"
-#include <stdio.h>
 
 /////////////////////////////////////////////////
 // One of the major assumptions of Mkvsynth is that
@@ -91,7 +87,7 @@ void putPixel(MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaData
 
 // Overlay takes one pixel and adds values based on the overlay.
 // overflow checks will need to be added
-void addPixel(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspace, double strength) {
+void addPixel(MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t colorspace, double strength) {
 
 #ifdef DEBUG
 	if(colorspace < 1 || colorspace > 4) {
@@ -126,5 +122,3 @@ void addPixel(MkvsynthPixel *destination, MkvsynthPixel *source, short colorspac
 			break;
 	}
 }
-
-#endif

@@ -7,14 +7,14 @@ DELBROT_OBJ = delbrot/lex.yy.o                                                 \
               delbrot/plugins.o
 DELBROT_LIBS = -lm
 
-FFMPEG_INCLUDES = $(shell pkg-config --cflags libavformat libavcodec libswscale libavutil)
+FFMPEG_CFLAGS = $(shell pkg-config --cflags libavformat libavcodec libswscale libavutil)
 FFMPEG_LIBS = $(shell pkg-config --libs libavformat libavcodec libswscale libavutil)
 FFMPEG_OBJ = filters/coding/ffmpegDecode.o
-$(FFMPEG_OBJ): EXTRA_INCLUDES := $(FFMPEG_INCLUDES)
+$(FFMPEG_OBJ): EXTRA_CFLAGS := $(FFMPEG_CFLAGS)
 
 GUI_LIBS = $(shell pkg-config --libs gtk+-3.0)
 GUI_OBJ = gtk/imageViewer.o
-$(GUI_OBJ): EXTRA_INCLUDES := $(shell pkg-config --cflags gtk+-3.0)
+$(GUI_OBJ): EXTRA_CFLAGS := $(shell pkg-config --cflags gtk+-3.0)
 
 JARVIS_OBJ = jarvis/bufferAllocation.o                                         \
              jarvis/frameControl.o                                             \
@@ -23,9 +23,9 @@ JARVIS_DEPS = jarvis/jarvis.h                                                  \
               jarvis/datatypes.h
 JARVIS_LIBS = -lpthread
 
-MPL_OBJ = mpl/pixels.o                                                         \
-          mpl/properties.o
-MPL_DEPS = mpl/datatypes.h
+MPL_OBJ = colorspacing/pixels.o                                                \
+          colorspacing/properties.o
+MPL_DEPS = colorspacing/colorspacing.h
 
 FILTERS_DEBUG_OBJ = filters/debug/gradientVideoGenerate.o                      \
                     filters/debug/testingGradient.o                            \
@@ -41,7 +41,7 @@ X264_OBJ = filters/coding/x264Encode.o
 %.o: %.c                                                                       \
      $(JARVIS_DEPS)                                                            \
      $(MPL_DEPS)
-	$(CC) $(CFLAGS) $< $(EXTRA_INCLUDES) -c -o $@
+	$(CC) $(CFLAGS) $< $(EXTRA_CFLAGS) -c -o $@
 
 mkvsynth: $(DELBROT_OBJ)                                                       \
           $(FFMPEG_OBJ)                                                        \
