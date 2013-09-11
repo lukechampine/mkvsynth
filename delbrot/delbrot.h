@@ -2,7 +2,7 @@
 #define delbrot_h_
 
 #include <setjmp.h>
-#include "../jarvis/datatypes.h"
+#include "../jarvis/jarvis.h"
 
 typedef struct ASTnode ASTnode;
 typedef struct Env Env;

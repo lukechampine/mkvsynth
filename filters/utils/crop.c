@@ -1,4 +1,5 @@
 #include "../../jarvis/jarvis.h"
+#include <string.h>
 #include <stdio.h>
 
 struct CropParams {

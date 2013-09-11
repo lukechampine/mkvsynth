@@ -1,5 +1,4 @@
 #include "colorspacing.h"
-#include <stdio.h>
 
 MkvsynthPixel getPixel               (uint8_t *payload, MkvsynthMetaData *metaData, int widthOffset, int heightOffset);
 void          putPixel               (MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaData, int widthOffset, int heightOffset);

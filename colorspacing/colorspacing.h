@@ -3,7 +3,7 @@
 
 // Ideally the colorspacing libraries would be independent of the jarvis
 //   libraries. 
-#include "../jarvis/datatypes.h"
+#include "../jarvis/jarvis.h"
 
 /******************************************************************************
  * A pixel is a 64 bit field for data. This can be divided any way desired.   *
@@ -20,5 +20,8 @@ typedef struct MkvsynthPixel MkvsynthPixel;
 struct MkvsynthPixel {
 	uint8_t channel[8];
 };
+
+#include "pixels.h"
+#include "properties.h"
 
 #endif

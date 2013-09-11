@@ -2,6 +2,7 @@
 #define frameControl_c_
 
 #include "frameControl.h"
+#include <string.h>
 #include <stdio.h>
 
 /////////////////////////////////////////////////

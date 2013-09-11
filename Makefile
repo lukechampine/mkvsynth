@@ -5,6 +5,7 @@ DELBROT_OBJ = delbrot/lex.yy.o                                                 \
               delbrot/y.tab.o                                                  \
               delbrot/delbrot.o                                                \
               delbrot/plugins.o
+DELBROT_DEPS = delbrot/delbrot.h
 DELBROT_LIBS = -lm
 
 FFMPEG_CFLAGS = $(shell pkg-config --cflags libavformat libavcodec libswscale libavutil)
@@ -19,8 +20,7 @@ $(GUI_OBJ): EXTRA_CFLAGS := $(shell pkg-config --cflags gtk+-3.0)
 JARVIS_OBJ = jarvis/bufferAllocation.o                                         \
              jarvis/frameControl.o                                             \
              jarvis/spawn.o
-JARVIS_DEPS = jarvis/jarvis.h                                                  \
-              jarvis/datatypes.h
+JARVIS_DEPS = jarvis/jarvis.h
 JARVIS_LIBS = -lpthread
 
 MPL_OBJ = colorspacing/pixels.o                                                \
@@ -40,7 +40,8 @@ X264_OBJ = filters/coding/x264Encode.o
 
 %.o: %.c                                                                       \
      $(JARVIS_DEPS)                                                            \
-     $(MPL_DEPS)
+     $(MPL_DEPS)                                                               \
+     $(DELBROT_DEPS)
 	$(CC) $(CFLAGS) $< $(EXTRA_CFLAGS) -c -o $@
 
 mkvsynth: $(DELBROT_OBJ)                                                       \

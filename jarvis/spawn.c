@@ -1,4 +1,5 @@
 #include "spawn.h"
+#include <stdio.h>
 
 /////////////////////////////////////////////////
 // these variables are used to prevent a need to
