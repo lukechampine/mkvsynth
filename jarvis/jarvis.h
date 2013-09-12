@@ -18,11 +18,27 @@ typedef struct MkvsynthFrame MkvsynthFrame;
 typedef struct MkvsynthOutput MkvsynthOutput;
 typedef struct MkvsynthInput MkvsynthInput;
 
-// I've been very uncertain what metaData to add.
-// In most systems, the 'colorspace' field is
-// sufficient, but I wanted a more generic approach.
-//
-// I'm still not happy with these values
+/*******************************************************************************
+ * Also see MkvsynthFrame                                                      *
+ *                                                                             *
+ * Between each filter is a buffer of frames. The filter outputting frames     *
+ * points to that buffer using an MkvsynthOutput. The filter using the buffer  *
+ * as input points to the buffer using an MkvsynthInput. Both the              *
+ * MkvsynthOutput and the MkvsynthInput point to the same MkvsynthMetaData     *
+ * object. The output filter uses the MkvsynthMetaData to tell the input       *
+ * filter(s) how to interpret the payload data.                                *
+ *                                                                             *
+ * int outputBreadth:                                                          *
+ *   Multiple filters can use the same buffer of frames for input. Each filter *
+ * using the output for input needs to see and process each frame. Therefore   *
+ * the output needs to be aware of how many times it is being used for input.  *
+ *                                                                             *
+ * recentFrame:                                                                *
+ *   The most recently output frame from the output filter. When the output    *
+ * filter adds another frame it gets connected to recentFrame.                 *
+ *                                                                             *
+ * *** I am not sure that these are all the needed variables               *** *
+ ******************************************************************************/
 struct MkvsynthMetaData {
 	short colorspace;
 	int width;
@@ -32,8 +48,18 @@ struct MkvsynthMetaData {
 	void *extraData;
 };
 
-// Linked list structure, containing 2 semaphores to
-// solve the producer-consumer problems when editing video
+/*******************************************************************************
+ * Each buffer is only allowed to contain a finite number of frames because    *
+ * mkvsynth would otherwise potentially consume all of system memory and       *
+ * eventually crash. Because everything operates in a different pthread,       *
+ * semaphores are needed to control the size of the buffer.                    *
+ *                                                                             *
+ * Each buffer can be used by multiple filters for input, and each input may   *
+ * be looking at a different frame in the buffer. Because of this, each input  *
+ * needs to have a different semaphore for communicating with the output       *
+ * filter. Each input however only needs to be aware of it's own place in the  *
+ * buffer.                                                                     *
+ ******************************************************************************/
 struct MkvsynthSemaphoreList {
 	sem_t remainingBuffer;
 	sem_t consumedBuffer;
@@ -49,10 +75,20 @@ struct MkvsynthFilterQueue {
 	MkvsynthFilterQueue *next;
 };
 
-// videos are linked lists of frames, payload is raw data
-// mutexes are used on a per-frame basis
-// filtersRemaining is a counter so that the frame isn't free()'d before
-//   every filter has had a chance to collect the needed data
+
+/*******************************************************************************
+ * Each frame needs to know how many filters have not finished looking at it,  *
+ * so that the functions in frameControl.c do not deallocate memory            *
+ * prematurely. The mutex is needed to prevent multiple threads (aka filters)  *
+ * from decrementing the count at the same time.                               *
+ *                                                                             *
+ * The payload for a frame conatins all of the raw pixel data. You need an     *
+ * MkvsynthMetaData to be able to interpret the raw data. The structure        *
+ * that points to the frame should also point to an associated                 *
+ * MkvsynthMetaData.                                                           *
+ *                                                                             *
+ * nextFrame is needed because a video is a linked list of MkvsynthFrames.     *
+ ******************************************************************************/
 struct MkvsynthFrame {
 	uint8_t *payload;
 
@@ -62,16 +98,24 @@ struct MkvsynthFrame {
 	MkvsynthFrame *nextFrame;
 };
 
-// An output can be used by multiple filters as input. Because
-// frames are output only once and each input can be at different
-// frames, every input gets a unique set of semaphores. Output
-// must call sem_wait and sem_post on the whole list every time.
-//
-// recentFrame points at the most recently output frame in the
-// video.
-//
-// metaData is shared between the output and all the inputs
-// using said output
+/*******************************************************************************
+ * Also see MkvsynthMetaData and MkvsynthSemaphoreList                         *
+ *                                                                             *
+ * An MkvsynthOutput and an MkvsynthInput wrap around the buffer that exists   *
+ * between filters. Ultimately, the each wrap the same data. MkvsynthOutput    *
+ * faces the filter that is outputting the data.                               *
+ *                                                                             *
+ * int outputBreadth:                                                          *
+ *   Multiple filters can use the same buffer of frames for input. Each filter *
+ * using the output for input needs to see and process each frame. Therefore   *
+ * the output needs to be aware of how many times it is being used for input.  *
+ *                                                                             *
+ * recentFrame:                                                                *
+ *   The most recently output frame from the output filter. When the output    *
+ * filter adds another frame it gets connected to recentFrame.                 *
+ *                                                                             *
+ * *** I am considering changing semaphores from a pointer to a data value *** *
+ ******************************************************************************/
 struct MkvsynthOutput {
 	int outputBreadth;
 	MkvsynthSemaphoreList *semaphores;
@@ -80,13 +124,14 @@ struct MkvsynthOutput {
 	MkvsynthMetaData *metaData;
 };
 
-// The semaphores are pointers, not arrays. Each input has a unique
-// pair of semaphores that it shares with its output
-//
-// metaData is also shared with the output
-//
-// inputs can be at different places, and therefore are
-// individually responsible for knowing what frame they are on
+/*******************************************************************************
+ * Also see MkvsynthOutput, MkvsynthSemaphoreList, and MkvsynthMetaData        *
+ *                                                                             *
+ * currentFrame:                                                               *
+ *   Current frame is the frame that is currently being accessed by the filter *
+ * using the MkvsynthInput. It may (or may not) be different from recentFrame  *
+ * in the associated MkvsynthOutput.                                           *
+ ******************************************************************************/
 struct MkvsynthInput {
 	sem_t *remainingBuffer;
 	sem_t *consumedBuffer;
