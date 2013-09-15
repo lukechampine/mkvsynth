@@ -5,18 +5,27 @@
 #include <string.h>
 #include <stdio.h>
 
-/////////////////////////////////////////////////
-// producer-consumer problem: first step is to wait for the frame
-// second step is to lock the frame
-//
-// second to last step is to unlock the frame
-// last step is to post on the frame
-//
-// if there are multiple filters remaining, make a complete copy
-// of the frame and return it to the requesting filter.
-//
-// if this is the last filter, just return a pointer to the frame
-/////////////////////////////////////////////////
+/******************************************************************************
+ * This function returns a frame from the buffer. First sem_wait() is called  *
+ * to ensure that there is a frame in the buffer. Then a mutex lock is called *
+ * to prevent other threads from making changes to the frame variables at the *
+ * same time as we are using it.                                              *
+ *                                                                            *
+ * getFrame() returns a unique frame to the next filter, meaning the next     *
+ * filter can be sure that no other frames will be looking at the data or     *
+ * modifying it. If multiple other filters need to look at the frame still    *
+ * (IE filtersRemaining > 1), then getFrame will memcpy the data and create   *
+ * a completely fresh frame for the calling filter to use. If the calling     *
+ * filter is the last filter (IE filtersRemaining < 2), it will just return   *
+ * a pointer to the frame without copying it.                                 *
+ *                                                                            *
+ * All frames returned from getFrame() will have a filtersRemaining value of  *
+ * 0.                                                                         *
+ *                                                                            *
+ * Once the copying is done, the mutex is unlocked and then sem_post() is     *
+ * called to inform the output filter that another space has opened up in the *
+ * buffer.                                                                    *
+ *****************************************************************************/
 MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	sem_wait(params->remainingBuffer);
 	pthread_mutex_lock(&params->currentFrame->lock);
@@ -27,8 +36,8 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 		newFrame = malloc(sizeof(MkvsynthFrame));
 		newFrame->payload = malloc(getBytes(params->metaData));
 
-		// ugly situation: without this if-else block, a
-		// memcpy will happen on a pointer that's not initialized: seg fault
+		// The first frame is NULL, so we have to make sure we are not
+		// 	looking at the first frame here.
 		if(params->currentFrame->payload != NULL)
 			memcpy(newFrame->payload, params->currentFrame->payload, getBytes(params->metaData));
 		else
@@ -50,10 +59,12 @@ MkvsynthFrame *getFrame(MkvsynthInput *params) {
 	return newFrame;
 }
 
-/////////////////////////////////////////////////
-// frame is read-only, which means we just wait on the semaphores
-// and return the frame. No values get modified (much faster)
-/////////////////////////////////////////////////
+/******************************************************************************
+ * getReadOnlyFrame() is like getFrame() except that it assumes that the      *
+ * filter will not be modifying the frame data. For that reason, the filter   *
+ * does not need a unique copy of the frame. filtersRemaining also is not     *
+ * decremented however, because the filter may still be looking at the data.  *
+ *****************************************************************************/
 MkvsynthFrame *getReadOnlyFrame(MkvsynthInput *params) {
 	sem_wait(params->remainingBuffer);
 
@@ -64,23 +75,23 @@ MkvsynthFrame *getReadOnlyFrame(MkvsynthInput *params) {
 	return newFrame;
 }
 
-/////////////////////////////////////////////////
-// producer-consumer problem: first make sure there's room
-// in the buffer by insuring that all input frames have finished
-// remember that each input has a unique semaphore
-// (no mutex needed)
-//
-// finish by doing sem_post for every input filter
-//
-// recentFrame points to an allocated-but-empty frame,
-// we fill it out with the payload data and set the filtersRemaining value
-//
-// then we allocate a new frame and make it recentFrame.
-//
-// It's done this way so that at the very beginnning, the 
-// inputs and outputs can be pointed to an existing first frame
-// even though no data has been filled out
-/////////////////////////////////////////////////
+/******************************************************************************
+ * putFrame places a frame into the buffer. Because the buffer is shared by   *
+ * many filters, a list of semaphores needs to be used. There is only space   *
+ * in the buffer if each of the next filters reports that there is space in   *
+ * the buffer.                                                                *
+ *                                                                            *
+ * recentFrame is a frame that has been allocated but not filled with data.   *
+ * putFrame will fill out recentFrame with the payload from the output filter *
+ * and initialize the mutex on the frame. filtersRemaining will be equal to   *
+ * the outputBreadth of the output filter.                                    *
+ *                                                                            *
+ * Memory is allocated so the recentFrame can be restored to its previous     *
+ * status of pointing to a shell of a frame.                                  *
+ *                                                                            *
+ * Finally sem_post() is called for all the input filters to let them know    *
+ * that a new frame has been added to the buffer.                             *
+ *****************************************************************************/
 void putFrame(MkvsynthOutput *params, uint8_t *payload) {	
 	int i;
 	MkvsynthSemaphoreList *tmp = params->semaphores;
@@ -105,12 +116,13 @@ void putFrame(MkvsynthOutput *params, uint8_t *payload) {
 	}
 }
 
-/////////////////////////////////////////////////
-// clearFrame destroys the mutex and frame but
-// leaves the payload intact
-//
-// clearFrame assumes that filtersRemaining == 0
-/////////////////////////////////////////////////
+/******************************************************************************
+ * clearFrame() will delete a frame but not the payload. The assumption here  *
+ * is that the payload modified and then used in the next frame. If           *
+ * filtersRemaining() is not 0 there was probably an error, because it either *
+ * means that the filter calling clearFrame() used getReadOnlyFrame() to grab *
+ * the frame, which is an error.                                              *
+ *****************************************************************************/
 void clearFrame(MkvsynthFrame *usedFrame) {
 
 #ifdef DEBUG
@@ -124,9 +136,16 @@ void clearFrame(MkvsynthFrame *usedFrame) {
 	free(usedFrame);
 }
 
-/////////////////////////////////////////////////
-// clearReadOnlyFrame destroys the 
-/////////////////////////////////////////////////
+/******************************************************************************
+ * clearReadOnlyFrame() checks that all filters (except the calling filter)   *
+ * have finished looking at the frame. If not, filtersReamining is reduced.   *
+ * This check must happen using a mutex to prevent race conditions between    *
+ * filters calling clearReadOnlyFrame().                                      *
+ *                                                                            *
+ * If it is the last filter, then the payload is destroyed as well as the     *
+ * frame. clearReadOnlyFrame() is different because it needs to check         *
+ * filtersRemaining and then it free's the payload.                           *
+ *****************************************************************************/
 void clearReadOnlyFrame(MkvsynthFrame *usedFrame) {
 	pthread_mutex_lock(&usedFrame->lock);
 	if(usedFrame->filtersRemaining == 1) {
