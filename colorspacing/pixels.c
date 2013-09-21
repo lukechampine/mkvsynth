@@ -134,23 +134,19 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 	float vf = 0.0;
 	float result1 = 0;
 	int check = 0;
+	
+	uint16_t *deepChannel = (uint16_t *)pixel->channel
 	switch(colorspace){
 		case MKVS_RGB48:
-			value = pixel->channel[0];
-			value = value * 256;
-			value += pixel->channel[1];
+			value = deepChannel[0];
 			break;
 		case MKVS_RGB24:
 			value = pixel->channel[0];
 			value = value * 256;
 			break;
 		case MKVS_YUV444_48:
-			y = pixel->channel[0];
-			y = y * 256;
-			y += pixel->channel[1];
-			v = pixel->channel[4];
-			v = v * 256;
-			v += pixel->channel[5];
+			y = deepChannel[0];
+			v = deepChannel[2];
 			yf = y;
 			vf = v;
 			result1 = yf + vf / .877 + .5;
@@ -196,24 +192,16 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	float result1 = 0;
 	switch(colorspace){
 		case MKVS_RGB48:
-			value = pixel->channel[2];
-			value = value * 256;
-			value += pixel->channel[3];
+			value = deepChannel[1];
 			break;
 		case MKVS_RGB24:
 			value = pixel->channel[1];
 			value = value * 256;
 			break;
 		case MKVS_YUV444_48:
-			y = pixel->channel[0];
-			y = y * 256;
-			y += pixel->channel[1];
-			u = pixel->channel[2];
-			u = u * 256;
-			u += pixel->channel[3];
-			v = pixel->channel[4];
-			v = v * 256;
-			v += pixel->channel[5];
+			y = deepChannel[0];
+			u = deepChannel[1];
+			v = deepChannel[2];
 			yf = y;
 			uf = u;
 			vf = v;
@@ -261,21 +249,15 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	float result1 = 0;
 	switch(colorspace){
 		case MKVS_RGB48:
-			value = pixel->channel[4];
-			value = value * 256;
-			value += pixel->channel[5];
+			value = deepChannel[2];
 			break;
 		case MKVS_RGB24:
 			value = pixel->channel[2];
 			value = value * 256;
 			break;
 		case MKVS_YUV444_48:
-			y = pixel->channel[0];
-			y = y * 256;
-			y += pixel->channel[1];
-			u = pixel->channel[2];
-			u = u * 256;
-			u += pixel->channel[3];
+			y = deepChannel[0];
+			u = deepChannel[1];
 			yf = y;
 			uf = u;
 			result1 = yf + uf / .492 + .5;
