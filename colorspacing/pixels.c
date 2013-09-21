@@ -135,7 +135,7 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 	float result1 = 0;
 	int check = 0;
 	
-	uint16_t *deepChannel = (uint16_t *)pixel->channel
+	uint16_t *deepChannel = (uint16_t *)pixel->channel;
 	switch(colorspace){
 		case MKVS_RGB48:
 			value = deepChannel[0];
@@ -190,6 +190,7 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	float uf = 0.0;
 	float vf = 0.0;
 	float result1 = 0;
+	uint16_t *deepChannel = (uint16_t *)pixel->channel;
 	switch(colorspace){
 		case MKVS_RGB48:
 			value = deepChannel[1];
@@ -247,6 +248,7 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	float yf = 0.0;
 	float uf = 0.0;
 	float result1 = 0;
+	uint16_t *deepChannel = (uint16_t *)pixel->channel;
 	switch(colorspace){
 		case MKVS_RGB48:
 			value = deepChannel[2];
