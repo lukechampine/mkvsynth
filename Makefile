@@ -29,7 +29,8 @@ MPL_DEPS = colorspacing/colorspacing.h
 
 FILTERS_DEBUG_OBJ = filters/debug/gradientVideoGenerate.o                      \
                     filters/debug/testingGradient.o                            \
-                    filters/debug/writeRawFile.o
+                    filters/debug/writeRawFile.o                               \
+                    filters/debug/colorspacingTests.o
 
 FILTERS_UTIL_OBJ =  filters/utils/bilinearResize.o                             \
                     filters/utils/crop.o                                       \
