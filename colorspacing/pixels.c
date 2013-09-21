@@ -122,3 +122,195 @@ void addPixel(MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t colors
 			break;
 	}
 }
+
+//pulls the red value from the pixel
+uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
+	short colorspace = metaData->colorspace;
+	uint16_t value = 0;
+	//these are only needed for the yuv colorspaces
+	int y = 0;
+	int v = 0;
+	float yf = 0.0;
+	float vf = 0.0;
+	float result1 = 0;
+	int check = 0;
+	switch(colorspace){
+		case MKVS_RGB48:
+			value = pixel->channel[0];
+			value = value * 256;
+			value += pixel->channel[1];
+			break;
+		case MKVS_RGB24:
+			value = pixel->channel[0];
+			value = value * 256;
+			break;
+		case MKVS_YUV444_48:
+			y = pixel->channel[0];
+			y = y * 256;
+			y += pixel->channel[1];
+			v = pixel->channel[4];
+			v = v * 256;
+			v += pixel->channel[5];
+			yf = y;
+			vf = v;
+			result1 = yf + vf / .877 + .5;
+			check = (int) result1;
+			if(check > 65535){
+				//this color is not in the rgb colorspace.
+				value = 65535;
+				break;
+			}
+			value = check;
+			break;
+		case MKVS_YUV444_24:
+			y = pixel->channel[0];
+			y = y * 256;
+			v = pixel->channel[2];
+			v = v * 256;
+			yf = y;
+			vf = v;
+			result1 = yf + vf / .877 + .5;
+			check = (int) result1;
+			if(check > 65535){
+				//this color is not in the rgb colorspace.
+				value = 65535;
+				break;
+			}
+			value = check;
+			break;
+	}
+	return value;
+}
+
+//pulls the green value from the pixel
+uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	short colorspace = metaData->colorspace;
+	uint16_t value = 0;
+	int y = 0;
+	int u = 0;
+	int v = 0;
+	int check = 0;
+	float yf = 0.0;
+	float uf = 0.0;
+	float vf = 0.0;
+	float result1 = 0;
+	switch(colorspace){
+		case MKVS_RGB48:
+			value = pixel->channel[2];
+			value = value * 256;
+			value += pixel->channel[3];
+			break;
+		case MKVS_RGB24:
+			value = pixel->channel[1];
+			value = value * 256;
+			break;
+		case MKVS_YUV444_48:
+			y = pixel->channel[0];
+			y = y * 256;
+			y += pixel->channel[1];
+			u = pixel->channel[2];
+			u = u * 256;
+			u += pixel->channel[3];
+			v = pixel->channel[4];
+			v = v * 256;
+			v += pixel->channel[5];
+			yf = y;
+			uf = u;
+			vf = v;
+			result1 = yf - .395 * uf - .581 * vf + .5;
+			check = (int) result1;
+			if(check < 0){
+				//this color is not in the rgb colorspace.
+				value = 0;
+				break;
+			}
+			value = check;
+			break;
+		case MKVS_YUV444_24:
+			y = pixel->channel[0];
+			y = y * 256;
+			u = pixel->channel[1];
+			u = u * 256;
+			v = pixel->channel[2];
+			v = v * 256;
+			yf = y;
+			uf = u;
+			vf = v;
+			result1 = yf - .395 * uf - .581 * vf + .5;
+			check = (int) result1;
+			if(check < 0){
+				//this color is not in the rgb colorspace.
+				value = 0;
+				break;
+			}
+			value = check;
+			break;
+	}
+	return value;
+}
+
+//pulls the red value from the pixel
+uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	short colorspace = metaData->colorspace;
+	uint16_t value = 0;
+	int y = 0;
+	int u = 0;
+	int check = 0;
+	float yf = 0.0;
+	float uf = 0.0;
+	float result1 = 0;
+	switch(colorspace){
+		case MKVS_RGB48:
+			value = pixel->channel[4];
+			value = value * 256;
+			value += pixel->channel[5];
+			break;
+		case MKVS_RGB24:
+			value = pixel->channel[2];
+			value = value * 256;
+			break;
+		case MKVS_YUV444_48:
+			y = pixel->channel[0];
+			y = y * 256;
+			y += pixel->channel[1];
+			u = pixel->channel[2];
+			u = u * 256;
+			u += pixel->channel[3];
+			yf = y;
+			uf = u;
+			result1 = yf + uf / .492 + .5;
+			check = (int) result1;
+			if(check > 65535){
+				//this color is not in the rgb colorspace.
+				value = 0;
+				break;
+			}
+			value = check;
+			break;
+		case MKVS_YUV444_24:
+			y = pixel->channel[0];
+			y = y * 256;
+			u = pixel->channel[1];
+			u = u * 256;
+			yf = y;
+
+			result1 = yf + uf / .492 + .5;
+			check = (int) result1;
+			if(check > 65535){
+				//this color is not in the rgb colorspace.
+				value = 65535;
+				break;
+			}
+			value = check;
+			result1 = y + u / .492 + .5;
+			check = (int) result1;
+			if(check > 65535){
+				//this color is not in the rgb colorspace.
+				value = 65535;
+				break;
+			}
+			value = check;
+			break;
+	}
+	return value;
+}
