@@ -58,8 +58,20 @@ clean:
 	find . -type f -name "*.o" -delete
 	rm -rf mkvsynth test unitTests/testOut1.mkv unitTests/testOut2.mkv
 
+FLEX_VERSION := $(shell flex --version 2> /dev/null)
+YACC_VERSION := $(shell yacc --version 2> /dev/null)
+
 delbrot/lex.yy.c: delbrot/delbrot.l
-	@cd delbrot && flex delbrot.l && cd ..
+ifdef FLEX_VERSION
+	flex -o delbrot/lex.yy.c delbrot/delbrot.l
+else
+	$(error flex not found. Either install it or revert your changes to delbrot.l)
+endif
 
 delbrot/y.tab.c: delbrot/delbrot.y
-	@cd delbrot && yacc -d delbrot.y && cd ..
+ifdef YACC_VERSION
+	@touch delbrot/delbrot.c # prevent makefile from clobbering delbrot.c
+	yacc -o delbrot/y.tab.c -d delbrot/delbrot.y
+else
+	$(error yacc/bison not found. Either install it or revert your changes to delbrot.y)
+endif

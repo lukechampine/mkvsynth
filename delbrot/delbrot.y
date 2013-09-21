@@ -7,6 +7,9 @@
     /* prototypes */
     Env *global;
     extern int linenumber;
+    /* script file */
+    extern FILE *yyin;
+    /* debug */
     #define YYDEBUG 1
 %}
 
@@ -290,12 +293,12 @@ ASTnode *getVar(Env const *e, char const *varName) {
 
 /* Called by yyparse on error. */
 void yyerror(char *error, ...) {
-    fprintf(stderr, "delbrot:%d error: ", linenumber);
+    fprintf(stderr, "\x1B[31mdelbrot:%d error: ", linenumber);
     va_list arglist;
     va_start(arglist, error);
     vfprintf(stderr, error, arglist);
     va_end(arglist);
-    fprintf(stderr, "\n");
+    fprintf(stderr, "\x1B[0m\n");
     exit(1);
 }
 
@@ -310,9 +313,24 @@ static fnEntry coreFunctions[] = {
     { 0,           0         },
 };
 
-int main() {
-    int i;
+int main(int argc, char **argv) {
     //yydebug = 1;
+
+    /* help message */
+    if ((argc != 1 && argc != 2)
+    || (argc > 1 && (!strcmp(argv[1],"-h") || !strcmp(argv[1],"--help")))) {
+        printf("Usage: mkvsynth [FILE]\nInterprets an mkvsynth script.\n\nIf FILE is omitted, STDIN will be used instead.\n\nReport bugs on github.com/DavidVorick/mkvsynth.\n");
+        exit(0);
+    }
+
+    /* read script file, if provided */
+    if (argc == 2) {
+        yyin = fopen(argv[1], "r+");
+        if (!yyin) {
+            printf("error: could not open file for reading\n");
+            exit(1);
+        }
+    }
 
     /* create global environment */
     global = (Env *) malloc(sizeof(Env));
@@ -323,6 +341,7 @@ int main() {
         exit(0);
 
     /* initialize function table */
+    int i;
     for(i = 0; coreFunctions[i].name != 0; i++)
         putFn(global, coreFunctions[i]);
     for(i = 0; pluginFunctions[i].name != 0; i++)
