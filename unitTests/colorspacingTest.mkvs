@@ -4,6 +4,9 @@ b = testingGradient();
 a = colorspacingTests(a);
 b = colorspacingTests(b);
 
+a = convertColorspace(a, "rgb24");
+b = convertColorspace(b, "rgb24");
+
 x264Encode(a, "unitTests/colorspaceTestOut1.mkv");
 x264Encode(b, "unitTests/colorspaceTestOut2.mkv");
 
