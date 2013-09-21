@@ -290,12 +290,12 @@ ASTnode *getVar(Env const *e, char const *varName) {
 
 /* Called by yyparse on error. */
 void yyerror(char *error, ...) {
-    fprintf(stderr, "delbrot:%d error: ", linenumber);
+    fprintf(stderr, "\x1B[31mdelbrot:%d error: ", linenumber);
     va_list arglist;
     va_start(arglist, error);
     vfprintf(stderr, error, arglist);
     va_end(arglist);
-    fprintf(stderr, "\n");
+    fprintf(stderr, "\x1B[0m\n");
     exit(1);
 }
 
