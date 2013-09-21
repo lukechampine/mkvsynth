@@ -76,11 +76,14 @@
     /* prototypes */
     Env *global;
     extern int linenumber;
+    /* script file */
+    extern FILE *yyin;
+    /* debug */
     #define YYDEBUG 1
 
 
 /* Line 268 of yacc.c  */
-#line 84 "delbrot/y.tab.c"
+#line 87 "delbrot/y.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -192,7 +195,7 @@ typedef int YYSTYPE;
 
 
 /* Line 343 of yacc.c  */
-#line 196 "delbrot/y.tab.c"
+#line 199 "delbrot/y.tab.c"
 
 #ifdef short
 # undef short
@@ -509,14 +512,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    32,    32,    34,    38,    39,    40,    41,    42,    46,
-      50,    51,    55,    56,    60,    61,    65,    66,    70,    71,
-      72,    76,    77,    78,    82,    83,    87,    88,    92,    96,
-      97,   101,   101,   101,   101,   101,   101,   101,   105,   106,
-     110,   110,   110,   110,   110,   110,   110,   110,   114,   115,
-     119,   119,   119,   119,   119,   119,   123,   124,   125,   129,
-     130,   131,   135,   136,   137,   138,   142,   143,   144,   148,
-     149,   153,   154,   155
+       0,    35,    35,    37,    41,    42,    43,    44,    45,    49,
+      53,    54,    58,    59,    63,    64,    68,    69,    73,    74,
+      75,    79,    80,    81,    85,    86,    90,    91,    95,    99,
+     100,   104,   104,   104,   104,   104,   104,   104,   108,   109,
+     113,   113,   113,   113,   113,   113,   113,   113,   117,   118,
+     122,   122,   122,   122,   122,   122,   126,   127,   128,   132,
+     133,   134,   138,   139,   140,   141,   145,   146,   147,   151,
+     152,   156,   157,   158
 };
 #endif
 
@@ -1548,259 +1551,259 @@ yyreduce:
         case 3:
 
 /* Line 1806 of yacc.c  */
-#line 34 "delbrot/delbrot.y"
+#line 37 "delbrot/delbrot.y"
     { ex(global, (yyvsp[(2) - (2)]));                        }
     break;
 
   case 9:
 
 /* Line 1806 of yacc.c  */
-#line 46 "delbrot/delbrot.y"
+#line 49 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(FNDEF, 3, (yyvsp[(2) - (8)]), (yyvsp[(4) - (8)]), (yyvsp[(7) - (8)]));   }
     break;
 
   case 10:
 
 /* Line 1806 of yacc.c  */
-#line 50 "delbrot/delbrot.y"
+#line 53 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(';', 2, NULL, NULL);     }
     break;
 
   case 11:
 
 /* Line 1806 of yacc.c  */
-#line 51 "delbrot/delbrot.y"
+#line 54 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(1) - (2)]);                               }
     break;
 
   case 12:
 
 /* Line 1806 of yacc.c  */
-#line 55 "delbrot/delbrot.y"
+#line 58 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(IF, 2, (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));          }
     break;
 
   case 13:
 
 /* Line 1806 of yacc.c  */
-#line 56 "delbrot/delbrot.y"
+#line 59 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(IF, 3, (yyvsp[(3) - (7)]), (yyvsp[(5) - (7)]), (yyvsp[(7) - (7)]));      }
     break;
 
   case 14:
 
 /* Line 1806 of yacc.c  */
-#line 60 "delbrot/delbrot.y"
+#line 63 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(WHILE, 2, (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));       }
     break;
 
   case 15:
 
 /* Line 1806 of yacc.c  */
-#line 61 "delbrot/delbrot.y"
+#line 64 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(FOR, 4, (yyvsp[(3) - (9)]), (yyvsp[(5) - (9)]), (yyvsp[(7) - (9)]), (yyvsp[(9) - (9)])); }
     break;
 
   case 16:
 
 /* Line 1806 of yacc.c  */
-#line 65 "delbrot/delbrot.y"
+#line 68 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(RETURN, 1, (yyvsp[(2) - (3)]));          }
     break;
 
   case 17:
 
 /* Line 1806 of yacc.c  */
-#line 66 "delbrot/delbrot.y"
+#line 69 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(RETURN, 1, NULL);        }
     break;
 
   case 18:
 
 /* Line 1806 of yacc.c  */
-#line 70 "delbrot/delbrot.y"
+#line 73 "delbrot/delbrot.y"
     { (yyval) = NULL;                             }
     break;
 
   case 19:
 
 /* Line 1806 of yacc.c  */
-#line 71 "delbrot/delbrot.y"
+#line 74 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 20:
 
 /* Line 1806 of yacc.c  */
-#line 72 "delbrot/delbrot.y"
+#line 75 "delbrot/delbrot.y"
     { (yyval) = append((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));                   }
     break;
 
   case 21:
 
 /* Line 1806 of yacc.c  */
-#line 76 "delbrot/delbrot.y"
+#line 79 "delbrot/delbrot.y"
     { (yyvsp[(2) - (2)])->type = typeVal; (yyval) = (yyvsp[(2) - (2)]);           }
     break;
 
   case 22:
 
 /* Line 1806 of yacc.c  */
-#line 77 "delbrot/delbrot.y"
+#line 80 "delbrot/delbrot.y"
     { (yyvsp[(2) - (2)])->type = typeVal; (yyval) = (yyvsp[(2) - (2)]);           }
     break;
 
   case 23:
 
 /* Line 1806 of yacc.c  */
-#line 78 "delbrot/delbrot.y"
+#line 81 "delbrot/delbrot.y"
     { (yyvsp[(2) - (2)])->type = typeStr; (yyval) = (yyvsp[(2) - (2)]);           }
     break;
 
   case 25:
 
 /* Line 1806 of yacc.c  */
-#line 83 "delbrot/delbrot.y"
+#line 86 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(2) - (3)]);                               }
     break;
 
   case 27:
 
 /* Line 1806 of yacc.c  */
-#line 88 "delbrot/delbrot.y"
+#line 91 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(';', 2, (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));         }
     break;
 
   case 30:
 
 /* Line 1806 of yacc.c  */
-#line 97 "delbrot/delbrot.y"
+#line 100 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(ASSIGN, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));  }
     break;
 
   case 39:
 
 /* Line 1806 of yacc.c  */
-#line 106 "delbrot/delbrot.y"
+#line 109 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 49:
 
 /* Line 1806 of yacc.c  */
-#line 115 "delbrot/delbrot.y"
+#line 118 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 57:
 
 /* Line 1806 of yacc.c  */
-#line 124 "delbrot/delbrot.y"
+#line 127 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(NEG, 1, (yyvsp[(2) - (2)]));             }
     break;
 
   case 58:
 
 /* Line 1806 of yacc.c  */
-#line 125 "delbrot/delbrot.y"
+#line 128 "delbrot/delbrot.y"
     { (yyval) = mkOpNode('!', 1, (yyvsp[(2) - (2)]));             }
     break;
 
   case 60:
 
 /* Line 1806 of yacc.c  */
-#line 130 "delbrot/delbrot.y"
+#line 133 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(INC, 1, (yyvsp[(1) - (2)]));             }
     break;
 
   case 61:
 
 /* Line 1806 of yacc.c  */
-#line 131 "delbrot/delbrot.y"
+#line 134 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(DEC, 1, (yyvsp[(1) - (2)]));             }
     break;
 
   case 63:
 
 /* Line 1806 of yacc.c  */
-#line 136 "delbrot/delbrot.y"
+#line 139 "delbrot/delbrot.y"
     { (yyval) = mkOpNode(FNCT, 2, (yyvsp[(1) - (4)]), (yyvsp[(3) - (4)]));        }
     break;
 
   case 64:
 
 /* Line 1806 of yacc.c  */
-#line 137 "delbrot/delbrot.y"
+#line 140 "delbrot/delbrot.y"
     { (yyval) = mkOpNode('.',  3, (yyvsp[(1) - (6)]), (yyvsp[(3) - (6)]), (yyvsp[(5) - (6)]));    }
     break;
 
   case 65:
 
 /* Line 1806 of yacc.c  */
-#line 138 "delbrot/delbrot.y"
+#line 141 "delbrot/delbrot.y"
     { (yyval) = mkOpNode('.',  3, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]), NULL);  }
     break;
 
   case 66:
 
 /* Line 1806 of yacc.c  */
-#line 142 "delbrot/delbrot.y"
+#line 145 "delbrot/delbrot.y"
     { (yyval) = NULL;                             }
     break;
 
   case 67:
 
 /* Line 1806 of yacc.c  */
-#line 143 "delbrot/delbrot.y"
+#line 146 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 68:
 
 /* Line 1806 of yacc.c  */
-#line 144 "delbrot/delbrot.y"
+#line 147 "delbrot/delbrot.y"
     { (yyval) = append((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));                   }
     break;
 
   case 69:
 
 /* Line 1806 of yacc.c  */
-#line 148 "delbrot/delbrot.y"
+#line 151 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 70:
 
 /* Line 1806 of yacc.c  */
-#line 149 "delbrot/delbrot.y"
+#line 152 "delbrot/delbrot.y"
     { (yyvsp[(1) - (2)])->opt.value = (yyvsp[(2) - (2)]);                    }
     break;
 
   case 71:
 
 /* Line 1806 of yacc.c  */
-#line 153 "delbrot/delbrot.y"
+#line 156 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 72:
 
 /* Line 1806 of yacc.c  */
-#line 154 "delbrot/delbrot.y"
+#line 157 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 73:
 
 /* Line 1806 of yacc.c  */
-#line 155 "delbrot/delbrot.y"
+#line 158 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(2) - (3)]);                               }
     break;
 
 
 
 /* Line 1806 of yacc.c  */
-#line 1804 "delbrot/y.tab.c"
+#line 1807 "delbrot/y.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2031,7 +2034,7 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 158 "delbrot/delbrot.y"
+#line 161 "delbrot/delbrot.y"
  /* end of grammar */
 
 /* initialize a new node */
@@ -2187,9 +2190,24 @@ static fnEntry coreFunctions[] = {
     { 0,           0         },
 };
 
-int main() {
-    int i;
+int main(int argc, char **argv) {
     //yydebug = 1;
+
+    /* help message */
+    if ((argc != 1 && argc != 2)
+    || (argc > 1 && (!strcmp(argv[1],"-h") || !strcmp(argv[1],"--help")))) {
+        printf("Usage: mkvsynth [FILE]\nInterprets an mkvsynth script.\n\nIf FILE is omitted, STDIN will be used instead.\n\nReport bugs on github.com/DavidVorick/mkvsynth.\n");
+        exit(0);
+    }
+
+    /* read file, if provided */
+    if (argc == 2) {
+        yyin = fopen(argv[1], "r+");
+        if (!yyin) {
+            printf("error: could not open file for reading\n");
+            exit(1);
+        }
+    }
 
     /* create global environment */
     global = (Env *) malloc(sizeof(Env));
@@ -2200,6 +2218,7 @@ int main() {
         exit(0);
 
     /* initialize function table */
+    int i;
     for(i = 0; coreFunctions[i].name != 0; i++)
         putFn(global, coreFunctions[i]);
     for(i = 0; pluginFunctions[i].name != 0; i++)
