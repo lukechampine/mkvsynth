@@ -27,13 +27,11 @@ int main()
 	pixel_rgb24.channel[0] = 192;
 	pixel_rgb24.channel[1] = 168;
 	pixel_rgb24.channel[2] = 1;
-	for(int y = 3; y < 8; y++)
-	{
+	for(int y = 3; y < 8; y++){
 		pixel_rgb.channel[y] = 0;
 	}
 	data_rgb24.colorspace = 2;
-	if(getRed(pixel_rgb24, data_rgb24) == 49152)
-	{
+	if(getRed(pixel_rgb24, data_rgb24) == 49152){
 		printf("rgb24 getred passed\n");
 		//test passed
 		
@@ -42,8 +40,7 @@ int main()
 		//test failed
 		
 	}
-if(getGreen(pixel_rgb24, data_rgb24) == 43008)
-	{
+if(getGreen(pixel_rgb24, data_rgb24) == 43008){
 		printf("rgb24 getgreen passed\n");
 		//test passed
 		
@@ -52,8 +49,7 @@ if(getGreen(pixel_rgb24, data_rgb24) == 43008)
 		//test failed
 		
 	}
-if(getBlue(pixel_rgb24, data_rgb24) == 256)
-	{
+if(getBlue(pixel_rgb24, data_rgb24) == 256){
 		printf("rgb24 getblue passed\n");
 		//test passed
 		
@@ -77,8 +73,7 @@ if(getBlue(pixel_rgb24, data_rgb24) == 256)
 	pixel_rgb48.channel[6] = 0;
 	pixel_rgb48.channel[7] = 0;
 	data_rgb48.colorspace = 1;
-	if(getRed(pixel_rgb48, data_rgb48) == 4876)
-	{
+	if(getRed(pixel_rgb48, data_rgb48) == 4876){
 		printf("rgb48 getred passed\n");
 		//test passed
 		
@@ -87,8 +82,7 @@ if(getBlue(pixel_rgb24, data_rgb24) == 256)
 		//test failed
 		
 	}
-	if(getGreen(pixel_rgb48, data_rgb48) == 57623)
-	{
+	if(getGreen(pixel_rgb48, data_rgb48) == 57623){
 		printf("rgb48 getgreen passed\n");
 		//test passed
 		
@@ -97,15 +91,13 @@ if(getBlue(pixel_rgb24, data_rgb24) == 256)
 		//test failed
 		
 	}
-	if(getBlue(pixel_rgb48, data_rgb48) == 75)
-	{
+	if(getBlue(pixel_rgb48, data_rgb48) == 75){
 		printf("rgb48 getblue passed\n");
 		//test passed
 		
 	}else{
 		printf("rgb48 getblue failed\n");
 		//test failed
-		
 	}
 	
 	
@@ -122,24 +114,21 @@ if(getBlue(pixel_rgb24, data_rgb24) == 256)
 	pixel_yuv24.channel[1] = 23;
 	pixel_yuv24.channel[2] = 112;
 	data_yuv24.colorspace = 4;
-	if(getRed(pixel_yuv24, data_yuv24) == 65205)
-	{
+	if(getRed(pixel_yuv24, data_yuv24) == 65205){
 		printf("yuv24 getred passed\n");
 		//test passed
 	}else{
 		printf("yuv24 getred failed\n");
 		//test failed
 	}
-	if(getGreen(pixel_yuv24, data_yuv24) == 13528)
-	{
+	if(getGreen(pixel_yuv24, data_yuv24) == 13528){
 		printf("yuv24 getgreen passed\n");
 		//test passed
 	}else{
 		printf("yuv24 getgreen failed\n");
 		//test failed
 	}
-	if(getBlue(pixel_yuv24, data_yuv24) == 44479)
-	{
+	if(getBlue(pixel_yuv24, data_yuv24) == 44479){
 		printf("yuv24 getblue passed\n");
 		//test passed
 	}else{
@@ -164,24 +153,21 @@ if(getBlue(pixel_rgb24, data_rgb24) == 256)
 	pixel_yuv48.channel[4] = 49;
 	pixel_yuv48.channel[5] = 37;
 	data_yuv48.colorspace = 3;
-	if(getRed(pixel_yuv48, data_yuv48) == 34400)
-	{
+	if(getRed(pixel_yuv48, data_yuv48) == 34400){
 		printf("yuv48 getred passed\n");
 		//test passed
 	}else{
 		printf("yuv48 getred failed\n");
 		//test failed
 	}
-	if(getGreen(pixel_yuv48, data_yuv48) == 8834)
-	{
+	if(getGreen(pixel_yuv48, data_yuv48) == 8834){
 		printf("yuv48 getgreen passed\n");
 		//test passed
 	}else{
 		printf("yuv48 getgreen failed\n");
 		//test failed
 	}
-	if(getBlue(pixel_yuv48, data_yuv48) == 40183)
-	{
+	if(getBlue(pixel_yuv48, data_yuv48) == 40183){
 		printf("yuv48 getblue passed\n");
 		//test passed
 	}else{
@@ -205,24 +191,21 @@ if(getBlue(pixel_rgb24, data_rgb24) == 256)
 	pixel_yuv48.channel[4] = 49;
 	pixel_yuv48.channel[5] = 37;
 	data_yuv48.colorspace = 3;
-	if(getRed(pixel_yuv48, data_yuv48) == 34400)
-	{
+	if(getRed(pixel_yuv48, data_yuv48) == 34400){
 		printf("yuv48 getred passed\n");
 		//test passed
 	}else{
 		printf("yuv48 getred failed\n");
 		//test failed
 	}
-	if(getGreen(pixel_yuv48, data_yuv48) == 8834)
-	{
+	if(getGreen(pixel_yuv48, data_yuv48) == 8834){
 		printf("yuv48 getgreen passed\n");
 		//test passed
 	}else{
 		printf("yuv48 getgreen failed\n");
 		//test failed
 	}
-	if(getBlue(pixel_yuv48, data_yuv48) == 40183)
-	{
+	if(getBlue(pixel_yuv48, data_yuv48) == 40183){
 		printf("yuv48 getblue passed\n");
 		//test passed
 	}else{
