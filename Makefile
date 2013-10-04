@@ -8,8 +8,8 @@ DELBROT_OBJ = delbrot/lex.yy.o                                                 \
 DELBROT_DEPS = delbrot/delbrot.h
 DELBROT_LIBS = -lm
 
-FFMPEG_CFLAGS = $(shell pkg-config --cflags libavformat libavcodec libswscale libavutil)
-FFMPEG_LIBS = $(shell pkg-config --libs libavformat libavcodec libswscale libavutil)
+FFMPEG_CFLAGS = $(shell pkg-config --cflags libavformat libavcodec libswscale)
+FFMPEG_LIBS = $(shell pkg-config --libs libavformat libavcodec libswscale)
 FFMPEG_OBJ = filters/coding/ffmpegDecode.o
 $(FFMPEG_OBJ): EXTRA_CFLAGS := $(FFMPEG_CFLAGS)
 
