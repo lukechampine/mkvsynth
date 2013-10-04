@@ -1,8 +1,6 @@
 #ifndef COLORSPACING_H_
 #define COLORSPACING_H_
 
-// Ideally the colorspacing libraries would be independent of the jarvis
-//   libraries. 
 #include "../jarvis/jarvis.h"
 
 /*******************************************************************************
@@ -18,7 +16,35 @@
 typedef struct MkvsynthPixel MkvsynthPixel;
 
 struct MkvsynthPixel {
-	uint8_t channel[8];
+	union {
+		struct {
+			uint16_t red;
+			uint16_t green;
+			uint16_t blue;
+		} rgb48;
+
+		struct {
+			uint8_t red;
+			uint8_t green;
+			uint8_t blue;
+		} rgb24;
+
+		struct {
+			uint16_t luma;
+			uint16_t cb;
+			uint16_t cr;
+		} yuv444_48;
+
+		struct {
+			uint8_t luma;
+			uint8_t cb;
+			uint8_t cr;
+		} yuv444_24;
+
+		struct {
+			uint8_t channel[8];
+		} generic;
+	};
 };
 
 #include "pixels.h"

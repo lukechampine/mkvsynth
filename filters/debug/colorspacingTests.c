@@ -18,10 +18,9 @@ void *colorspacingTests(void *filterParams) {
 			for(j = 0; j < params->input->metaData->height; j++) {
 				MkvsynthPixel oldPixel = getPixel(workingFrame->payload, params->input->metaData, i, j);
 				MkvsynthPixel newPixel = {{0}};
-				uint16_t *fudge = (uint16_t *)newPixel.channel;
-				fudge[0] = getRed(&oldPixel, params->input->metaData);
-				fudge[1] = getGreen(&oldPixel, params->input->metaData);
-				//fudge[2] = getBlue(&oldPixel, params->input->metaData);
+				newPixel.rgb48.red = getRed(&oldPixel, params->input->metaData);
+				newPixel.rgb48.green = getGreen(&oldPixel, params->input->metaData);
+				newPixel.rgb48.blue = getBlue(&oldPixel, params->input->metaData);
 				putPixel(&newPixel, workingFrame->payload, params->output->metaData, i, j);
 			}
 		}

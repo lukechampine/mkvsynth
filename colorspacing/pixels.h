@@ -34,6 +34,4 @@ MkvsynthPixel adjustLightness        (MkvsynthPixel *pixel, double intensity, Mk
 MkvsynthPixel adjustSaturation       (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
 MkvsynthPixel adjustValue            (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
 
-
-
 void          addPixel               (MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t colorspace, double strength);
