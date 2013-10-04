@@ -26,24 +26,24 @@ MkvsynthPixel getPixel (uint8_t *payload, MkvsynthMetaData *metaData, int widthO
 
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
-			pixel.rgb48.red               = deepPayload[offset];
-			pixel.rgb48.green             = deepPayload[offset+1];
-			pixel.rgb48.blue              = deepPayload[offset+2];
+			pixel.rgb48.r                 = deepPayload[offset];
+			pixel.rgb48.g                 = deepPayload[offset+1];
+			pixel.rgb48.b                 = deepPayload[offset+2];
 			break;
 		case MKVS_RGB24:
-			pixel.rgb24.red               = payload[offset];
-			pixel.rgb24.green             = payload[offset+1];
-			pixel.rgb24.blue              = payload[offset+2];
+			pixel.rgb24.r                 = payload[offset];
+			pixel.rgb24.g                 = payload[offset+1];
+			pixel.rgb24.b                 = payload[offset+2];
 			break;
 		case MKVS_YUV444_48:
-			pixel.yuv444_48.luma          = deepPayload[offset];
-			pixel.yuv444_48.cb            = deepPayload[offset+1];
-			pixel.yuv444_48.cr            = deepPayload[offset+2];
+			pixel.yuv444_48.y             = deepPayload[offset];
+			pixel.yuv444_48.u             = deepPayload[offset+1];
+			pixel.yuv444_48.v             = deepPayload[offset+2];
 			break;
 		case MKVS_YUV444_24:
-			pixel.yuv444_24.luma          = payload[offset];
-			pixel.yuv444_24.cb            = payload[offset+1];
-			pixel.yuv444_24.cr            = payload[offset+2];
+			pixel.yuv444_24.y             = payload[offset];
+			pixel.yuv444_24.u             = payload[offset+1];
+			pixel.yuv444_24.v             = payload[offset+2];
 			break;
 	}
 
@@ -60,30 +60,29 @@ void putPixel (MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaDat
 	checkColorspace(metaData->colorspace, "putPixel");
 #endif
 
-	uint16_t *deepChannel = (uint16_t *)pixel->channel;
 	uint16_t *deepPayload = (uint16_t *)payload;
 	int offset = 3 * (heightOffset * metaData->width + widthOffset);
 
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
-			deepPayload[offset]           = pixel.rgb48.red;
-			deepPayload[offset+1]         = pixel.rgb48.green;
-			deepPayload[offset+2]         = pixel.rgb48.blue;
+			deepPayload[offset]           = pixel->rgb48.r;
+			deepPayload[offset+1]         = pixel->rgb48.g;
+			deepPayload[offset+2]         = pixel->rgb48.b;
 			break;
 		case MKVS_RGB24:
-			payload[offset]               = pixel.rgb24.red;
-			payload[offset+1]             = pixel.rgb24.green;
-			payload[offset+2]             = pixel.rgb24.blue;
+			payload[offset]               = pixel->rgb24.r;
+			payload[offset+1]             = pixel->rgb24.g;
+			payload[offset+2]             = pixel->rgb24.b;
 			break;
 		case MKVS_YUV444_48:
-			deepPayload[offset]           = pixel.yuv444_48.luma;
-			deepPayload[offset+1]         = pixel.yuv444_48.cb;
-			deepPayload[offset+2]         = pixel.yuv444_48.cr;
+			deepPayload[offset]           = pixel->yuv444_48.y;
+			deepPayload[offset+1]         = pixel->yuv444_48.u;
+			deepPayload[offset+2]         = pixel->yuv444_48.v;
 			break;
 		case MKVS_YUV444_24:
-			payload[offset]               = pixel.yuv444_24.luma;
-			payload[offset+1]             = pixel.yuv444_24.cb;
-			payload[offset+2]             = pixel.yuv444_24.cr;
+			payload[offset]               = pixel->yuv444_24.y;
+			payload[offset+1]             = pixel->yuv444_24.u;
+			payload[offset+2]             = pixel->yuv444_24.v;
 			break;
 	}
 }
@@ -96,24 +95,24 @@ void addPixel (MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t color
 
 	switch(colorspace) {
 		case MKVS_RGB48:
-			destination.rgb48.red        += source.rgb48.red * strenght;
-			destination.rgb48.green      += source.rgb48.green * strength;
-			destination.rgb48.blue       += source.rgb48.blue * strength;
+			destination->rgb48.r         += source->rgb48.r * strength;
+			destination->rgb48.g         += source->rgb48.g * strength;
+			destination->rgb48.b         += source->rgb48.b * strength;
 			break;
 		case MKVS_RGB24:
-			destination.rgb24.red        += source.rgb24.red * strenght;
-			destination.rgb24.green      += source.rgb24.green * strength;
-			destination.rgb24.blue       += source.rgb24.blue * strength;
+			destination->rgb24.r          += source->rgb24.r * strength;
+			destination->rgb24.g          += source->rgb24.g * strength;
+			destination->rgb24.b          += source->rgb24.b * strength;
 			break;
 		case MKVS_YUV444_48:
-			destination.yuv444_48.red    += source.yuv444_48.red * strength;
-			destination.yuv444_48.green  += source.yuv444_48.green * strength;
-			destination.yuv444_48.blue   += source.yuv444_48.blue * strength;
+			destination->yuv444_48.y      += source->yuv444_48.y * strength;
+			destination->yuv444_48.u      += source->yuv444_48.u * strength;
+			destination->yuv444_48.v      += source->yuv444_48.v * strength;
 			break;
 		case MKVS_YUV444_24:
-			destination.yuv444_24.red    += source.yuv444_24.red * strength;
-			destination.yuv444_24.green  += source.yuv444_24.green * strength;
-			destination.yuv444_24.blue   += source.yuv444_24.blue * strength;
+			destination->yuv444_24.y      += source->yuv444_24.y * strength;
+			destination->yuv444_24.u      += source->yuv444_24.u * strength;
+			destination->yuv444_24.v      += source->yuv444_24.v * strength;
 			break;
 	}
 }
@@ -126,16 +125,16 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 	uint16_t *deepChannel = (uint16_t *)pixel->channel;
 	switch(metaData->colorspace){
 		case MKVS_RGB48:
-			rgbRed = pixel.rgb48.red;
+			rgbRed = pixel->rgb48.r;
 			break;
 
 		case MKVS_RGB24:
-			rgbRed = pixel.rgb24.red;
+			rgbRed = pixel->rgb24.r;
 			rgbRed = rgbRed * 256;
 			break;
 
 		case MKVS_YUV444_48:
-			result = (float)pixel.yuv444_48.luma + ((float)pixel.yuv444_48.cr / .877);
+			result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.v / .877);
 			result += .5; // for accurate rounding
 
 			// Check for overflow
@@ -147,7 +146,7 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			break;
 
 		case MKVS_YUV444_24:
-			result = (float)pixel.yuv444_24.luma + ((float)pixel.yuv444_24.cr / .877);
+			result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.v / .877);
 			result += .5; // for accurate rounding
 			result *= 256;
 

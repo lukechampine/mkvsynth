@@ -18,27 +18,27 @@ typedef struct MkvsynthPixel MkvsynthPixel;
 struct MkvsynthPixel {
 	union {
 		struct {
-			uint16_t red;
-			uint16_t green;
-			uint16_t blue;
+			uint16_t r;
+			uint16_t g;
+			uint16_t b;
 		} rgb48;
 
 		struct {
-			uint8_t red;
-			uint8_t green;
-			uint8_t blue;
+			uint8_t r;
+			uint8_t g;
+			uint8_t b;
 		} rgb24;
 
 		struct {
-			uint16_t luma;
-			uint16_t cb;
-			uint16_t cr;
+			uint16_t y;
+			uint16_t u;
+			uint16_t v;
 		} yuv444_48;
 
 		struct {
-			uint8_t luma;
-			uint8_t cb;
-			uint8_t cr;
+			uint8_t y;
+			uint8_t u;
+			uint8_t v;
 		} yuv444_24;
 
 		struct {
