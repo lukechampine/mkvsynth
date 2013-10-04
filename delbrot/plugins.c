@@ -12,8 +12,6 @@ ASTnode* x264Encode_AST(ASTnode *p, ASTnode *args);
 ASTnode* go_AST(ASTnode *p, ASTnode *args);
 ASTnode* colorspacingTests_AST(ASTnode *p, ASTnode *args);
 
-ASTnode* viewer_AST(ASTnode *p, ASTnode *args);
-
 fnEntry pluginFunctions[] = {
 	{ "bilinearResize",        bilinearResize_AST        },
 	{ "convertColorspace",     convertColorspace_AST     },
@@ -26,6 +24,5 @@ fnEntry pluginFunctions[] = {
 	{ "x264Encode",            x264Encode_AST            },
 	{ "go",                    go_AST                    },
 	{ "colorspacingTests",     colorspacingTests_AST     },
-	{ "viewer",                viewer_AST                },
 	{ 0,                       0                         },
 };

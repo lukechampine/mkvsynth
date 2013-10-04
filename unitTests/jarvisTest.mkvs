@@ -16,16 +16,16 @@ b = crop(a, 25, 25, 25, 25);
 # Test 5: resize 'a' to get 'c'
 c = bilinearResize(a, 460, 150);
 
+# Needed for compatibility on machines with certain compilations of x264
+b = convertColorspace(b, "rgb24");
+
+# Needed for compatibility on machines with certain compilations of x264
+c = convertColorspace(c, "rgb24");
+
 # Test 6: encode 'b'
 x264Encode(b, "unitTests/testOut1.mkv");
 
 # Test 7: x264Encode 'c' in i444 colorspace
 x264Encode(c, "unitTests/testOut2.mkv", params:"--output-csp i444 --crf 16.5");
-
-# Test 8: convert 'c' from rgb48 to rgb24
-c = convertColorspace(c, "rgb24");
-
-# Test 9: open a gui to read 'c'
-viewer(c);
 
 go();
