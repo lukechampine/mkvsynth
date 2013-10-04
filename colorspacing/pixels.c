@@ -122,21 +122,20 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 	uint16_t rgbRed = 0;
 	float result = 0;
 	
-	uint16_t *deepChannel = (uint16_t *)pixel->channel;
-	switch(metaData->colorspace){
+	switch(metaData->colorspace) {
 		case MKVS_RGB48:
 			rgbRed = pixel->rgb48.r;
 			break;
-
+			
 		case MKVS_RGB24:
 			rgbRed = pixel->rgb24.r;
 			rgbRed = rgbRed * 256;
 			break;
-
+			
 		case MKVS_YUV444_48:
 			result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.v / .877);
 			result += .5; // for accurate rounding
-
+			
 			// Check for overflow
 			if(result >= 65535) {
 				rgbRed = 65535;
@@ -144,12 +143,12 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 				rgbRed = (int)result;
 			}
 			break;
-
+			
 		case MKVS_YUV444_24:
 			result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.v / .877);
-			result += .5; // for accurate rounding
 			result *= 256;
-
+			result += .5; // for accurate rounding
+			
 			// Check for overflow
 			if(result >= 65535) {
 				rgbRed = 65535;
@@ -162,123 +161,88 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 	return rgbRed;
 }
 
-//pulls the green value from the pixel
-uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
-	short colorspace = metaData->colorspace;
-	uint16_t value = 0;
-	int y = 0;
-	int u = 0;
-	int v = 0;
-	int check = 0;
-	float yf = 0.0;
-	float uf = 0.0;
-	float vf = 0.0;
-	float result1 = 0;
-	uint16_t *deepChannel = (uint16_t *)pixel->channel;
-	switch(colorspace){
+//pulls the rgb green value from the pixel
+uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
+	uint16_t rgbGreen = 0;
+	float result = 0;
+	
+	switch(metaData->colorspace) {
 		case MKVS_RGB48:
-			value = deepChannel[1];
+			rgbGreen = pixel->rgb48.g;
 			break;
+			
 		case MKVS_RGB24:
-			value = pixel->channel[1];
-			value = value * 256;
+			rgbGreen = pixel->rgb24.g;
+			rgbGreen *= 256;
 			break;
+			
 		case MKVS_YUV444_48:
-			y = deepChannel[0];
-			u = deepChannel[1];
-			v = deepChannel[2];
-			yf = y;
-			uf = u;
-			vf = v;
-			result1 = yf - .395 * uf - .581 * vf + .5;
-			check = (int) result1;
-			if(check < 0){
-				//this color is not in the rgb colorspace.
-				value = 0;
-				break;
+			result = (float)pixel->yuv444_48.y - ((float)pixel->yuv444_48.v * .581) - ((float)pixel->yuv444_48.u * .395);
+			result += .5; // for accurate rounding
+			
+			//check for underflow
+			if(result <= 0) {
+				rgbGreen = 0;
+			}else {
+				rgbGreen = (int)result;
 			}
-			value = check;
 			break;
+			
 		case MKVS_YUV444_24:
-			y = pixel->channel[0];
-			y = y * 256;
-			u = pixel->channel[1];
-			u = u * 256;
-			v = pixel->channel[2];
-			v = v * 256;
-			yf = y;
-			uf = u;
-			vf = v;
-			result1 = yf - .395 * uf - .581 * vf + .5;
-			check = (int) result1;
-			if(check < 0){
-				//this color is not in the rgb colorspace.
-				value = 0;
-				break;
+			result = (float)pixel->yuv444_24.y - ((float)pixel->yuv444_24.v * .581) - ((float)pixel->yuv444_24.u * .395);
+			result *= 256;
+			result += .5; // for accurate rounding
+			
+			//check for underflow
+			if(result <= 0) {
+				rgbGreen = 0;
+			}else {
+				rgbGreen = (int)result;
 			}
-			value = check;
 			break;
 	}
-	return value;
+	return rgbGreen;
 }
 
 //pulls the red value from the pixel
 uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
-	short colorspace = metaData->colorspace;
-	uint16_t value = 0;
-	int y = 0;
-	int u = 0;
-	int check = 0;
-	float yf = 0.0;
-	float uf = 0.0;
-	float result1 = 0;
-	uint16_t *deepChannel = (uint16_t *)pixel->channel;
-	switch(colorspace){
+	uint16_t rgbBlue = 0;
+	float result = 0;
+	
+	switch(metaData->colorspace) {
 		case MKVS_RGB48:
-			value = deepChannel[2];
+			rgbBlue = pixel->rgb48.b;
 			break;
+			
 		case MKVS_RGB24:
-			value = pixel->channel[2];
-			value = value * 256;
+			rgbBlue = pixel->rgb24.b;
+			rgbBlue *= 256;
 			break;
+			
 		case MKVS_YUV444_48:
-			y = deepChannel[0];
-			u = deepChannel[1];
-			yf = y;
-			uf = u;
-			result1 = yf + uf / .492 + .5;
-			check = (int) result1;
-			if(check > 65535){
-				//this color is not in the rgb colorspace.
-				value = 0;
-				break;
+			result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.u / .492);
+			result += .5; // for accurate rounding
+			
+			//check for overflow
+			if(result >= 65535) {
+				rgbBlue = 65535;
+			}else {
+				rgbBlue = (int)result;
 			}
-			value = check;
 			break;
+			
 		case MKVS_YUV444_24:
-			y = pixel->channel[0];
-			y = y * 256;
-			u = pixel->channel[1];
-			u = u * 256;
-			yf = y;
-
-			result1 = yf + uf / .492 + .5;
-			check = (int) result1;
-			if(check > 65535){
-				//this color is not in the rgb colorspace.
-				value = 65535;
-				break;
+			result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.u / .492);
+			result *= 256;
+			result += .5; // for accurate rounding
+			
+			//check for overflow
+			if(result >= 65535) {
+				rgbBlue = 65535;
+			}else {
+				rgbBlue = (int)result;
 			}
-			value = check;
-			result1 = y + u / .492 + .5;
-			check = (int) result1;
-			if(check > 65535){
-				//this color is not in the rgb colorspace.
-				value = 65535;
-				break;
-			}
-			value = check;
 			break;
 	}
-	return value;
+	return rgbBlue;
 }
