@@ -22,7 +22,7 @@ ASTnode* dereference(ASTnode *p) {
 }
 
 /* assign or modify a variable */
-ASTnode* assign(ASTnode *varNode, char op, ASTnode *valueNode) {
+ASTnode* assign(ASTnode *varNode, int op, ASTnode *valueNode) {
     /* standard assignment */
     if (op == '=') {
         if (varNode->type != typeVar)
@@ -33,6 +33,7 @@ ASTnode* assign(ASTnode *varNode, char op, ASTnode *valueNode) {
         /* copy new value */
         return memcpy(varNode->var.value, valueNode, sizeof(ASTnode));
     }
+
     /* arithmetic operation + assignment */
     if (varNode->type != typeVar)
         yyerror("can't modify constant value (got %s)", typeNames[varNode->type]);
@@ -43,20 +44,15 @@ ASTnode* assign(ASTnode *varNode, char op, ASTnode *valueNode) {
     if (valueNode && valueNode->type != typeVal)
         yyerror("can't modify variable %s with non-numeric type (expected integer, got %s)\n", varNode->var.name, typeNames[valueNode->type]);
 
-    int mod;
-    if (!valueNode)
-        mod = 1;
-    else
-        mod = valueNode->val;
-
     switch (op) {
-        case '+': varNode->var.value->val += mod; break;
-        case '-': varNode->var.value->val -= mod; break;
-        case '*': varNode->var.value->val *= mod; break;
-        case '/': varNode->var.value->val /= mod; break;
-        case '^': varNode->var.value->val = pow(varNode->var.value->val, mod); break;
-        case '%': varNode->var.value->val = ((int)varNode->var.value->val % (int)mod); break;
+        case ADDEQ: varNode->var.value->val += valueNode->val; break;
+        case SUBEQ: varNode->var.value->val -= valueNode->val; break;
+        case MULEQ: varNode->var.value->val *= valueNode->val; break;
+        case DIVEQ: varNode->var.value->val /= valueNode->val; break;
+        case POWEQ: varNode->var.value->val = pow(varNode->var.value->val, valueNode->val); break;
+        case MODEQ: varNode->var.value->val = ((int)varNode->var.value->val % (int)valueNode->val); break;
     }
+
     return dereference(varNode);
 }
 
@@ -129,25 +125,36 @@ ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     /* check arguments */
     int i = 0, j = 0;
     ASTnode *pTraverse = fnNode->fn.user.params, *aTraverse = args;
-    while (1) {
-        if (!pTraverse && !aTraverse)
-            break;
-        if (pTraverse && !aTraverse) {
-            while ((pTraverse = pTraverse->next)) i++;
-            yyerror("%s expected %d argument(s), got %d", fnNode->fn.name, ++i, j);
+    /* check for correct no. of arguments */
+    while (pTraverse || aTraverse) {
+        if (pTraverse) {
+            pTraverse = pTraverse->next;
+            i++;
         }
-        if (!pTraverse && aTraverse) {
-            while ((aTraverse = aTraverse->next)) j++;
-            yyerror("%s expected %d argument(s), got %d", fnNode->fn.name, i, ++j);
+        if (aTraverse) {
+            aTraverse = aTraverse->next;
+            j++;
         }
+    }
+    if (i != j)
+        yyerror("%s expected %d argument%s, got %d", fnNode->fn.name, i, (i == 1) ? "" : "s", j);
+    /* check for type mismatches */
+    pTraverse = fnNode->fn.user.params;
+    aTraverse = args;
+    while (pTraverse && aTraverse) {
         if (pTraverse->type != aTraverse->type)
             yyerror("type mismatch: arg %d of %s expected %s, got %s", i, fnNode->fn.name, typeNames[pTraverse->type], typeNames[aTraverse->type]);
+        pTraverse = pTraverse->next;
+        aTraverse = aTraverse->next;
+    }
 
-        /* all is well; record var in local table and assign value */
+    /* all is well; record var in local table and assign value */
+    pTraverse = fnNode->fn.user.params;
+    aTraverse = args;
+    while (pTraverse && aTraverse) {
         assign(putVar(local, pTraverse->id), '=', aTraverse);
-
-        pTraverse = pTraverse->next; i++;
-        aTraverse = aTraverse->next; j++;
+        pTraverse = pTraverse->next;
+        aTraverse = aTraverse->next;
     }
 
     /* execute a copy of the function body in the local environment */
@@ -157,8 +164,6 @@ ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     else
         ret = local->returnValue;
 
-    /* TODO: free local env without breaking stuff */
-    
     /* return */
     return ret;
 }
@@ -228,8 +233,8 @@ ASTnode* ex(Env *e, ASTnode *p) {
         case RETURN: e->returnValue = ex(e, child[0]); longjmp(e->returnContext, 1); break;
         /* assignment */
         case ASSIGN: p = assign(identify(e, child[0]), child[1]->val, ex(e, child[2])); break;
-        case INC:    p = assign(identify(e, child[0]), '+', mkValNode(1)); break; /* bit of a hack, maybe use mkValNode(1) instead? */
-        case DEC:    p = assign(identify(e, child[0]), '-', mkValNode(1)); break;
+        case INC:    p = assign(identify(e, child[0]), ADDEQ, mkValNode(1)); break;
+        case DEC:    p = assign(identify(e, child[0]), SUBEQ, mkValNode(1)); break;
         /* unary operators */
         case NEG:    p = nneg(p, ex(e, child[0])); break;
         case '!':    p = nnot(p, ex(e, child[0])); break;
