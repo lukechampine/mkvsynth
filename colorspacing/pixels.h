@@ -7,31 +7,35 @@ uint16_t getRed                      (MkvsynthPixel *pixel, MkvsynthMetaData *me
 uint16_t getGreen                    (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
 uint16_t getBlue                     (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
 //increments or decrements by intensity
-MkvsynthPixel adjustRed              (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
-MkvsynthPixel adjustGreen            (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
-MkvsynthPixel adjustBlue             (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+void adjustRed                            (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+void adjustGreen                          (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+void adjustBlue                           (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
 //sets color to value
-MkvsynthPixel setRed                 (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
-MkvsynthPixel setGreen               (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
-MkvsynthPixel setBlue                (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setRed                               (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setGreen                             (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setBlue                              (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
 
-int getLuma                          (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
-int getCb                            (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
-int getCr                            (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
-MkvsynthPixel adjustLuma             (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
-MkvsynthPixel adjustCb               (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
-MkvsynthPixel adjustCr               (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
-MkvsynthPixel setLuma                (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
-MkvsynthPixel setCb                  (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
-MkvsynthPixel setCr                  (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+uint16_t getLuma                          (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
+uint16_t getCb                            (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
+uint16_t getCr                            (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
+void adjustLuma                           (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+void adjustCb                             (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+void adjustCr                             (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+void setLuma                              (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setCb                                (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setCr                                (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
 
-int getHue                           (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
-int getLightness                     (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
-int getSaturation                    (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
-int getValue                         (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
-MkvsynthPixel adjustHue              (MkvsynthPixel *pixel, double degrees, MkvsynthMetaData *metaData);
-MkvsynthPixel adjustLightness        (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
-MkvsynthPixel adjustSaturation       (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
-MkvsynthPixel adjustValue            (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+uint16_t getHue                           (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
+uint16_t getLightness                     (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
+uint16_t getSaturation                    (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
+uint16_t getValue                         (MkvsynthPixel *pixel, MkvsynthMetaData *metaData);
+void adjustHue                            (MkvsynthPixel *pixel, double degrees, MkvsynthMetaData *metaData);
+void adjustLightness                      (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+void adjustSaturation                     (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+void adjustValue                          (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
+void setHue                              (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setLightness                              (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setSaturation                              (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setValue                              (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
 
 void          addPixel               (MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t colorspace, double strength);

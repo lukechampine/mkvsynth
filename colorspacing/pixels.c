@@ -133,7 +133,8 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			break;
 			
 		case MKVS_YUV444_48:
-			result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.v / .877);
+			//result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.v / .877); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_48.y + 1.4 * ((float)pixel->yuv444_48.v - 32768); //this is the YCbCr conversion for full-range values
 			result += .5; // for accurate rounding
 			
 			// Check for overflow
@@ -145,7 +146,8 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			break;
 			
 		case MKVS_YUV444_24:
-			result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.v / .877);
+			//result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.v / .877); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128); //this isthe VCbCr conversion for full-range values
 			result *= 256;
 			result += .5; // for accurate rounding
 			
@@ -177,7 +179,8 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			break;
 			
 		case MKVS_YUV444_48:
-			result = (float)pixel->yuv444_48.y - ((float)pixel->yuv444_48.v * .581) - ((float)pixel->yuv444_48.u * .395);
+			//result = (float)pixel->yuv444_48.y - ((float)pixel->yuv444_48.v * .581) - ((float)pixel->yuv444_48.u * .395); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_48.y - .343 * ((float)pixel->yuv444_48.u - 32768) - .711 * ((float)pixel->yuv444_48.v - 32768); //this is the YCbCr conversion for full-range values
 			result += .5; // for accurate rounding
 			
 			//check for underflow
@@ -189,7 +192,8 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			break;
 			
 		case MKVS_YUV444_24:
-			result = (float)pixel->yuv444_24.y - ((float)pixel->yuv444_24.v * .581) - ((float)pixel->yuv444_24.u * .395);
+			//result = (float)pixel->yuv444_24.y - ((float)pixel->yuv444_24.v * .581) - ((float)pixel->yuv444_24.u * .395); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_24.y - .343 * ((float)pixel->yuv444_24.u - 128) - .711 * ((float)pixel->yuv444_24.v - 128); //this is the YCbCr conversion for full-range values
 			result *= 256;
 			result += .5; // for accurate rounding
 			
@@ -204,7 +208,7 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 	return rgbGreen;
 }
 
-//pulls the red value from the pixel
+//pulls the rgb blue value from the pixel
 uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	uint16_t rgbBlue = 0;
 	float result = 0;
@@ -220,7 +224,8 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			break;
 			
 		case MKVS_YUV444_48:
-			result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.u / .492);
+			//result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.u / .492); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_48.y + 1.765 * ((float)pixel->yuv444_48.u - 32768); //this is the YCbCr conversion for full-range values
 			result += .5; // for accurate rounding
 			
 			//check for overflow
@@ -232,7 +237,8 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			break;
 			
 		case MKVS_YUV444_24:
-			result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.u / .492);
+			//result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.u / .492); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_24.y + 1.765 * ((float)pixel->yuv444_24.u - 128); //this is the YCbCr conversion for full-range values
 			result *= 256;
 			result += .5; // for accurate rounding
 			
@@ -246,3 +252,4 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	}
 	return rgbBlue;
 }
+
