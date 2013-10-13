@@ -253,3 +253,98 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	return rgbBlue;
 }
 
+
+//sets the RGB red value to a particular value
+void setRed(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 65535) {
+				value = 65535;
+			}
+			pixel->rgb48.r = (uint16_t) value;
+			break;
+			
+		case MKVS_RGB24:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 255) {
+				value = 255;
+			}
+			pixel->rgb24.r = (uint16_t) value;
+			break;
+		
+		case MKVS_YUV444_48:
+			//panic
+			break;
+		
+		case MKVS_YUV444_24:
+			//panic
+			break;
+		}
+}
+
+
+//sets the RGB red value to a particular value
+void setGreen(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 65535) {
+				value = 65535;
+			}
+			pixel->rgb48.g = (uint16_t) value;
+			break;
+			
+		case MKVS_RGB24:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 255) {
+				value = 255;
+			}
+			pixel->rgb24.g = (uint16_t) value;
+			break;
+		
+		case MKVS_YUV444_48:
+			//panic
+			break;
+		
+		case MKVS_YUV444_24:
+			//panic
+			break;
+		}
+}
+
+
+//sets the RGB red value to a particular value
+void setBlue(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 65535) {
+				value = 65535;
+			}
+			pixel->rgb48.b = (uint16_t) value;
+			break;
+			
+		case MKVS_RGB24:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 255) {
+				value = 255;
+			}
+			pixel->rgb24.b = (uint16_t) value;
+			break;
+		
+		case MKVS_YUV444_48:
+			//panic
+			break;
+		
+		case MKVS_YUV444_24:
+			//panic
+			break;
+		}
+}
