@@ -276,11 +276,11 @@ void setRed(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 			break;
 		
 		case MKVS_YUV444_48:
-			//panic
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
 			break;
 		
 		case MKVS_YUV444_24:
-			//panic
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
 			break;
 		}
 }
@@ -308,11 +308,11 @@ void setGreen(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 			break;
 		
 		case MKVS_YUV444_48:
-			//panic
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
 			break;
 		
 		case MKVS_YUV444_24:
-			//panic
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
 			break;
 		}
 }
@@ -340,11 +340,106 @@ void setBlue(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 			break;
 		
 		case MKVS_YUV444_48:
-			//panic
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
 			break;
 		
 		case MKVS_YUV444_24:
-			//panic
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
 			break;
 		}
+}
+
+//pulls the YUV Luma (Y) value from a pixel
+uint16_t getLuma(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	uint16_t yuvLuma = 0;
+	float result = 0;
+	
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			result = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
+			result += .5;
+			yuvLuma = (int)result;
+			break;
+			
+		case MKVS_RGB24:
+			result = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
+			result *= 256;
+			result += .5;
+			yuvLuma = (int)result;
+			break;
+			
+		case MKVS_YUV444_48:
+			yuvLuma = pixel->yuv444_48.y;
+			break;
+			
+		case MKVS_YUV444_24:
+			yuvLuma = pixel->yuv444_24.y;
+			yuvLuma *= 256;
+			break;
+	}
+	return yuvLuma;
+}
+
+
+//pulls the YUV Cb (U) value from a pixel
+uint16_t getCb(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	uint16_t yuvCb = 0;
+	float result = 0;
+	
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			result = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
+			result += .5;
+			yuvCb = (int)result;
+			break;
+			
+		case MKVS_RGB24:
+			result = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
+			result *= 256;
+			result += .5;
+			yuvCb = (int)result;
+			break;
+			
+		case MKVS_YUV444_48:
+			yuvCb = pixel->yuv444_48.u;
+			break;
+			
+		case MKVS_YUV444_24:
+			yuvCb = pixel->yuv444_24.u;
+			yuvCb *= 256;
+			break;
+	}
+	return yuvCb;
+}
+
+
+//pulls the YUV Cr (V) value from a pixel
+uint16_t getCr(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	uint16_t yuvCr = 0;
+	float result = 0;
+	
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			result = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
+			result += .5;
+			yuvCr = (int)result;
+			break;
+			
+		case MKVS_RGB24:
+			result = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
+			result *= 256;
+			result += .5;
+			yuvCr = (int)result;
+			break;
+			
+		case MKVS_YUV444_48:
+			yuvCr = pixel->yuv444_48.v;
+			break;
+			
+		case MKVS_YUV444_24:
+			yuvCr = pixel->yuv444_24.v;
+			yuvCr *= 256;
+			break;
+	}
+	return yuvCr;
 }

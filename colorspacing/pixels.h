@@ -33,9 +33,9 @@ void adjustHue                            (MkvsynthPixel *pixel, double degrees,
 void adjustLightness                      (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
 void adjustSaturation                     (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
 void adjustValue                          (MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData);
-void setHue                              (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
-void setLightness                              (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
-void setSaturation                              (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
-void setValue                              (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setHue                               (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setLightness                         (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setSaturation                        (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
+void setValue                             (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
 
-void          addPixel               (MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t colorspace, double strength);
+void addPixel                             (MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t colorspace, double strength);
