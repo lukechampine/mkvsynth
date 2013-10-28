@@ -286,7 +286,7 @@ void setRed(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 }
 
 
-//sets the RGB red value to a particular value
+//sets the RGB green value to a particular value
 void setGreen(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
@@ -318,7 +318,7 @@ void setGreen(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 }
 
 
-//sets the RGB red value to a particular value
+//sets the RGB blue value to a particular value
 void setBlue(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
