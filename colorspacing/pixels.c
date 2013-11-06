@@ -133,7 +133,8 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			break;
 			
 		case MKVS_YUV444_48:
-			result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.v / .877);
+			//result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.v / .877); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_48.y + 1.4 * ((float)pixel->yuv444_48.v - 32768); //this is the YCbCr conversion for full-range values
 			result += .5; // for accurate rounding
 			
 			// Check for overflow
@@ -145,7 +146,8 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			break;
 			
 		case MKVS_YUV444_24:
-			result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.v / .877);
+			//result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.v / .877); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128); //this isthe VCbCr conversion for full-range values
 			result *= 256;
 			result += .5; // for accurate rounding
 			
@@ -177,7 +179,8 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			break;
 			
 		case MKVS_YUV444_48:
-			result = (float)pixel->yuv444_48.y - ((float)pixel->yuv444_48.v * .581) - ((float)pixel->yuv444_48.u * .395);
+			//result = (float)pixel->yuv444_48.y - ((float)pixel->yuv444_48.v * .581) - ((float)pixel->yuv444_48.u * .395); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_48.y - .343 * ((float)pixel->yuv444_48.u - 32768) - .711 * ((float)pixel->yuv444_48.v - 32768); //this is the YCbCr conversion for full-range values
 			result += .5; // for accurate rounding
 			
 			//check for underflow
@@ -189,7 +192,8 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			break;
 			
 		case MKVS_YUV444_24:
-			result = (float)pixel->yuv444_24.y - ((float)pixel->yuv444_24.v * .581) - ((float)pixel->yuv444_24.u * .395);
+			//result = (float)pixel->yuv444_24.y - ((float)pixel->yuv444_24.v * .581) - ((float)pixel->yuv444_24.u * .395); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_24.y - .343 * ((float)pixel->yuv444_24.u - 128) - .711 * ((float)pixel->yuv444_24.v - 128); //this is the YCbCr conversion for full-range values
 			result *= 256;
 			result += .5; // for accurate rounding
 			
@@ -204,7 +208,7 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 	return rgbGreen;
 }
 
-//pulls the red value from the pixel
+//pulls the rgb blue value from the pixel
 uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	uint16_t rgbBlue = 0;
 	float result = 0;
@@ -220,7 +224,8 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			break;
 			
 		case MKVS_YUV444_48:
-			result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.u / .492);
+			//result = (float)pixel->yuv444_48.y + ((float)pixel->yuv444_48.u / .492); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_48.y + 1.765 * ((float)pixel->yuv444_48.u - 32768); //this is the YCbCr conversion for full-range values
 			result += .5; // for accurate rounding
 			
 			//check for overflow
@@ -232,7 +237,8 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			break;
 			
 		case MKVS_YUV444_24:
-			result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.u / .492);
+			//result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.u / .492); //this is the Y'UV conversion
+			result = (float)pixel->yuv444_24.y + 1.765 * ((float)pixel->yuv444_24.u - 128); //this is the YCbCr conversion for full-range values
 			result *= 256;
 			result += .5; // for accurate rounding
 			
@@ -245,4 +251,195 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			break;
 	}
 	return rgbBlue;
+}
+
+
+//sets the RGB red value to a particular value
+void setRed(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 65535) {
+				value = 65535;
+			}
+			pixel->rgb48.r = (uint16_t) value;
+			break;
+			
+		case MKVS_RGB24:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 255) {
+				value = 255;
+			}
+			pixel->rgb24.r = (uint16_t) value;
+			break;
+		
+		case MKVS_YUV444_48:
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			break;
+		
+		case MKVS_YUV444_24:
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			break;
+		}
+}
+
+
+//sets the RGB green value to a particular value
+void setGreen(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 65535) {
+				value = 65535;
+			}
+			pixel->rgb48.g = (uint16_t) value;
+			break;
+			
+		case MKVS_RGB24:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 255) {
+				value = 255;
+			}
+			pixel->rgb24.g = (uint16_t) value;
+			break;
+		
+		case MKVS_YUV444_48:
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			break;
+		
+		case MKVS_YUV444_24:
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			break;
+		}
+}
+
+
+//sets the RGB blue value to a particular value
+void setBlue(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 65535) {
+				value = 65535;
+			}
+			pixel->rgb48.b = (uint16_t) value;
+			break;
+			
+		case MKVS_RGB24:
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 255) {
+				value = 255;
+			}
+			pixel->rgb24.b = (uint16_t) value;
+			break;
+		
+		case MKVS_YUV444_48:
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			break;
+		
+		case MKVS_YUV444_24:
+			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			break;
+		}
+}
+
+//pulls the YUV Luma (Y) value from a pixel
+uint16_t getLuma(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	uint16_t yuvLuma = 0;
+	float result = 0;
+	
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			result = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
+			result += .5;
+			yuvLuma = (int)result;
+			break;
+			
+		case MKVS_RGB24:
+			result = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
+			result *= 256;
+			result += .5;
+			yuvLuma = (int)result;
+			break;
+			
+		case MKVS_YUV444_48:
+			yuvLuma = pixel->yuv444_48.y;
+			break;
+			
+		case MKVS_YUV444_24:
+			yuvLuma = pixel->yuv444_24.y;
+			yuvLuma *= 256;
+			break;
+	}
+	return yuvLuma;
+}
+
+
+//pulls the YUV Cb (U) value from a pixel
+uint16_t getCb(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	uint16_t yuvCb = 0;
+	float result = 0;
+	
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			result = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
+			result += .5;
+			yuvCb = (int)result;
+			break;
+			
+		case MKVS_RGB24:
+			result = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
+			result *= 256;
+			result += .5;
+			yuvCb = (int)result;
+			break;
+			
+		case MKVS_YUV444_48:
+			yuvCb = pixel->yuv444_48.u;
+			break;
+			
+		case MKVS_YUV444_24:
+			yuvCb = pixel->yuv444_24.u;
+			yuvCb *= 256;
+			break;
+	}
+	return yuvCb;
+}
+
+
+//pulls the YUV Cr (V) value from a pixel
+uint16_t getCr(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	uint16_t yuvCr = 0;
+	float result = 0;
+	
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			result = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
+			result += .5;
+			yuvCr = (int)result;
+			break;
+			
+		case MKVS_RGB24:
+			result = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
+			result *= 256;
+			result += .5;
+			yuvCr = (int)result;
+			break;
+			
+		case MKVS_YUV444_48:
+			yuvCr = pixel->yuv444_48.v;
+			break;
+			
+		case MKVS_YUV444_24:
+			yuvCr = pixel->yuv444_24.v;
+			yuvCr *= 256;
+			break;
+	}
+	return yuvCr;
 }
