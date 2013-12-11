@@ -147,7 +147,7 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			
 		case MKVS_YUV444_24:
 			//result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.v / .877); //this is the Y'UV conversion
-			result = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128); //this isthe VCbCr conversion for full-range values
+			result = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128); //this is the VCbCr conversion for full-range values
 			result *= 256;
 			result += .5; // for accurate rounding
 			
@@ -256,6 +256,12 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 
 //sets the RGB red value to a particular value
 void setRed(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
 			if(value <= 0) {
@@ -272,15 +278,45 @@ void setRed(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 			}else if(value >= 255) {
 				value = 255;
 			}
-			pixel->rgb24.r = (uint16_t) value;
+			pixel->rgb24.r = (uint8_t) value;
 			break;
 		
 		case MKVS_YUV444_48:
-			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_48.y + 1.4 * ((float)pixel->yuv444_48.v - 32768);
+			grnval = (float)pixel->yuv444_48.y - .343 * ((float)pixel->yuv444_48.u - 32768) - .711 * ((float)pixel->yuv444_48.v - 32768);
+			bluval = (float)pixel->yuv444_48.y + 1.765 * ((float)pixel->yuv444_48.u - 32768);
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 65535) {
+				value = 65535;
+			}
+			redval = (float)value;
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_48.y = (uint16_t)yval;
+			uval = 32768 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_48.u = (uint16_t)uval;
+			vval = 32768 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_48.v = (uint16_t)vval;
 			break;
 		
 		case MKVS_YUV444_24:
-			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128);
+			grnval = (float)pixel->yuv444_24.y - .343 * ((float)pixel->yuv444_24.u - 128) - .711 * ((float)pixel->yuv444_24.v - 128);
+			bluval = (float)pixel->yuv444_24.y + 1.765 * ((float)pixel->yuv444_24.u - 128);
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 255) {
+				value = 255;
+			}
+			redval = (float)value;
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_24.y = (uint8_t)yval;
+			uval = 128 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_24.u = (uint8_t)uval;
+			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_24.v = (uint8_t)vval;
 			break;
 		}
 }
@@ -288,6 +324,12 @@ void setRed(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 
 //sets the RGB green value to a particular value
 void setGreen(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
 			if(value <= 0) {
@@ -308,11 +350,41 @@ void setGreen(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 			break;
 		
 		case MKVS_YUV444_48:
-			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_48.y + 1.4 * ((float)pixel->yuv444_48.v - 32768);
+			grnval = (float)pixel->yuv444_48.y - .343 * ((float)pixel->yuv444_48.u - 32768) - .711 * ((float)pixel->yuv444_48.v - 32768);
+			bluval = (float)pixel->yuv444_48.y + 1.765 * ((float)pixel->yuv444_48.u - 32768);
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 65535) {
+				value = 65535;
+			}
+			grnval = (float)value;
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_48.y = (uint16_t)yval;
+			uval = 32768 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_48.u = (uint16_t)uval;
+			vval = 32768 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_48.v = (uint16_t)vval;;
 			break;
 		
 		case MKVS_YUV444_24:
-			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128);
+			grnval = (float)pixel->yuv444_24.y - .343 * ((float)pixel->yuv444_24.u - 128) - .711 * ((float)pixel->yuv444_24.v - 128);
+			bluval = (float)pixel->yuv444_24.y + 1.765 * ((float)pixel->yuv444_24.u - 128);
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 255) {
+				value = 255;
+			}
+			grnval = (float)value;
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_24.y = (uint8_t)yval;
+			uval = 128 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_24.u = (uint8_t)uval;
+			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_24.v = (uint8_t)vval;;
 			break;
 		}
 }
@@ -320,6 +392,12 @@ void setGreen(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 
 //sets the RGB blue value to a particular value
 void setBlue(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
 			if(value <= 0) {
@@ -340,11 +418,254 @@ void setBlue(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 			break;
 		
 		case MKVS_YUV444_48:
-			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+		//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_48.y + 1.4 * ((float)pixel->yuv444_48.v - 32768);
+			grnval = (float)pixel->yuv444_48.y - .343 * ((float)pixel->yuv444_48.u - 32768) - .711 * ((float)pixel->yuv444_48.v - 32768);
+			bluval = (float)pixel->yuv444_48.y + 1.765 * ((float)pixel->yuv444_48.u - 32768);
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 65535) {
+				value = 65535;
+			}
+			bluval = (float)value;
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_48.y = (uint16_t)yval;
+			uval = 32768 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_48.u = (uint16_t)uval;
+			vval = 32768 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_48.v = (uint16_t)vval;;
 			break;
 		
 		case MKVS_YUV444_24:
-			yyerror("non-RGB colorspaces are not yet supported in setRGB functions");
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128);
+			grnval = (float)pixel->yuv444_24.y - .343 * ((float)pixel->yuv444_24.u - 128) - .711 * ((float)pixel->yuv444_24.v - 128);
+			bluval = (float)pixel->yuv444_24.y + 1.765 * ((float)pixel->yuv444_24.u - 128);
+			if(value <= 0) {
+				value = 0;
+			}else if(value >= 255) {
+				value = 255;
+			}
+			bluval = (float)value;
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_24.y = (uint8_t)yval;
+			uval = 128 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_24.u = (uint8_t)uval;
+			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_24.v = (uint8_t)vval;;
+			break;
+		}
+}
+
+//increments the appropriate rgb value by the given value
+void adjustRed(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData) {
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			if(pixel->rgb48.r + intensity <= 0) {
+				pixel->rgb48.r = 0;
+			}else if(pixel->rgb48.r + intensity >= 65535) {
+				pixel->rgb48.r = 65535;
+			}else{
+				pixel->rgb48.r += (uint16_t)intensity;
+			}
+			break;
+			
+		case MKVS_RGB24:
+			if(pixel->rgb24.r + intensity <= 0) {
+				pixel->rgb24.r = 0;
+			}else if(pixel->rgb24.r + intensity >= 255) {
+				pixel->rgb24.r = 255;
+			}else{
+				pixel->rgb24.r += (uint8_t) intensity;
+			}
+			break;
+		
+		case MKVS_YUV444_48:
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_48.y + 1.4 * ((float)pixel->yuv444_48.v - 32768);
+			grnval = (float)pixel->yuv444_48.y - .343 * ((float)pixel->yuv444_48.u - 32768) - .711 * ((float)pixel->yuv444_48.v - 32768);
+			bluval = (float)pixel->yuv444_48.y + 1.765 * ((float)pixel->yuv444_48.u - 32768);
+			if(redval + intensity <= 0) {
+				redval = 0;
+			}else if(redval + (uint16_t) intensity >= 65535) {
+				redval = 65535;
+			}else{
+				redval += (uint16_t) intensity;
+			}
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_48.y = (uint16_t)yval;
+			uval = 32768 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_48.u = (uint16_t)uval;
+			vval = 32768 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_48.v = (uint16_t)vval;
+			break;
+		
+		case MKVS_YUV444_24:
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128);
+			grnval = (float)pixel->yuv444_24.y - .343 * ((float)pixel->yuv444_24.u - 128) - .711 * ((float)pixel->yuv444_24.v - 128);
+			bluval = (float)pixel->yuv444_24.y + 1.765 * ((float)pixel->yuv444_24.u - 128);
+			if(redval + (uint8_t) intensity <= 0) {
+				redval = 0;
+			}else if(redval + (uint8_t) intensity >= 255) {
+				redval = 255;
+			}else{
+				redval += (uint8_t)intensity;
+			}
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_24.y = (uint8_t)yval;
+			uval = 128 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_24.u = (uint8_t)uval;
+			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_24.v = (uint8_t)vval;
+			break;
+		}
+}
+
+//increments the appropriate rgb value by the given value
+void adjustGreen(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData) {
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			if(pixel->rgb48.g + intensity <= 0) {
+				pixel->rgb48.g = 0;
+			}else if(pixel->rgb48.g + intensity >= 65535) {
+				pixel->rgb48.g = 65535;
+			}else{
+				pixel->rgb48.g += (uint16_t)intensity;
+			}
+			break;
+			
+		case MKVS_RGB24:
+			if(pixel->rgb24.g + intensity <= 0) {
+				pixel->rgb24.g = 0;
+			}else if(pixel->rgb24.g + intensity >= 255) {
+				pixel->rgb24.g = 255;
+			}else{
+				pixel->rgb24.g += (uint8_t) intensity;
+			}
+			break;
+		
+		case MKVS_YUV444_48:
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_48.y + 1.4 * ((float)pixel->yuv444_48.v - 32768);
+			grnval = (float)pixel->yuv444_48.y - .343 * ((float)pixel->yuv444_48.u - 32768) - .711 * ((float)pixel->yuv444_48.v - 32768);
+			bluval = (float)pixel->yuv444_48.y + 1.765 * ((float)pixel->yuv444_48.u - 32768);
+			if(grnval + (uint16_t) intensity <= 0) {
+				grnval = 0;
+			}else if(grnval + (uint16_t) intensity >= 65535) {
+				grnval = 65535;
+			}else{
+				grnval += (uint16_t) intensity;
+			}
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_48.y = (uint16_t)yval;
+			uval = 32768 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_48.u = (uint16_t)uval;
+			vval = 32768 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_48.v = (uint16_t)vval;
+			break;
+		
+		case MKVS_YUV444_24:
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128);
+			grnval = (float)pixel->yuv444_24.y - .343 * ((float)pixel->yuv444_24.u - 128) - .711 * ((float)pixel->yuv444_24.v - 128);
+			bluval = (float)pixel->yuv444_24.y + 1.765 * ((float)pixel->yuv444_24.u - 128);
+			if(grnval + (uint8_t) intensity <= 0) {
+				grnval = 0;
+			}else if(grnval + (uint8_t) intensity >= 255) {
+				grnval = 255;
+			}else{
+				grnval += (uint8_t)intensity;
+			}
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_24.y = (uint8_t)yval;
+			uval = 128 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_24.u = (uint8_t)uval;
+			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_24.v = (uint8_t)vval;
+			break;
+		}
+}
+
+//increments the appropriate rgb value by the given value
+void adjustBlue(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData) {
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			if(pixel->rgb48.b + intensity <= 0) {
+				pixel->rgb48.b = 0;
+			}else if(pixel->rgb48.b + intensity >= 65535) {
+				pixel->rgb48.b = 65535;
+			}else{
+				pixel->rgb48.b += (uint16_t) intensity;
+			}
+			break;
+			
+		case MKVS_RGB24:
+			if(pixel->rgb24.b + intensity <= 0) {
+				pixel->rgb24.b = 0;
+			}else if(pixel->rgb24.b + intensity >= 255) {
+				pixel->rgb24.b = 255;
+			}else{
+				pixel->rgb24.b += (uint8_t) intensity;
+			}
+			break;
+		
+		case MKVS_YUV444_48:
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_48.y + 1.4 * ((float)pixel->yuv444_48.v - 32768);
+			grnval = (float)pixel->yuv444_48.y - .343 * ((float)pixel->yuv444_48.u - 32768) - .711 * ((float)pixel->yuv444_48.v - 32768);
+			bluval = (float)pixel->yuv444_48.y + 1.765 * ((float)pixel->yuv444_48.u - 32768);
+			if(bluval + (uint16_t) intensity <= 0) {
+				bluval = 0;
+			}else if(bluval + (uint16_t) intensity >= 65535) {
+				bluval = 65535;
+			}else{
+				bluval += (uint16_t) intensity;
+			}
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_48.y = (uint16_t)yval;
+			uval = 32768 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_48.u = (uint16_t)uval;
+			vval = 32768 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_48.v = (uint16_t)vval;
+			break;
+		
+		case MKVS_YUV444_24:
+			//pulls the equivalent rgb values from the pixel, changes the appropriate one, then converts back to yuv.
+			redval = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128);
+			grnval = (float)pixel->yuv444_24.y - .343 * ((float)pixel->yuv444_24.u - 128) - .711 * ((float)pixel->yuv444_24.v - 128);
+			bluval = (float)pixel->yuv444_24.y + 1.765 * ((float)pixel->yuv444_24.u - 128);
+			if(bluval + (uint8_t) intensity <= 0) {
+				bluval = 0;
+			}else if(bluval + (uint8_t) intensity >= 255) {
+				bluval = 255;
+			}else{
+				bluval += (uint8_t)intensity;
+			}
+			yval = redval * .299 + grnval * .587 + bluval * .114;
+			pixel->yuv444_24.y = (uint8_t)yval;
+			uval = 128 + .5 * bluval - .169 * redval - .331 * grnval;
+			pixel->yuv444_24.u = (uint8_t)uval;
+			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
+			pixel->yuv444_24.v = (uint8_t)vval;
 			break;
 		}
 }
@@ -442,4 +763,443 @@ uint16_t getCr(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			break;
 	}
 	return yuvCr;
+}
+
+
+//Sets the Luma (Y) value for a pixel
+void setLuma(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
+			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
+			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 65535){
+				value = 65535;
+			}
+			yval = value;
+			redval = yval + 1.4 * (vval - 32768);
+			grnval = yval - .343 * (uval - 32768) - .711 * (vval - 32768);
+			bluval = yval + 1.765 * (uval - 32768);
+			pixel->rgb48.r = redval;
+			pixel->rgb48.g = grnval;
+			pixel->rgb48.b = bluval;
+			break;
+			
+		case MKVS_RGB24:
+			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
+			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
+			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 255){
+				value = 255;
+			}
+			yval = value;
+			redval = yval + 1.4 * (vval - 128);
+			grnval = yval - .343 * (uval - 128) - .711 * (vval - 128);
+			bluval = yval + 1.765 * (uval - 128);
+			pixel->rgb24.r = redval;
+			pixel->rgb24.g = grnval;
+			pixel->rgb24.b = bluval;
+			break;
+		
+		case MKVS_YUV444_48:
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 65535){
+				value = 65535;
+			}
+			pixel->yuv444_48.y = (uint16_t) value;
+			break;
+		
+		case MKVS_YUV444_24:
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 255){
+				value = 255;
+			}
+			pixel->yuv444_24.y = (uint16_t) value;
+			break;
+		}
+}
+
+
+
+//Sets the Cb (U) value for a pixel
+void setCb(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
+			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
+			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 65535){
+				value = 65535;
+			}
+			uval = value;
+			redval = yval + 1.4 * (vval - 32768);
+			grnval = yval - .343 * (uval - 32768) - .711 * (vval - 32768);
+			bluval = yval + 1.765 * (uval - 32768);
+			pixel->rgb48.r = redval;
+			pixel->rgb48.g = grnval;
+			pixel->rgb48.b = bluval;
+			break;
+			
+		case MKVS_RGB24:
+			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
+			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
+			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 255){
+				value = 255;
+			}
+			uval = value;
+			redval = yval + 1.4 * (vval - 128);
+			grnval = yval - .343 * (uval - 128) - .711 * (vval - 128);
+			bluval = yval + 1.765 * (uval - 128);
+			pixel->rgb24.r = redval;
+			pixel->rgb24.g = grnval;
+			pixel->rgb24.b = bluval;
+			break;
+		
+		case MKVS_YUV444_48:
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 65535){
+				value = 65535;
+			}
+			pixel->yuv444_48.u = (uint16_t) value;
+			break;
+		
+		case MKVS_YUV444_24:
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 255){
+				value = 255;
+			}
+			pixel->yuv444_24.u = (uint16_t) value;
+			break;
+		}
+}
+
+
+
+
+//Sets the Cr (V) value for a pixel
+void setCr(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
+			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
+			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 65535){
+				value = 65535;
+			}
+			vval = value;
+			redval = yval + 1.4 * (vval - 32768);
+			grnval = yval - .343 * (uval - 32768) - .711 * (vval - 32768);
+			bluval = yval + 1.765 * (uval - 32768);
+			pixel->rgb48.r = redval;
+			pixel->rgb48.g = grnval;
+			pixel->rgb48.b = bluval;
+			break;
+			
+		case MKVS_RGB24:
+			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
+			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
+			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 255){
+				value = 255;
+			}
+			vval = value;
+			redval = yval + 1.4 * (vval - 128);
+			grnval = yval - .343 * (uval - 128) - .711 * (vval - 128);
+			bluval = yval + 1.765 * (uval - 128);
+			pixel->rgb24.r = redval;
+			pixel->rgb24.g = grnval;
+			pixel->rgb24.b = bluval;
+			break;
+		
+		case MKVS_YUV444_48:
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 65535){
+				value = 65535;
+			}
+			pixel->yuv444_48.v = (uint16_t) value;
+			break;
+		
+		case MKVS_YUV444_24:
+			if(value <= 0)
+			{
+				value = 0;
+			}else if(value >= 255){
+				value = 255;
+			}
+			pixel->yuv444_24.v = (uint16_t) value;
+			break;
+		}
+}
+
+
+
+//increments the appropriate yuv value by the given value
+void adjustLuma(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData){
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
+			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
+			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
+			if(yval + (uint16_t) intensity <= 0)
+			{
+				yval = 0;
+			}else if(yval + (uint16_t) intensity >= 65535){
+				yval = 65535;
+			}else{
+				yval =+ (uint16_t) intensity;
+			}
+			redval = yval + 1.4 * (vval - 32768);
+			grnval = yval - .343 * (uval - 32768) - .711 * (vval - 32768);
+			bluval = yval + 1.765 * (uval - 32768);
+			pixel->rgb48.r = redval;
+			pixel->rgb48.g = grnval;
+			pixel->rgb48.b = bluval;
+			break;
+			
+		case MKVS_RGB24:
+			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
+			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
+			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
+			if(yval + (uint8_t) intensity <= 0)
+			{
+				yval = 0;
+			}else if(yval + (uint8_t) intensity >= 255){
+				yval = 255;
+			}else{
+				yval += (uint8_t) intensity;
+			}
+			redval = yval + 1.4 * (vval - 128);
+			grnval = yval - .343 * (uval - 128) - .711 * (vval - 128);
+			bluval = yval + 1.765 * (uval - 128);
+			pixel->rgb24.r = redval;
+			pixel->rgb24.g = grnval;
+			pixel->rgb24.b = bluval;
+			break;
+		
+		case MKVS_YUV444_48:
+			if(pixel->yuv444_48.y + (uint16_t) intensity <= 0)
+			{
+				yval = 0;
+			}else if(pixel->yuv444_48.y + (uint16_t) intensity >= 65535){
+				yval = 65535;
+			}else{
+				pixel->yuv444_48.y += (uint16_t) intensity;
+			}
+			break;
+		
+		case MKVS_YUV444_24:
+			if(pixel->yuv444_24.y + (uint8_t) intensity <= 0)
+			{
+				yval = 0;
+			}else if(pixel->yuv444_24.y + (uint8_t) intensity >= 255){
+				yval = 255;
+			}else{
+				pixel->yuv444_24.y += (uint8_t) intensity;
+			}
+			break;
+	}
+}
+
+
+
+
+//increments the appropriate yuv value by the given value
+void adjustCb(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData){
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
+			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
+			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
+			if(uval + (uint16_t) intensity <= 0)
+			{
+				uval = 0;
+			}else if(uval + (uint16_t) intensity >= 65535){
+				uval = 65535;
+			}else{
+				uval =+ (uint16_t) intensity;
+			}
+			redval = yval + 1.4 * (vval - 32768);
+			grnval = yval - .343 * (uval - 32768) - .711 * (vval - 32768);
+			bluval = yval + 1.765 * (uval - 32768);
+			pixel->rgb48.r = redval;
+			pixel->rgb48.g = grnval;
+			pixel->rgb48.b = bluval;
+			break;
+			
+		case MKVS_RGB24:
+			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
+			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
+			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
+			if(uval + (uint8_t) intensity <= 0)
+			{
+				uval = 0;
+			}else if(uval + (uint8_t) intensity >= 255){
+				uval = 255;
+			}else{
+				uval += (uint8_t) intensity;
+			}
+			redval = yval + 1.4 * (vval - 128);
+			grnval = yval - .343 * (uval - 128) - .711 * (vval - 128);
+			bluval = yval + 1.765 * (uval - 128);
+			pixel->rgb24.r = redval;
+			pixel->rgb24.g = grnval;
+			pixel->rgb24.b = bluval;
+			break;
+		
+		case MKVS_YUV444_48:
+			if(pixel->yuv444_48.u + (uint16_t) intensity <= 0)
+			{
+				uval = 0;
+			}else if(pixel->yuv444_48.u + (uint16_t) intensity >= 65535){
+				uval = 65535;
+			}else{
+				pixel->yuv444_48.u += (uint16_t) intensity;
+			}
+			break;
+		
+		case MKVS_YUV444_24:
+			if(pixel->yuv444_24.u + (uint8_t) intensity <= 0)
+			{
+				uval = 0;
+			}else if(pixel->yuv444_24.u + (uint8_t) intensity >= 255){
+				uval = 255;
+			}else{
+				pixel->yuv444_24.u += (uint8_t) intensity;
+			}
+			break;
+	}
+}
+
+
+
+//increments the appropriate yuv value by the given value
+void adjustCr(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData){
+	float redval = 0;
+	float bluval = 0;
+	float grnval = 0;
+	float yval = 0;
+	float uval = 0;
+	float vval = 0;
+	switch(metaData->colorspace) {
+		case MKVS_RGB48:
+			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
+			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
+			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
+			if(vval + (uint16_t) intensity <= 0)
+			{
+				vval = 0;
+			}else if(vval + (uint16_t) intensity >= 65535){
+				vval = 65535;
+			}else{
+				vval =+ (uint16_t) intensity;
+			}
+			redval = yval + 1.4 * (vval - 32768);
+			grnval = yval - .343 * (uval - 32768) - .711 * (vval - 32768);
+			bluval = yval + 1.765 * (uval - 32768);
+			pixel->rgb48.r = redval;
+			pixel->rgb48.g = grnval;
+			pixel->rgb48.b = bluval;
+			break;
+			
+		case MKVS_RGB24:
+			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
+			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
+			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
+			if(vval + (uint8_t) intensity <= 0)
+			{
+				vval = 0;
+			}else if(vval + (uint8_t) intensity >= 255){
+				vval = 255;
+			}else{
+				vval += (uint8_t) intensity;
+			}
+			redval = yval + 1.4 * (vval - 128);
+			grnval = yval - .343 * (uval - 128) - .711 * (vval - 128);
+			bluval = yval + 1.765 * (uval - 128);
+			pixel->rgb24.r = redval;
+			pixel->rgb24.g = grnval;
+			pixel->rgb24.b = bluval;
+			break;
+		
+		case MKVS_YUV444_48:
+			if(pixel->yuv444_48.v + (uint16_t) intensity <= 0)
+			{
+				vval = 0;
+			}else if(pixel->yuv444_48.v + (uint16_t) intensity >= 65535){
+				vval = 65535;
+			}else{
+				pixel->yuv444_48.v += (uint16_t) intensity;
+			}
+			break;
+		
+		case MKVS_YUV444_24:
+			if(pixel->yuv444_24.v + (uint8_t) intensity <= 0)
+			{
+				vval = 0;
+			}else if(pixel->yuv444_24.v + (uint8_t) intensity >= 255){
+				vval = 255;
+			}else{
+				pixel->yuv444_24.v += (uint8_t) intensity;
+			}
+			break;
+	}
 }
