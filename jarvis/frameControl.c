@@ -148,7 +148,7 @@ void clearFrame(MkvsynthFrame *usedFrame) {
  *****************************************************************************/
 void clearReadOnlyFrame(MkvsynthFrame *usedFrame) {
 	pthread_mutex_lock(&usedFrame->lock);
-	if(usedFrame->filtersRemaining == 1) {
+	if(usedFrame->filtersRemaining <= 1) {
 		// kill the frame
 		pthread_mutex_unlock(&usedFrame->lock);
 		free(usedFrame->payload);
