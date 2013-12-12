@@ -38,6 +38,7 @@ void *ffmpegDecode(void *filterParams) {
 	// Decode Loop //
 	/////////////////
 	AVPacket packet;
+	int currentFrame = 1;
 	while(av_read_frame(params->formatContext, &packet) >= 0) {
 		if(packet.stream_index == params->videoStream) {
 			avcodec_decode_video2(
@@ -47,6 +48,10 @@ void *ffmpegDecode(void *filterParams) {
 				&packet);
 
 			if(params->frameFinished) {
+				currentFrame++;
+				if(currentFrame % 500 == 0) {
+					printf("Finished Frame %i\n", currentFrame);
+				}
 				sws_scale (
 					params->resizeContext,
 					(uint8_t const * const *)params->frame->data,
@@ -175,8 +180,8 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, ASTnode *args) {
 	params->output->metaData->width = params->codecContext->width;
 	params->output->metaData->height = params->codecContext->height;
 	params->output->metaData->colorspace = MKVS_RGB48;
-	params->output->metaData->fpsNumerator   = 60;// params->formatContext->streams[params->videoStream]->avg_frame_rate.num;
-	params->output->metaData->fpsDenominator = 1;//params->formatContext->streams[params->videoStream]->avg_frame_rate.den;
+	params->output->metaData->fpsNumerator = params->formatContext->streams[params->videoStream]->avg_frame_rate.num;
+	params->output->metaData->fpsDenominator = params->formatContext->streams[params->videoStream]->avg_frame_rate.den;
 
 	//////////////////////
 	// Queue and Return //
