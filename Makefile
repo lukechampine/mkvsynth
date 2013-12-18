@@ -3,10 +3,12 @@ CFLAGS = -Wall
 
 DELBROT_OBJ = delbrot/lex.yy.o                                                 \
               delbrot/y.tab.o                                                  \
-              delbrot/delbrot.o                                                \
-              delbrot/plugins.o
+              delbrot/delbrot.o
 DELBROT_DEPS = delbrot/delbrot.h
 DELBROT_LIBS = -lm
+
+PLUGIN_OBJ = delbrot/plugins.o
+DUMMY_OBJ = delbrot/dummyplugins.o
 
 FFMPEG_CFLAGS = $(shell pkg-config --cflags libavformat libavcodec libswscale)
 FFMPEG_LIBS = $(shell pkg-config --libs libavformat libavcodec libswscale)
@@ -42,6 +44,7 @@ X264_OBJ = filters/coding/x264Encode.o
 	$(CC) $(CFLAGS) $< $(EXTRA_CFLAGS) -c -o $@
 
 mkvsynth: $(DELBROT_OBJ)                                                       \
+          $(PLUGIN_OBJ)                                                        \
           $(FFMPEG_OBJ)                                                        \
           $(MPL_OBJ)                                                           \
           $(JARVIS_OBJ)                                                        \
@@ -49,6 +52,10 @@ mkvsynth: $(DELBROT_OBJ)                                                       \
           $(FILTERS_UTIL_OBJ)                                                  \
           $(X264_OBJ)
 	$(CC) $(CFLAGS) $^ $(FFMPEG_LIBS) $(DELBROT_LIBS) $(JARVIS_LIBS) -o $@
+
+delbrot: $(DELBROT_OBJ)                                                        \
+         $(DUMMY_OBJ)
+	$(CC) $(CFLAGS) $^ $(DELBROT_LIBS) -o mkvsynth
 
 clean:
 	find . -type f -name "*.o" -delete
