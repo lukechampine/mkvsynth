@@ -20,7 +20,11 @@ struct Env {
 extern Env *global;
 
 /* types of nodes */
-typedef enum { typeVal, typeId, typeStr, typeClip, typeFn, typeVar, typeOptArg, typeOp } nodeType;
+typedef enum { 
+    typeNum, typeBool, typeStr, typeClip,
+    typeOptNum, typeOptBool, typeOptStr, typeOptClip,
+    typeId, typeFn, typeVar, typeOptArg, typeOp
+} nodeType;
 
 /* a core or plugin function */
 typedef struct {
@@ -61,7 +65,8 @@ typedef struct {
 struct ASTnode {
     nodeType type;
     union {
-        double  val;
+        double  num;
+        char   bool;
         char    *id;
         char   *str;
         MkvsynthInput *clipIn;
@@ -84,10 +89,11 @@ void yyerror(char *, ...);
 ASTnode* newNode();
 void     freeNodes();
 ASTnode* mkIdNode(char *);
-ASTnode* mkValNode(double);
+ASTnode* mkNumNode(double);
+ASTnode* mkBoolNode(int);
 ASTnode* mkStrNode(char *);
 ASTnode* mkOpNode(int, int, ...);
-ASTnode* mkOptArgNode(char *);
+ASTnode* mkOptArgNode(ASTnode *, ASTnode *);
 ASTnode* initList(ASTnode *);
 ASTnode* append(ASTnode *, ASTnode *);
 ASTnode* ex(Env *, ASTnode *);
@@ -123,14 +129,14 @@ ASTnode* print(ASTnode *, ASTnode *);
 extern fnEntry pluginFunctions[];
 
 /* helpful plugin macros */
-#define MANDVAL()  args->val;    args = args->next
+#define MANDVAL()  args->num;    args = args->next
 #define MANDSTR()  args->str;    args = args->next
 #define MANDCLIP() args->clipOut; args = args->next
-#define OPTVAL(name, default)  getOptArg(args, name, typeVal)  ?       *((double *) getOptArg(args, name, typeVal)) : default
+#define OPTVAL(name, default)  getOptArg(args, name, typeNum)  ?       *((double *) getOptArg(args, name, typeNum)) : default
 #define OPTSTR(name, default)  getOptArg(args, name, typeStr)  ?           (char *) getOptArg(args, name, typeStr)  : default
 #define OPTCLIP(name, default) getOptArg(args, name, typeClip) ? (MkvsynthInput *) getOptArg(args, name, typeClip) : default
 
-#define RETURNVAL(value) p->type = typeVal;  p->val     = value; return p
+#define RETURNVAL(value) p->type = typeNum;  p->num     = value; return p
 #define RETURNSTR(str)   p->type = typeStr;  p->str     = str;   return p
 #define RETURNCLIP(clip) p->type = typeClip; p->clipOut = clip;  return p
 
