@@ -318,8 +318,16 @@ ASTnode *getVar(Env const *e, char const *varName) {
     return getVar(e->parent, varName);
 }
 
-/* Called by yyparse on error. */
+/* Called by yyparse on error, passed through to Mkvsynth Error */
 void yyerror(char *error, ...) {
+    va_list arglist;
+    va_start(arglist, error);
+    MkvsynthError(error, arglist);
+    va_end(arglist);
+}
+
+/* alias for yyerror */
+void MkvsynthError(char *error, ...) {
     fprintf(stderr, "\x1B[31mdelbrot:%d error: ", linenumber);
     va_list arglist;
     va_start(arglist, error);
@@ -328,6 +336,7 @@ void yyerror(char *error, ...) {
     fprintf(stderr, "\x1B[0m\n");
     exit(1);
 }
+
 
 /* built-in functions */
 static fnEntry coreFunctions[] = {

@@ -4,6 +4,8 @@
 #include <setjmp.h>
 #include "../jarvis/jarvis.h"
 
+#define bool_t char
+
 typedef struct ASTnode ASTnode;
 typedef struct Env Env;
 
@@ -22,8 +24,8 @@ extern Env *global;
 /* types of nodes */
 typedef enum { 
     typeNum, typeBool, typeStr, typeClip,
-    typeOptNum, typeOptBool, typeOptStr, typeOptClip,
     typeId, typeFn, typeVar, typeOptArg, typeOp
+    typeOptNum, typeOptBool, typeOptStr, typeOptClip,
 } nodeType;
 
 /* a core or plugin function */
@@ -66,7 +68,7 @@ struct ASTnode {
     nodeType type;
     union {
         double  num;
-        char   bool;
+        bool_t bool;
         char    *id;
         char   *str;
         MkvsynthInput *clipIn;
@@ -129,15 +131,18 @@ ASTnode* print(ASTnode *, ASTnode *);
 extern fnEntry pluginFunctions[];
 
 /* helpful plugin macros */
-#define MANDVAL()  args->num;    args = args->next
+#define MANDNUM()  args->num;    args = args->next
+#define MANDBOOL() args->bool;   args = args->next
 #define MANDSTR()  args->str;    args = args->next
 #define MANDCLIP() args->clipOut; args = args->next
-#define OPTVAL(name, default)  getOptArg(args, name, typeNum)  ?       *((double *) getOptArg(args, name, typeNum)) : default
-#define OPTSTR(name, default)  getOptArg(args, name, typeStr)  ?           (char *) getOptArg(args, name, typeStr)  : default
-#define OPTCLIP(name, default) getOptArg(args, name, typeClip) ? (MkvsynthInput *) getOptArg(args, name, typeClip) : default
+#define OPTNUM(name, default)  getOptArg(args, name, typeNum)  ?      *((double *) getOptArg(args, name, typeNum))  : default
+#define OPTBOOL(name, default) getOptArg(args, name, typeBool) ?        *((char *) getOptArg(args, name, typeBool)) : default
+#define OPTSTR(name, default)  getOptArg(args, name, typeStr)  ?          (char *) getOptArg(args, name, typeStr)   : default
+#define OPTCLIP(name, default) getOptArg(args, name, typeClip) ? (MkvsynthInput *) getOptArg(args, name, typeClip)  : default
 
-#define RETURNVAL(value) p->type = typeNum;  p->num     = value; return p
-#define RETURNSTR(str)   p->type = typeStr;  p->str     = str;   return p
-#define RETURNCLIP(clip) p->type = typeClip; p->clipOut = clip;  return p
+#define RETURNNUM(num)   p->type = typeNum;  p->num     = num;  return p
+#define RETURNBOOL(bool) p->type = typeBool; p->bool    = bool; return p
+#define RETURNSTR(str)   p->type = typeStr;  p->str     = str;  return p
+#define RETURNCLIP(clip) p->type = typeClip; p->clipOut = clip; return p
 
 #endif
