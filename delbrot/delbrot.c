@@ -200,15 +200,26 @@ ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     return p;
 }
 
-/* execute an if/else statement */
-void ifelse(ASTnode *p) {
-    ASTnode *ifexpr = ex(e, p->op.ops[0]);
-    if (ifexpr->type != typeBool)
-        MkvsynthError("if expected boolean, got %s", typeNames[ifexpr->type]);
-    if (ifexpr->bool)
+/* process an if/else statement */
+void ifelse(Env *e, ASTnode *p) {
+    ASTnode *cond = ex(e, p->op.ops[0]);
+    if (cond->type != typeBool)
+        MkvsynthError("if expected boolean, got %s", typeNames[cond->type]);
+    if (cond->bool == TRUE)
         ex(e, p->op.ops[1]);
     else if (p->op.nops == 3)
         ex(e, p->op.ops[2]);
+}
+
+/* process a ternary expression */
+ASTnode* ternary(Env *e, ASTnode *p) {
+    ASTnode *cond = ex(e, p->op.ops[0]);
+    if (cond->type != typeBool)
+        MkvsynthError("arg 1 of ?| expected boolean, got %s", typeNames[cond->type]);
+    if (cond->bool == TRUE)
+        return ex(e, p->op.ops[1]);
+    else
+        return ex(e, p->op.ops[2]);
 }
 
 /* execute a section of the AST */
@@ -234,8 +245,9 @@ ASTnode* ex(Env *e, ASTnode *p) {
     switch(p->op.oper) {
         /* declarations */
         case FNDEF:  funcDefine(e, child[0], child[1], child[2]); break;
-        /* keywords */
-        case IF:     ifelse(p); p->type = typeOp; break;
+        /* blocks */
+        case IF:     ifelse(e, p); p->type = typeOp; break;
+        case TERN:   p = ternary(e, p); break;
         /* functions */
         case FNCT:   p = fnctCall(e, p, identify(e, child[0]), reduceArgs(e, child[1])); break;
         case CHAIN:  child[0]->next = child[2]; p = fnctCall(e, p, ex(e, child[1]), ex(e, child[0])); break;
@@ -323,7 +335,7 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
         /* printable types */
         switch(args->type) {
             case typeNum: printf("%.10g ", args->num); break;
-            case typeBool: printf("%s ", args->bool ? "True" : "False"); break;
+            case typeBool: printf("%s ", args->bool == TRUE ? "True" : "False"); break;
             case typeStr: printf("%s ", unesc(args->str)); break;
             default: printf("[could not print type %s] ", typeNames[args->type]); break;
         }
@@ -342,6 +354,14 @@ ASTnode* MKVsource(ASTnode *p, ASTnode *args) {
     return p;
 }
 
+/* exit with error message if assertion fails */
+/* TODO: expand to allow for printf-formatted error msgs */
+ASTnode* assert(ASTnode *p, ASTnode *args) {
+    checkArgs("assert", args, 2, typeBool, typeStr);
+    if (args->bool == FALSE)
+        MkvsynthError(args->next->str);
+}
+
 /* handle arithmetic / boolean operators */
 ASTnode* binOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
     /* arithmetic operator argument check */
@@ -349,12 +369,6 @@ ASTnode* binOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
         if (c1->type != typeNum) MkvsynthError("type mismatch: LHS of %c expected number, got %s", op, typeNames[c1->type]);
         if (c2->type != typeNum) MkvsynthError("type mismatch: RHS of %c expected number, got %s", op, typeNames[c2->type]);
         p->type = typeNum;
-    }
-    /* boolean operator argument check */
-    else {
-        if (c1->type != typeBool) MkvsynthError("type mismatch: LHS of %c expected boolean, got %s", op, typeNames[c1->type]);
-        if (c2->type != typeBool) MkvsynthError("type mismatch: RHS of %c expected boolean, got %s", op, typeNames[c2->type]);
-        p->type = typeBool;
     }
 
     switch(op) {
@@ -366,17 +380,20 @@ ASTnode* binOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
         case '^':  p->num = pow(c1->num, c2->num); break;
         case '%':  p->num = (double) ((int) c1->num % (int) c2->num); break;
         /* boolean operators */
-        case EQ:   p->bool = c1->bool == c2->bool; break;
-        case NE:   p->bool = c1->bool != c2->bool; break;
-        case GT:   p->bool = c1->bool  > c2->bool; break;
-        case LT:   p->bool = c1->bool  < c2->bool; break;
-        case GE:   p->bool = c1->bool >= c2->bool; break;
-        case LE:   p->bool = c1->bool <= c2->bool; break;
-        case LOR:  p->bool = c1->bool || c2->bool; break;
-        case LAND: p->bool = c1->bool && c2->bool; break;
+        /* TODO: polymorphism for non-numeric types */
+        case EQ:   p->bool = c1->num == c2->num ? TRUE : FALSE; break;
+        case NE:   p->bool = c1->num != c2->num ? TRUE : FALSE; break;
+        case GT:   p->bool = c1->num  > c2->num ? TRUE : FALSE; break;
+        case LT:   p->bool = c1->num  < c2->num ? TRUE : FALSE; break;
+        case GE:   p->bool = c1->num >= c2->num ? TRUE : FALSE; break;
+        case LE:   p->bool = c1->num <= c2->num ? TRUE : FALSE; break;
+        case LOR:  p->bool = c1->num || c2->num ? TRUE : FALSE; break;
+        case LAND: p->bool = c1->num && c2->num ? TRUE : FALSE; break;
         /* should never wind up here */
         default: MkvsynthError("unrecognized binary operator");
     }
+
+    p->type = op < 100 ? typeNum : typeBool;
     return p;
 }
 
@@ -391,7 +408,7 @@ ASTnode* nneg(ASTnode *p, ASTnode *c1) {
 ASTnode* nnot(ASTnode *p, ASTnode *c1) {
     if (c1->type != typeBool) MkvsynthError("arg 1 of ! expected boolean, got %s", typeNames[c1->type]);
     p->type = typeBool;
-    p->bool = !c1->bool;
+    p->bool = c1->bool ? FALSE : TRUE;
     return p;
 }
 

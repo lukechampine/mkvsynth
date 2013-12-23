@@ -16,7 +16,7 @@ D    [0-9]
 %%  /* rule definition section */
 
     /* boolean */
-(True|otherwise)    {
+"True"              {
                         yylval = mkBoolNode(TRUE);
                         return CONSTANT;
                     }
@@ -24,6 +24,7 @@ D    [0-9]
                         yylval = mkBoolNode(FALSE);
                         return CONSTANT;
                     }
+"otherwise"             ;
     /* keyword, function, or variable */
 {L}({L}|{D})*       {
                         /* reserved word */

@@ -4,7 +4,7 @@
 #include <setjmp.h>
 #include "../jarvis/jarvis.h"
 
-#define bool_t char
+#define bool_t int
 
 typedef struct ASTnode ASTnode;
 typedef struct Env Env;
@@ -24,7 +24,7 @@ extern Env *global;
 /* types of nodes */
 typedef enum { 
     typeNum, typeBool, typeStr, typeClip,
-    typeId, typeFn, typeVar, typeOptArg, typeOp
+    typeId, typeFn, typeVar, typeOptArg, typeOp,
     typeOptNum, typeOptBool, typeOptStr, typeOptClip,
 } nodeType;
 
@@ -86,6 +86,7 @@ struct ASTnode {
 
 /* error handling function */
 void yyerror(char *, ...);
+void MkvsynthError(char *, ...);
 
 /* ASTnode prototypes */
 ASTnode* newNode();
@@ -121,10 +122,11 @@ ASTnode* nsin(ASTnode *, ASTnode *);
 ASTnode* ncos(ASTnode *, ASTnode *);
 ASTnode* nlog(ASTnode *, ASTnode *);
 ASTnode* nsqrt(ASTnode *, ASTnode *);
-ASTnode* binOp(ASTnode *, int op, ASTnode *, ASTnode *);
+ASTnode* binOp(ASTnode *, ASTnode *, int op, ASTnode *);
 
 /* mkvsynth function prototypes */
 ASTnode* MKVsource(ASTnode *, ASTnode *);
+ASTnode* assert(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);
 
 /* plugin functions */

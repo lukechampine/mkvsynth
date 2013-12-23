@@ -17,12 +17,12 @@
 %token CONSTANT IDENTIFIER OPTARG
 %token ASSIGN BINOP
 %token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHAIN
-%token IF ELSE GUARD
+%token IF ELSE
 %token FNCT FNDEF RETURN DEFAULT
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
 %nonassoc ELSE
-%right '^' TERNARY
+%right '^' TERN
 %left EQ NE GT LT GE LE LOR LAND
 %left '+' '-'
 %left '*' '/' '%'
@@ -101,7 +101,6 @@ expr
 
 assignment_expr
     : ternary_expr
-    | primary_expr guard_expr                                 { $$ = mkOpNode(ASSIGN, 2, $1, $2);      }
     | primary_expr assignment_operator assignment_expr        { $$ = mkOpNode(ASSIGN, 3, $1, $2, $3);  }
     ;
 
@@ -109,14 +108,9 @@ assignment_operator
     : '=' | ADDEQ | SUBEQ | MULEQ | DIVEQ | POWEQ | MODEQ
     ;
 
-guard_expr
-    : '|' boolean_expr '=' boolean_expr                       { $$ = mkOpNode(GUARD, 2, $2, $4);       }
-    | guard_expr '|' boolean_expr '=' boolean_expr            { $$ = mkOpNode(GUARD, 3, $1, $3, $5);   }
-    ;
-
 ternary_expr
     : boolean_expr
-    | boolean_expr '?' ternary_expr '|' ternary_expr          { $$ = mkOpNode(TERNARY, 3, $1, $3, $5); } 
+    | boolean_expr '?' ternary_expr '|' ternary_expr          { $$ = mkOpNode(TERN, 3, $1, $3, $5);    } 
     ;
 
 boolean_expr
@@ -200,7 +194,7 @@ ASTnode *mkNumNode(double num) {
 ASTnode *mkBoolNode(int bool) {
     ASTnode *p = newNode();
     p->type = typeBool;
-    p->bool = 1;
+    p->bool = bool;
     return p;
 }
 
@@ -341,6 +335,7 @@ void MkvsynthError(char *error, ...) {
 /* built-in functions */
 static fnEntry coreFunctions[] = {
     { "MKVsource", MKVsource },
+    { "assert",    assert    },
     { "print",     print     },
     { "sin",       nsin      },
     { "cos",       ncos      },
@@ -350,7 +345,7 @@ static fnEntry coreFunctions[] = {
 };
 
 int main(int argc, char **argv) {
-    yydebug = 1;
+    //yydebug = 1;
 
     /* help message */
     if ((argc != 1 && argc != 2)
