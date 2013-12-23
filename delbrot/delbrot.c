@@ -98,7 +98,7 @@ ASTnode* identify(Env *e, ASTnode *p) {
     return p;
 }
 
-/* process a run-time function definition */
+/* process a function definition */
 /* TODO: handle optional arguments */
 void funcDefine(Env *e, ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
     if (nameNode->type != typeId)
@@ -116,7 +116,7 @@ void funcDefine(Env *e, ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode
     e->fnTable = ptr;
 }
 
-/* process the call of a function that was defined at run-time */
+/* process a user-defined function call */
 ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     /* create new environment */
     Env *local = (Env *) malloc(sizeof(Env));
@@ -233,7 +233,11 @@ ASTnode* ex(Env *e, ASTnode *p) {
 
     /* dereference variables */
     if (p->type == typeVar)
-        return dereference(p);
+        p = dereference(p);
+
+    /* catch functions with no arguments */
+    if (p->type == typeFn)
+        p = fnctCall(e, p, p, NULL);
 
     /* only nodes with children can be reduced */
     if (p->type != typeOp)
