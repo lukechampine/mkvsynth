@@ -18,7 +18,7 @@
 %token ASSIGN BINOP
 %token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHAIN
 %token IF ELSE
-%token FNCT FNDEF RETURN DEFAULT
+%token FNCT FNDEF RETURN DEFAULT OTHER
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
 %nonassoc ELSE
@@ -110,7 +110,12 @@ assignment_operator
 
 ternary_expr
     : boolean_expr
-    | boolean_expr '?' ternary_expr '|' ternary_expr          { $$ = mkOpNode(TERN, 3, $1, $3, $5);    } 
+    | boolean_expr '?' ternary_expr '|' ternary_end           { $$ = mkOpNode(TERN, 3, $1, $3, $5);    } 
+    ;
+
+ternary_end
+    : ternary_expr                                            { $$ = $1;                               }
+    | OTHER '?' ternary_expr                                  { $$ = $3;                               }
     ;
 
 boolean_expr
@@ -309,7 +314,8 @@ ASTnode *getVar(Env const *e, char const *varName) {
         if (strcmp(traverse->var.name, varName) == 0)
             return traverse;
     /* check parent environment */
-    return getVar(e->parent, varName);
+    //return getVar(e->parent, varName);
+    return NULL;
 }
 
 /* Called by yyparse on error, passed through to Mkvsynth Error */

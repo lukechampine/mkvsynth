@@ -24,7 +24,6 @@ D    [0-9]
                         yylval = mkBoolNode(FALSE);
                         return CONSTANT;
                     }
-"otherwise"             ;
     /* keyword, function, or variable */
 {L}({L}|{D})*       {
                         /* reserved word */
@@ -110,6 +109,8 @@ int resWord(char *str) {
         return RETURN;
     else if (!strcmp(str, "default"))
         return DEFAULT;
+    else if (!strcmp(str, "otherwise"))
+        return OTHER;
     /* not a reserved word */
     else
         return 0;

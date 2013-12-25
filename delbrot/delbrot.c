@@ -201,25 +201,30 @@ ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
 }
 
 /* process an if/else statement */
-void ifelse(Env *e, ASTnode *p) {
-    ASTnode *cond = ex(e, p->op.ops[0]);
+void ifelse(Env *e, ASTnode *cond, ASTnode *ifNode, ASTnode *elseNode) {
     if (cond->type != typeBool)
         MkvsynthError("if expected boolean, got %s", typeNames[cond->type]);
     if (cond->bool == TRUE)
-        ex(e, p->op.ops[1]);
+        ex(e, ifNode);
     else if (p->op.nops == 3)
-        ex(e, p->op.ops[2]);
+        ex(e, elseNode);
 }
 
 /* process a ternary expression */
-ASTnode* ternary(Env *e, ASTnode *p) {
-    ASTnode *cond = ex(e, p->op.ops[0]);
+ASTnode* ternary(Env *e, ASTnode *cond, ASTnode *ifNode, ASTnode *elseNode) {
     if (cond->type != typeBool)
         MkvsynthError("arg 1 of ?| expected boolean, got %s", typeNames[cond->type]);
     if (cond->bool == TRUE)
-        return ex(e, p->op.ops[1]);
+        return ex(e, ifNode);
     else
-        return ex(e, p->op.ops[2]);
+        return ex(e, elseNode);
+}
+
+/* process a default statement */
+ASTnode* setDefault(Env *e, ASTnode *varNode, ASTnode *valueNode) {
+    /* check that varNode is an unset optional parameter */
+    if (UNDEFINED(varNode))
+        memcpy(varNode->var.value, valueNode, sizeof(ASTnode));
 }
 
 /* execute a section of the AST */
@@ -248,25 +253,27 @@ ASTnode* ex(Env *e, ASTnode *p) {
 
     switch(p->op.oper) {
         /* declarations */
-        case FNDEF:  funcDefine(e, child[0], child[1], child[2]); break;
+        case FNDEF:   funcDefine(e, child[0], child[1], child[2]); break;
         /* blocks */
-        case IF:     ifelse(e, p); p->type = typeOp; break;
-        case TERN:   p = ternary(e, p); break;
+        case IF:      ifelse(e, ex(e, child[0]), child[1], child[2]); break;
         /* functions */
-        case FNCT:   p = fnctCall(e, p, identify(e, child[0]), reduceArgs(e, child[1])); break;
-        case CHAIN:  child[0]->next = child[2]; p = fnctCall(e, p, ex(e, child[1]), ex(e, child[0])); break;
-        case RETURN: e->returnValue = ex(e, child[0]); longjmp(e->returnContext, 1); break;
+        case FNCT:    p = fnctCall(e, p, identify(e, child[0]), reduceArgs(e, child[1])); break;
+        case CHAIN:   child[0]->next = child[2]; p = fnctCall(e, p, ex(e, child[1]), ex(e, child[0])); break;
+        case DEFAULT: setDefault(e, child[0], ex(e, child[1])); break;
+        case RETURN:  e->returnValue = ex(e, child[0]); longjmp(e->returnContext, 1); break;
         /* assignment */
-        case ASSIGN: p = assign(identify(e, child[0]), child[1]->num, ex(e, child[2])); break;
-        case INC:    p = assign(identify(e, child[0]), ADDEQ, mkNumNode(1)); break;
-        case DEC:    p = assign(identify(e, child[0]), SUBEQ, mkNumNode(1)); break;
+        case ASSIGN:  p = assign(identify(e, child[0]), child[1]->num, ex(e, child[2])); break;
+        case INC:     p = assign(identify(e, child[0]), ADDEQ, mkNumNode(1)); break;
+        case DEC:     p = assign(identify(e, child[0]), SUBEQ, mkNumNode(1)); break;
         /* unary operators */
-        case NEG:    p = nneg(p, ex(e, child[0])); break;
-        case '!':    p = nnot(p, ex(e, child[0])); break;
-        /* arithmetic / boolean operators */
-        case BINOP:  p = binOp(p, ex(e, child[0]), child[1]->num, ex(e, child[2])); break;
+        case NEG:     p = nneg(p, ex(e, child[0])); break;
+        case '!':     p = nnot(p, ex(e, child[0])); break;
+        /* binary operators */
+        case BINOP:   p = binOp(p, ex(e, child[0]), child[1]->num, ex(e, child[2])); break;
+        /* trinary operator */
+        case TERN:    p = ternary(e, ex(e, child[0]), child[1], child[2]); break;
         /* compound statements */
-        case ';':    ex(e, child[0]); p = ex(e, child[1]); break;
+        case ';':     ex(e, child[0]); p = ex(e, child[1]); break;
         /* should never wind up here */
         default: MkvsynthError("Unknown operator");
     }
