@@ -9,7 +9,7 @@
 #define UNDEFINED(n) n->type == typeVar && n->var.value == NULL
 
 /* useful for error messages */
-static char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "function", "variable", "optional argument", "operation"};
+static char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "parameter", "optional argument", "function", "operation"};
 
 /* dereference a variable */
 ASTnode* dereference(ASTnode *p) {
@@ -98,22 +98,70 @@ ASTnode* identify(Env *e, ASTnode *p) {
     return p;
 }
 
+/* split a list of nodes into mandatory and optional lists */
+/* return 0 on success, 1 if list is improperly ordered */
+int splitMandOpt(ASTnode *list, ASTnode **mand, ASTnode **opts) {
+    /* no nodes */
+    if (list == NULL) {
+        *mand = *opts = NULL;
+        return 0;
+    }
+    /* one node */
+    if (list->next == NULL) {
+        *mand = list->var.opt == 1 ? NULL : list;
+        *opts = list->var.opt == 1 ? list : NULL;
+        return 0;
+    }
+    /* more than one node */
+    /* check ordering */
+    ASTnode *traverse = list;
+    char check = 0;
+    while (traverse) {
+        if (traverse->var.opt == 1)
+            check = 1;
+        else if (check == 1)
+            return 1;
+        traverse = traverse->next;
+    }
+    /* no mandatory arguments */
+    if (list->var.opt == 1) {
+        *mand = NULL;
+        *opts = list;
+        return 0;
+    }
+    *mand = list;
+    traverse = list;
+    while (traverse->next && traverse->next->var.opt != 1)
+        traverse = traverse->next;
+    *opts = traverse->next;
+    traverse->next = NULL;
+    return 0;
+}
+
 /* process a function definition */
-/* TODO: handle optional arguments */
-void funcDefine(Env *e, ASTnode *nameNode, ASTnode *paramNode, ASTnode *bodyNode) {
-    if (nameNode->type != typeId)
-        MkvsynthError("function name \"%s\" is already in use", nameNode->var.name);
+/* TODO: check for missing default statements */
+void funcDefine(Env *e, ASTnode *name, ASTnode *params, ASTnode *body) {
+    if (name->type != typeId)
+        MkvsynthError("function name \"%s\" is already in use", name->var.name);
 
     /* create new function table entry */
-    ASTnode *ptr = newNode();
-    ptr->type = typeFn;
-    ptr->fn.type = fnUser;
-    ptr->fn.name = nameNode->id;
-    ptr->fn.user.body = bodyNode;
-    ptr->fn.user.params = paramNode;
+    ASTnode *p = newNode();
+    p->type = typeFn;
+    p->fn.type = fnUser;
+    p->fn.name = name->id;
+    p->fn.user.body = body;
+
+    /* split parameters into mandatory and optional */
+    if (splitMandOpt(params, &p->fn.user.params, &p->fn.user.opts))
+        MkvsynthError("optional parameters must follow mandatory parameters in function %s", p->fn.name);
+
+    /* seek out default and return statements */
+    //checkDefaults(p);
+    //checkReturns(p);
+
     /* add to local function table */
-    ptr->next = e->fnTable;
-    e->fnTable = ptr;
+    p->next = e->fnTable;
+    e->fnTable = p;
 }
 
 /* process a user-defined function call */
@@ -121,39 +169,69 @@ ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     /* create new environment */
     Env *local = (Env *) malloc(sizeof(Env));
     local->parent = e;
-
-    /* check arguments */
-    int i = 0, j = 0;
-    ASTnode *pTraverse = fnNode->fn.user.params, *aTraverse = args;
-    /* check for correct no. of arguments */
-    while (pTraverse || aTraverse) {
-        if (pTraverse) {
-            pTraverse = pTraverse->next;
-            i++;
-        }
-        if (aTraverse) {
-            aTraverse = aTraverse->next;
-            j++;
-        }
+    /* record function arguments in local variable table */
+    ASTnode *pTraverse = fnNode->fn.user.params;
+    while (pTraverse) {
+        putVar(local, pTraverse->var.name);
+        pTraverse = pTraverse->next;
     }
+    pTraverse = fnNode->fn.user.opts;
+    while (pTraverse) {
+        putVar(local, pTraverse->var.name)->var.opt = 1;
+        pTraverse = pTraverse->next;
+    }
+
+    /* split arguments into mandatory and optional */
+    ASTnode *mandargs, *optargs;
+    if (splitMandOpt(args, &mandargs, &optargs))
+        MkvsynthError("optional arguments must follow mandatory arguments in function %s", fnNode->fn.name);
+
+    /* check argument number */
+    int i = 0, j = 0;
+    pTraverse = fnNode->fn.user.params;
+    ASTnode *aTraverse = mandargs;
+    while (pTraverse && ++i)
+        pTraverse = pTraverse->next;
+    while (aTraverse && ++j)
+        aTraverse = aTraverse ->next;
     if (i != j)
-        MkvsynthError("%s expected %d argument%s, got %d", fnNode->fn.name, i, (i == 1) ? "" : "s", j);
+        MkvsynthError("%s expected %d mandatory argument%s, got %d", fnNode->fn.name, i, (i == 1) ? "" : "s", j);
+
     /* check for type mismatches */
     pTraverse = fnNode->fn.user.params;
-    aTraverse = args;
+    aTraverse = mandargs;
     while (pTraverse && aTraverse) {
-        if (pTraverse->type != aTraverse->type)
-            MkvsynthError("type mismatch: arg %d of %s expected %s, got %s", i, fnNode->fn.name, typeNames[pTraverse->type], typeNames[aTraverse->type]);
+        if (pTraverse->var.type != aTraverse->type)
+            MkvsynthError("type mismatch: arg %d of %s expected %s, got %s", 
+                i, fnNode->fn.name, typeNames[pTraverse->var.type], typeNames[aTraverse->type]);
         pTraverse = pTraverse->next;
         aTraverse = aTraverse->next;
     }
 
-    /* all is well; record var in local table and assign value */
+    /* all is well; record vars in local table and assign value */
     pTraverse = fnNode->fn.user.params;
     aTraverse = args;
     while (pTraverse && aTraverse) {
-        assign(putVar(local, pTraverse->id), '=', aTraverse);
+        assign(getVar(local, pTraverse->var.name), '=', aTraverse);
         pTraverse = pTraverse->next;
+        aTraverse = aTraverse->next;
+    }
+
+    /* check optional arguments */
+    aTraverse = optargs;
+    while (aTraverse) {
+        /* check that parameter exists */
+        pTraverse = fnNode->fn.user.opts;
+        while (pTraverse && strcmp(pTraverse->var.name, aTraverse->var.name) != 0)
+            pTraverse = pTraverse->next;
+        if (pTraverse == NULL)
+            MkvsynthError("%s is not an optional parameter of function %s", aTraverse->var.name, fnNode->fn.name);
+        /* check that types match */
+        if (pTraverse->var.type != aTraverse->var.value->type)
+            MkvsynthError("type mismatch: opt arg %s of %s expected %s, got %s",
+                pTraverse->var.name, fnNode->fn.name, typeNames[pTraverse->var.type], typeNames[aTraverse->var.type]);
+        /* assign value */
+        assign(getVar(local, pTraverse->var.name), '=', aTraverse->var.value);
         aTraverse = aTraverse->next;
     }
 
@@ -179,7 +257,7 @@ ASTnode* reduceArgs(Env *e, ASTnode *p) {
     p = ex(e, p);
     /* reduce optional argument */
     if (p->type == typeOptArg)
-        p->opt.value = ex(e, p->opt.value);
+        p->var.value = ex(e, p->var.value);
     /* link nodes back together */
     p->next = next;
     return p;
@@ -201,7 +279,7 @@ ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
 }
 
 /* process an if/else statement */
-void ifelse(Env *e, ASTnode *cond, ASTnode *ifNode, ASTnode *elseNode) {
+void ifelse(Env *e, ASTnode *p, ASTnode *cond, ASTnode *ifNode, ASTnode *elseNode) {
     if (cond->type != typeBool)
         MkvsynthError("if expected boolean, got %s", typeNames[cond->type]);
     if (cond->bool == TRUE)
@@ -221,10 +299,12 @@ ASTnode* ternary(Env *e, ASTnode *cond, ASTnode *ifNode, ASTnode *elseNode) {
 }
 
 /* process a default statement */
-ASTnode* setDefault(Env *e, ASTnode *varNode, ASTnode *valueNode) {
-    /* check that varNode is an unset optional parameter */
-    if (UNDEFINED(varNode))
-        memcpy(varNode->var.value, valueNode, sizeof(ASTnode));
+ASTnode* setDefault(Env *e, ASTnode *paramNode, ASTnode *valueNode) {
+    /* identify parameter */
+    paramNode = getVar(e, paramNode->id);
+    /* check that paramNode is an unset optional parameter */
+    if (paramNode->var.opt == 1 && paramNode->var.value == NULL)
+        assign(paramNode, '=', valueNode);
 }
 
 /* execute a section of the AST */
@@ -255,7 +335,7 @@ ASTnode* ex(Env *e, ASTnode *p) {
         /* declarations */
         case FNDEF:   funcDefine(e, child[0], child[1], child[2]); break;
         /* blocks */
-        case IF:      ifelse(e, ex(e, child[0]), child[1], child[2]); break;
+        case IF:      ifelse(e, p, ex(e, child[0]), child[1], child[2]); break;
         /* functions */
         case FNCT:    p = fnctCall(e, p, identify(e, child[0]), reduceArgs(e, child[1])); break;
         case CHAIN:   child[0]->next = child[2]; p = fnctCall(e, p, ex(e, child[1]), ex(e, child[0])); break;
@@ -275,13 +355,14 @@ ASTnode* ex(Env *e, ASTnode *p) {
         /* compound statements */
         case ';':     ex(e, child[0]); p = ex(e, child[1]); break;
         /* should never wind up here */
-        default: MkvsynthError("Unknown operator");
+        default: MkvsynthError("unknown operator %d", p->op.oper);
     }
 
     return p;
 }
 
 /* helper function to ensure that a function call is valid */
+/* TODO: check optional arguments */
 void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
     int i;
     va_list ap;
@@ -308,12 +389,12 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
 void* getOptArg(ASTnode *args, char *name, int type) {
     ASTnode *traverse = args;
     for (traverse = args; traverse != NULL; traverse = traverse->next)
-        if (traverse->type == typeOptArg && !(strncmp(traverse->opt.name, name, strlen(name)))) {
-            if (type != traverse->opt.value->type)
-                MkvsynthError("type mismatch: optional argument \"%s\" expected %s, got %s", name, typeNames[type], typeNames[traverse->opt.value->type]);
+        if (traverse->type == typeOptArg && !(strncmp(traverse->var.name, name, strlen(name)))) {
+            if (type != traverse->var.value->type)
+                MkvsynthError("type mismatch: optional argument \"%s\" expected %s, got %s", name, typeNames[type], typeNames[traverse->var.value->type]);
             switch (type) {
-                case typeNum: return &traverse->opt.value->num;
-                case typeStr: return traverse->opt.value->str;
+                case typeNum: return &traverse->var.value->num;
+                case typeStr: return traverse->var.value->str;
             }
         }
     return NULL;
@@ -353,7 +434,6 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
         args = args->next;
     }
     printf("\n");
-    p->type = typeOp;
     return p;
 }
 

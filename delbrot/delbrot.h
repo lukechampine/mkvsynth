@@ -25,8 +25,8 @@
 /* enums */
 typedef enum { fnCore, fnUser } fnType; /* function types */
 typedef enum { typeNum, typeBool, typeStr, typeClip,
-    typeId, typeFn, typeVar, typeOptArg, typeOp,
-    typeOptNum, typeOptBool, typeOptStr, typeOptClip
+    typeId, typeVar, typeParam, typeOptArg,
+    typeFn, typeOp
 } nodeType; /* internal node types */
 
 /* structs */
@@ -50,6 +50,7 @@ typedef struct {
 /* a user-defined function */
 typedef struct {
     ASTnode *params;
+    ASTnode *opts;
     ASTnode *body;
 } userFn;
 
@@ -69,8 +70,10 @@ typedef struct {
     ASTnode * (*fnPtr) (ASTnode *, ASTnode *);
 } fnEntry;
 
-/* a variable node */
+/* a variable node (also used for function arguments) */
 typedef struct {
+    char opt;
+    nodeType type;
     char *name;
     ASTnode *value;
 } varNode;
@@ -94,7 +97,6 @@ struct ASTnode {
         MkvsynthOutput *clipOut;
         fnNode   fn;
         varNode var;
-        varNode opt;
         opNode   op;
     };
     ASTnode *next;
@@ -108,11 +110,12 @@ void MkvsynthError(char *, ...);
 /* node creation */
 void freeNodes();
 ASTnode* newNode();
-ASTnode* mkIdNode(char *);
 ASTnode* mkNumNode(double);
 ASTnode* mkBoolNode(int);
 ASTnode* mkStrNode(char *);
+ASTnode* mkIdNode(char *);
 ASTnode* mkOpNode(int, int, ...);
+ASTnode* mkParamNode(char, ASTnode *, ASTnode *);
 ASTnode* mkOptArgNode(ASTnode *, ASTnode *);
 ASTnode* initList(ASTnode *);
 ASTnode* append(ASTnode *, ASTnode *);

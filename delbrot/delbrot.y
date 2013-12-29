@@ -75,14 +75,12 @@ param_list
     ;
 
 param
-    : NUM primary_expr                                        { $2->type = typeNum; $$ = $2;           }
-    | BOOL primary_expr                                       { $2->type = typeBool; $$ = $2;          }
-    | STRING primary_expr                                     { $2->type = typeStr; $$ = $2;           }
-    | CLIP primary_expr                                       { $2->type = typeClip; $$ = $2;          }
-    | ':' NUM primary_expr                                    { $2->type = typeOptNum; $$ = $2;        }
-    | ':' BOOL primary_expr                                   { $2->type = typeOptBool; $$ = $2;       }
-    | ':' STRING primary_expr                                 { $2->type = typeOptStr; $$ = $2;        }
-    | ':' CLIP primary_expr                                   { $2->type = typeOptClip; $$ = $2;       }
+    : type primary_expr                                       { $$ = mkParamNode(0, $1, $2);      }
+    | ':' type primary_expr                                   { $$ = mkParamNode(1, $2, $3);      }
+    ;
+
+type
+    : NUM | BOOL | STRING | CLIP
     ;
 
 block
@@ -221,17 +219,28 @@ ASTnode *mkIdNode(char *ident) {
     return p;
 }
 
-/* create an optional argument node in the AST */
-ASTnode *mkOptArgNode(ASTnode *name, ASTnode *value) {
-    ASTnode *p = newNode();
-    switch(value->type) {
-        case typeNum: p->type = typeOptNum; break;
-        case typeStr: p->type = typeOptStr; break;
-        case typeClip: p->type = typeOptClip; break;
-        default: p->type = typeOptArg; break;
+/* create a parameter node in the AST */
+ASTnode *mkParamNode(char opt, ASTnode *type, ASTnode *p) {
+    p->type = typeParam;
+    p->var.name = p->id;
+    p->var.opt = opt;
+    switch((int)type->num) {
+        case NUM:    p->var.type = typeNum; break;
+        case BOOL:   p->var.type = typeBool; break;
+        case STRING: p->var.type = typeStr; break;
+        case CLIP:   p->var.type = typeClip; break;
     }
-    p->opt.name = name->id;
-    memcpy(p->opt.value, value, sizeof(ASTnode));
+    return p;
+}
+
+/* create an optional argument node in the AST */
+ASTnode *mkOptArgNode(ASTnode *p, ASTnode *value) {
+    p->type = typeOptArg;
+    p->var.name = p->id;
+    p->var.opt = 1;
+    p->var.type = value->type;
+    p->var.value = newNode();
+    memcpy(p->var.value, value, sizeof(ASTnode));
     return p;
 }
 
@@ -253,7 +262,7 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
     return p;
 }
 
-/* add an ASTnode to a linked list of arguments */
+/* add an ASTnode to the end of a linked list */
 ASTnode *append(ASTnode *root, ASTnode *node) {
     if (!root)
         yyerror("invalid argument");
@@ -293,9 +302,7 @@ ASTnode *getFn(Env const *e, char const *fnName) {
 /* allocate a new variable */
 ASTnode *putVar(Env *e, char const *varName) {
     /* create entry */
-    ASTnode *ptr;
-    if ((ptr = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
+    ASTnode *ptr = newNode();
     ptr->type = typeVar;
     ptr->var.name = strdup(varName);
     ptr->var.value = NULL;
