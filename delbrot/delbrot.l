@@ -38,6 +38,11 @@ D    [0-9]
                         yylval = mkNumNode(atof(yytext));
                         return CONSTANT;
                     }
+    /* number, without initial 0 */
+\.{D}+              {
+                        yylval = mkNumNode(atof(yytext));
+                        return CONSTANT;
+                    }
     /* string literal */
 \"([^\\\"]|\\.)*\"  { //"
                         /* TODO: add check for newlines */
