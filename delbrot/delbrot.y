@@ -372,6 +372,8 @@ static fnEntry coreFunctions[] = {
     { "MKVsource", MKVsource },
     { "assert",    assert    },
     { "print",     print     },
+    { "show",      nshow     },
+    { "read",      nread     },
     { "sin",       nsin      },
     { "cos",       ncos      },
     { "ln",        nlog      },

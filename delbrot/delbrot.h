@@ -138,7 +138,8 @@ ASTnode* binOp(ASTnode *, ASTnode *, int op, ASTnode *);
 ASTnode* assert(ASTnode *, ASTnode *);
 ASTnode* MKVsource(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);
-
+ASTnode* nshow(ASTnode *, ASTnode *);
+ASTnode* nread(ASTnode *, ASTnode *);
 /* global variables */
 extern Env *global; /* the global execution environment */
 extern fnEntry pluginFunctions[]; /* plugin functions */

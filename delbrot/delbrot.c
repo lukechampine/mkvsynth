@@ -526,6 +526,30 @@ ASTnode* nnot(ASTnode *p, ASTnode *c1) {
     return p;
 }
 
+/* return string representation of any type */
+ASTnode* nshow(ASTnode *p, ASTnode *args) {
+    int i = 0;
+    ASTnode *traverse;
+    for (traverse = args; traverse != NULL; traverse = traverse->next, i++);
+    if (i != 1) MkvsynthError("show expected 1 argument, got %d", i);
+    switch (args->type) {
+        case typeNum:  p->str = malloc(256); sprintf(p->str, "%.10g", args->num); break;
+        case typeBool: p->str = args->bool == TRUE ? "True" : "False"; break;
+        case typeStr:  p->str = args->str; break;
+        case typeClip: MkvsynthError("show is not defined for clips (yet)");
+    }
+    p->type = typeStr;
+    return p;
+}
+
+/* convert string to other number */
+ASTnode* nread(ASTnode *p, ASTnode *args) {
+    checkArgs("read", args, 1, typeStr);
+    p->num = atof(args->str);
+    p->type = typeNum;
+    return p;
+}
+
 /* standard mathematical functions, modified to use ASTnode */
 ASTnode* nsin(ASTnode *p, ASTnode *args) {
     checkArgs("sin", args, 1, typeNum);
