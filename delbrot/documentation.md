@@ -1,38 +1,115 @@
-# delbrot documentation #
-delbrot has grown appreciably in complexity since adopting a flex+bison implementation. This document aims to explain the inner workings of the delbrot.l, delbrot.y, and delbrot.c.
+# scripting language documentation #
 
-## basic workings ##
-flex and bison are programs that take definition files and turn them into C functions. flex creates a *lexing function*, which reads in a segment of the input file, matches it to a rule, and returns the corresponding token. bison creates a *parsing function*, which reads in tokens, matches them to a rule, and executes the corresponding C code. The whole process looks something like this:
+The Mkvsynth scripting language is pretty simple and easy to learn. Those who are used to Avisynth scripting may have to unlearn a few habits, but overall the two languages are fairly similar (e.g. neither has a real name!).
 
-    /********** flex ***********\ /** bison **\
-    scanner -> tokenizer -> lexer -> parser -> interpreter
+The main differences are:
 
-If your language's grammar is very simple, bison can serve as your interpreter, and the two definition files are all you need. But for any sort of high-level language, bison alone isn't enough. Instead of being used to execute code, bison is used to generate an *abstract syntax tree*, or AST, which contains all the parsed values, function calls, etc. in a hierarchical structure. For example, the AST for a simple `if` block could be represented as:
+|                | Avisynth                                        | Mkvsynth                                |
+|:---------------|:------------------------------------------------|:----------------------------------------|
+| Line endings   | Newline (use `\` for line continuation)         | Semicolon                               |
+| Case sensitive | No                                              | Yes                                     |
+| Types          | `int`, `float`, `bool`, `string`, `clip`, `val` | `num`, `bool`, `string`, `clip`         |
+| Functions      | `Function foo(int i, bool "b") {...`            | `function foo(num n, :bool b) {...`     | 
+| Function calls | `foo(arg1, arg2 + 3, optArg=val)`               | `foo arg1 (arg2 + 3) optArg:val`        |
+| Chaining       | `clip.Foo().Bar().Baz()`                        | `clip -> Foo -> Bar -> Baz`             |
+| Defaults       | `radius = Default(radius, 2)`                   | `default radius = 2`                    |
+| if/else        | Not supported                                   | Supported                               |
 
-           if
-          /  \
-         /    \
-        /      \
-      cond    stmt
-     / | \      |
-    x  0  >    ...
+## Full specification ##
 
-And the equivalent C code would be:
+### types ###
+| type     | literal              | description                                   |
+|:---------|:---------------------|:----------------------------------------------|
+| `num`    | `3`, `1.5`, `.1`     | A number. Internally represented as a double. |
+| `bool`   | `True`, `False`      | A boolean. Case-sensitive.                    |
+| `string` | `"Hello"`, `"World"` | A string. Most escape sequences supported.    |
+| `clip`   | N/A                  | A video. Actually a pointer to a video file.  |
 
-    if (x > 0) {
-        ...
-    }
+### keywords ###
+| keyword      | description             | example                                     |
+|:-------------|:------------------------|:--------------------------------------------|
+| `if`, `else` | Conditional statement   | `if (x == 1) print "yes"; else print "no";` |
+| `function`   | Function definition     | `function foo(num x) { ...`                 |
+| `default`    | Specify default value   | `default radius = 2`                        |
+| `return`     | Function return value   | `return (result * 3)`                       |
+| `otherwise`  | Ternary syntactic sugar | `y = x == 1 ? "yes" | otherwise ? "no"`     |
 
-Once a section of the AST is fully built, a separate function is used to walk down the AST and execute the code. Specifically, delbrot uses a *recursive descent* model, meaning it starts at the top of the AST and recursively evaluates each child argument before combining them to produce a result.
+### built-in functions ###
+| function     | description                | example                                     |
+|:-------------|:---------------------------|:--------------------------------------------|
+| `print`      | Generalized print function | `print 12 False "hi"`                       |
+| `assert`     | Assertion statement        | `assert (frames > 2) "not enough frames"`   |
+| `show`       | Convert to string          | `show 12.3 == "12.3"`                       |
+| `read`       | Convert string to num      | `read "12.3" == 12.3`                       |
 
-## delbrot.l ##
-This file contains the lexing rules for the language. flex matches text using regexs and always chooses the longest match. The corresponding C code is then executed. In most cases, this amounts to little more than returning the matched value and/or appropriate token type. The special cases here are for identifiers and numbers. For our purposes, an identifier is a character sequence that does not begin with a number, and a number is a sequence of digits with an optional decimal portion. Since all text is scanned in as chars, we must first convert digits to numbers with the `atof()` function. Identifiers are a bit more complicated, but essentially we just try to match the identifier against a list of keywords, functions, and variables. If it's a keyword, we return the appropriate token. If it's a function name, we return the appropriate function pointer. If it's an existing variable, we return the appropriate variable pointer. If it's none of those, we assume it's a new variable and allocate space for it in our symbol table.
+### operators ###
+| operator                | description                                                            |
+|:------------------------|:-----------------------------------------------------------------------|
+| `+`,`-`,`*`,`/`,`^`,`%` | Standard binary arithmetic operators. `^` is exponentiation, not XOR.  |
+| `==`,`!=`,`||`,`&&`     | Standard binary boolean operators.                                     |
+| `>`,`<`,`<=`,`>=`       | Standard binary relational operators.                                  |
+| `+=`, `-=`, `*=`...     | Arithmetic assignment operators.                                       |
+| `!`, `-`                | Standard unary negation operators.                                     |
+| `->`                    | Function chaining operator. Appends LHS to front of RHS argument list. |
+| `? |`                   | Standard ternary operator, using `|` in place of `:`                   |
+| `:`                     | Optional argument operator. Marks function arguments as optional.      |
 
-## delbrot.y ##
-Here we define the grammar of the language. Now that we have a sequence of tokens, we read them in one at a time until they match one of the defined rules, at which point we execute the corresponding C code. First we define precedences for each operator, so the parser knows how to resolve expressions like `x + y / x`. Next comes the main grammar section. For each rule, we define what arrangements of tokens qualify as an instance of that rule. For example, a statement can be an expression, a function definition, an if-else block, etc. For each instance, we call `mkOpNode()` with the appropriate arguments, which connects "operation nodes" (like `+` or `=`) to their child nodes. Below the grammar section, we fill out the definitions for the ASTnode and variable functions.
+### misc. syntax ###
+| syntax                  | description                                                            |
+|:------------------------|:-----------------------------------------------------------------------|
+| `(`, `)`                | Standard high-precedence sigils. Also used with `function`.            |
+| `{`,`}`                 | Standard begin/end block sigils. Used with `if`/`else` and `function`. |
+| `#`                     | Comment signifier. There is no multi-line comment sigil.               |
+| `;`                     | Statement terminator.                                                  |
 
-## delbrot.c ##
-This file contains the `ex()` function, which is called each time we read in a full statement. The purpose of `ex()` is to reduce a section of the AST. In the example above, that would mean reducing the "cond" node (and all its children) down to a single node containing either "true" or "false." As such, this function must be highly recursive, since a node's children may need to be reduced before they can be meaningfully combined. This is also where we define the built-in functions of the language.
 
-## memory concerns ##
-delbrot's memory management system has gone through endless revisions, all of them deficient in some way. Presently it is pretty leaky, but hopefully a more sophisticated garbage collector will change that. Memory management for the parser isn't a huge concern because most scripts won't contain any looping or recursion. However, it's still an important issue to address.
+### statements ###
+**function declaration:**
+```ruby
+function foo(bool b, :string s) {
+    default s = "bar";
+    if (b)
+        return s;
+    else
+        return 0;
+}
+```
+This tiny example showcases everything you need to know about function definitions. Functions do not have an explicit return type; this example returns either a `num` or a `string`. Optional arguments are marked by a `:` preceding their type. Inside the function body, a `default` statement is used to set the value of an optional argument if it is not supplied in the function call. Next, an `if`/`else` statement is used to determine the return value of the function.
+
+**function call:**
+Now we can call `foo`:
+```ruby
+foo True            # returns "bar"
+foo (True && False) # returns 0
+foo True s:"baz"    # returns "baz"
+```
+Function arguments are separated by spaces, as in Haskell. Note that this means that you may need to enclose arguments in parentheses, or you might get some strange error messages. Optional arguments are specified using their name, and can be declared in any order.
+
+**assignment statement**
+```ruby
+x = "Hello";  # x is "Hello"
+x = 12;       # x is 12
+y = (x %= 7); # x is 5, y is 5
+```
+Assignment statements are pretty straightforward. Note that variable names are not preceded by a type, and a variable can easily be reassigned to a different type. Since assignment "statements" are really just expressions, they also return the value of the variable they are assigning to, as shown in the last line of the example.
+
+**ternary expression:**
+```ruby
+x = y < 100 ? 50 | 1000;
+
+speed = x < 100   ? "slow"
+      | x < 300   ? "medium"
+      | otherwise ? "fast";
+```
+In Avisynth, ternary expressions are used heavily to compensate for the language's lack of `if`/`else` statements. This is not an issue in Mkvsynth, but the ternary expression is still nice to have. In addition, the `otherwise` construct is provided to make long ternary chains more readable. `otherwise` acts as a catch-all, as in Haskell (or `default` in C).
+
+**function chains:**
+```ruby
+clp -> Lanczos4Resize dx dy
+    -> TurnLeft
+    -> SangNom aa:aath
+    -> TurnRight
+    -> SangNom aa:aath
+    -> LanczosResize ox oy;
+```
+The `->` operator is used to pass a variable through a series of functions, allowing the script author to avoid lengthy, unreadable nested function calls. Internally, the value on the left side is appended to the front of the argument list on the right side. This is why all video filters should have the input clip as their first argument.
