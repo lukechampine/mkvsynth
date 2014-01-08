@@ -25,8 +25,7 @@
 /* enums */
 typedef enum { fnCore, fnUser } fnType; /* function types */
 typedef enum { typeNum, typeBool, typeStr, typeClip,
-    typeId, typeVar, typeParam, typeOptArg,
-    typeFn, typeOp
+    typeId, typeVar, typeOptArg, typeFn, typeOp
 } nodeType; /* internal node types */
 
 /* structs */
@@ -115,7 +114,7 @@ ASTnode* mkBoolNode(int);
 ASTnode* mkStrNode(char *);
 ASTnode* mkIdNode(char *);
 ASTnode* mkOpNode(int, int, ...);
-ASTnode* mkParamNode(char, ASTnode *, ASTnode *);
+ASTnode* mkParamNode(char, int, ASTnode *);
 ASTnode* mkOptArgNode(ASTnode *, ASTnode *);
 ASTnode* initList(ASTnode *);
 ASTnode* append(ASTnode *, ASTnode *);
@@ -124,8 +123,8 @@ ASTnode* putVar(Env *, char const *);
 ASTnode* getVar(Env const *, char const *);
 ASTnode* putFn(Env *, fnEntry);
 ASTnode* getFn(Env const *, char const *);
-void checkArgs(char *funcName, ASTnode *args, int numArgs, ...);
-void* getOptArg(ASTnode *args, char *name, int type);
+void checkArgs(char *, ASTnode *, int, ...);
+void* getOptArg(ASTnode *, char *, int);
 /* standard mathematical function prototypes */
 ASTnode* nneg(ASTnode *, ASTnode *);
 ASTnode* nnot(ASTnode *, ASTnode *);
@@ -133,7 +132,7 @@ ASTnode* nsin(ASTnode *, ASTnode *);
 ASTnode* ncos(ASTnode *, ASTnode *);
 ASTnode* nlog(ASTnode *, ASTnode *);
 ASTnode* nsqrt(ASTnode *, ASTnode *);
-ASTnode* binOp(ASTnode *, ASTnode *, int op, ASTnode *);
+ASTnode* binOp(ASTnode *, ASTnode *, int, ASTnode *);
 /* builtin function prototypes */
 ASTnode* assert(ASTnode *, ASTnode *);
 ASTnode* MKVsource(ASTnode *, ASTnode *);

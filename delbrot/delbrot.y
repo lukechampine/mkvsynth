@@ -70,8 +70,8 @@ param_list
     ;
 
 param
-    : type primary_expr                                       { $$ = mkParamNode(0, $1, $2);      }
-    | ':' type primary_expr                                   { $$ = mkParamNode(1, $2, $3);      }
+    : type primary_expr                                       { $$ = mkParamNode(0, $1->num, $2);      }
+    | ':' type primary_expr                                   { $$ = mkParamNode(1, $2->num, $3);      }
     ;
 
 type
@@ -103,7 +103,7 @@ assignment_operator
 
 ternary_expr
     : boolean_or_expr
-    | boolean_or_expr '?' ternary_expr '|' ternary_end           { $$ = mkOpNode(TERN, 3, $1, $3, $5);    } 
+    | boolean_or_expr '?' ternary_expr '|' ternary_end        { $$ = mkOpNode(TERN, 3, $1, $3, $5);    } 
     ;
 
 ternary_end
@@ -242,11 +242,11 @@ ASTnode *mkIdNode(char *ident) {
 }
 
 /* create a parameter node in the AST */
-ASTnode *mkParamNode(char opt, ASTnode *type, ASTnode *p) {
-    p->type = typeParam;
+ASTnode *mkParamNode(char opt, int type, ASTnode *p) {
+    p->type = typeVar;
     p->var.name = p->id;
     p->var.opt = opt;
-    switch((int)type->num) {
+    switch(type) {
         case NUM:    p->var.type = typeNum; break;
         case BOOL:   p->var.type = typeBool; break;
         case STRING: p->var.type = typeStr; break;

@@ -9,7 +9,7 @@
 #define UNDEFINED(n) n->type == typeVar && n->var.value == NULL
 
 /* useful for error messages */
-static char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "parameter", "optional argument", "function", "operation"};
+static char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "optional argument", "function", "operation"};
 
 /* dereference a variable */
 ASTnode* dereference(ASTnode *p) {
@@ -155,10 +155,6 @@ void funcDefine(Env *e, ASTnode *name, ASTnode *params, ASTnode *body) {
     if (splitMandOpt(params, &p->fn.user.params, &p->fn.user.opts))
         MkvsynthError("optional parameters must follow mandatory parameters in function %s", p->fn.name);
 
-    /* seek out default and return statements */
-    //checkDefaults(p);
-    //checkReturns(p);
-
     /* add to local function table */
     p->next = e->fnTable;
     e->fnTable = p;
@@ -169,6 +165,8 @@ ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     /* create new environment */
     Env *local = (Env *) malloc(sizeof(Env));
     local->parent = e;
+    local->returnValue = newNode();
+    local->returnValue->type = typeFn; /* default return value */
     /* record function arguments in local variable table */
     ASTnode *pTraverse = fnNode->fn.user.params;
     while (pTraverse) {
@@ -236,14 +234,11 @@ ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     }
 
     /* execute a copy of the function body in the local environment */
-    ASTnode *ret;
     if (setjmp(local->returnContext) == 0)
         ex(local, copy(fnNode->fn.user.body));
-    else
-        ret = local->returnValue;
 
     /* return */
-    return ret;
+    return local->returnValue;
 }
 
 /* evaluate function arguments */
@@ -340,7 +335,7 @@ ASTnode* ex(Env *e, ASTnode *p) {
         case FNCT:    p = fnctCall(e, p, identify(e, child[0]), reduceArgs(e, child[1])); break;
         case CHAIN:   child[0]->next = child[2]; p = fnctCall(e, p, ex(e, child[1]), ex(e, child[0])); break;
         case DEFAULT: setDefault(e, child[0], ex(e, child[1])); break;
-        case RETURN:  e->returnValue = ex(e, child[0]); longjmp(e->returnContext, 1); break;
+        case RETURN:  p = ex(e, child[0]); if (p != NULL) e->returnValue = p; longjmp(e->returnContext, 1); break;
         /* assignment */
         case ASSIGN:  p = assign(identify(e, child[0]), child[1]->num, ex(e, child[2])); break;
         /* unary operators */

@@ -24,6 +24,23 @@ D    [0-9]
                         yylval = mkBoolNode(FALSE);
                         return CONSTANT;
                     }
+    /* type */
+"num"               {
+                        yylval = mkNumNode(NUM);
+                        return NUM;
+                    }
+"bool"              {
+                        yylval = mkNumNode(BOOL);
+                        return BOOL;
+                    }
+"string"            {
+                        yylval = mkNumNode(STRING);
+                        return STRING;
+                    }
+"clip"              {
+                        yylval = mkNumNode(CLIP);
+                        return CLIP;
+                    }
     /* keyword, function, or variable */
 {L}({L}|{D})*       {
                         /* reserved word */
@@ -94,15 +111,6 @@ int resWord(char *str) {
         return IF;
     else if (!strcmp(str, "else"))
         return ELSE;
-    /* types */
-    else if (!strcmp(str, "num"))
-        return NUM;
-    else if (!strcmp(str, "bool"))
-        return BOOL;
-    else if (!strcmp(str, "string"))
-        return STRING;
-    else if (!strcmp(str, "clip"))
-        return CLIP;
     /* function definition */
     else if (!strcmp(str, "function"))
         return FNDEF;
