@@ -453,36 +453,61 @@ ASTnode* assert(ASTnode *p, ASTnode *args) {
 
 /* handle arithmetic / boolean operators */
 ASTnode* binOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
-    /* arithmetic operator argument check */
+    /* arithmetic operator */
     if (op < 100) {
         if (c1->type != typeNum) MkvsynthError("type mismatch: LHS of %c expected number, got %s", op, typeNames[c1->type]);
         if (c2->type != typeNum) MkvsynthError("type mismatch: RHS of %c expected number, got %s", op, typeNames[c2->type]);
+        switch(op) {
+            case '+':  p->num = c1->num + c2->num; break;
+            case '-':  p->num = c1->num - c2->num; break;
+            case '*':  p->num = c1->num * c2->num; break;
+            case '/':  p->num = c1->num / c2->num; break;
+            case '^':  p->num = pow(c1->num, c2->num); break;
+            case '%':  p->num = (double) ((int) c1->num % (int) c2->num); break;
+            /* should never wind up here */
+            default: MkvsynthError("unrecognized binary operator");
+        }
         p->type = typeNum;
     }
-
-    switch(op) {
-        /* arithmetic operators */
-        case '+':  p->num = c1->num + c2->num; break;
-        case '-':  p->num = c1->num - c2->num; break;
-        case '*':  p->num = c1->num * c2->num; break;
-        case '/':  p->num = c1->num / c2->num; break;
-        case '^':  p->num = pow(c1->num, c2->num); break;
-        case '%':  p->num = (double) ((int) c1->num % (int) c2->num); break;
-        /* boolean operators */
-        /* TODO: polymorphism for non-numeric types */
-        case EQ:   p->bool = c1->num == c2->num ? TRUE : FALSE; break;
-        case NE:   p->bool = c1->num != c2->num ? TRUE : FALSE; break;
-        case GT:   p->bool = c1->num  > c2->num ? TRUE : FALSE; break;
-        case LT:   p->bool = c1->num  < c2->num ? TRUE : FALSE; break;
-        case GE:   p->bool = c1->num >= c2->num ? TRUE : FALSE; break;
-        case LE:   p->bool = c1->num <= c2->num ? TRUE : FALSE; break;
-        case LOR:  p->bool = c1->num || c2->num ? TRUE : FALSE; break;
-        case LAND: p->bool = c1->num && c2->num ? TRUE : FALSE; break;
-        /* should never wind up here */
-        default: MkvsynthError("unrecognized binary operator");
+    /* boolean operators */
+    else {
+        if (c1->type != c2->type) MkvsynthError("type mismatch: cannot compare %s to %s", typeNames[c1->type], typeNames[c2->type]);
+        /* for error messages */
+        char *opStrs[512];
+        opStrs[EQ] = "=="; opStrs[NE] = "!="; opStrs[GT] = ">"; opStrs[LT] = "<";
+        opStrs[GE] = ">="; opStrs[LE] = "<="; opStrs[LOR] = "||"; opStrs[LAND] = "&&";
+        if (c1->type == typeNum) {
+            switch(op) {
+                case EQ:   p->bool = c1->num == c2->num ? TRUE : FALSE; break;
+                case NE:   p->bool = c1->num != c2->num ? TRUE : FALSE; break;
+                case GT:   p->bool = c1->num  > c2->num ? TRUE : FALSE; break;
+                case LT:   p->bool = c1->num  < c2->num ? TRUE : FALSE; break;
+                case GE:   p->bool = c1->num >= c2->num ? TRUE : FALSE; break;
+                case LE:   p->bool = c1->num <= c2->num ? TRUE : FALSE; break;
+                default:  MkvsynthError("type mismatch: operator %s is not defined for numbers", opStrs[op]);
+            }
+        }
+        else if (c1->type == typeBool) {
+            switch(op) {
+                case EQ:   p->bool = (c1->bool == TRUE) == (c2->bool == TRUE) ? TRUE : FALSE; break;
+                case NE:   p->bool = (c1->bool == TRUE) != (c2->bool == TRUE) ? TRUE : FALSE; break;
+                case LOR:  p->bool = (c1->bool == TRUE) || (c2->bool == TRUE) ? TRUE : FALSE; break;
+                case LAND: p->bool = (c1->bool == TRUE) && (c2->bool == TRUE) ? TRUE : FALSE; break;
+                default:  MkvsynthError("type mismatch: operator %s is not defined for booleans", opStrs[op]);
+            }
+        }
+        else if (c1->type == typeStr) {
+            switch(op) {
+                case EQ:   p->bool = strcmp(c1->str, c2->str) == 0 ? TRUE : FALSE; break;
+                case NE:   p->bool = strcmp(c1->str, c2->str) != 0 ? TRUE : FALSE; break;
+                default:  MkvsynthError("type mismatch: operator %s is not defined for strings", opStrs[op]);
+            }
+        }
+        else {
+            MkvsynthError("comparison operators are not supported for type %s (yet)", typeNames[c1->type]);
+        }
+        p->type = typeBool;
     }
-
-    p->type = op < 100 ? typeNum : typeBool;
     return p;
 }
 
