@@ -343,8 +343,6 @@ ASTnode* ex(Env *e, ASTnode *p) {
         case RETURN:  e->returnValue = ex(e, child[0]); longjmp(e->returnContext, 1); break;
         /* assignment */
         case ASSIGN:  p = assign(identify(e, child[0]), child[1]->num, ex(e, child[2])); break;
-        case INC:     p = assign(identify(e, child[0]), ADDEQ, mkNumNode(1)); break;
-        case DEC:     p = assign(identify(e, child[0]), SUBEQ, mkNumNode(1)); break;
         /* unary operators */
         case NEG:     p = nneg(p, ex(e, child[0])); break;
         case '!':     p = nnot(p, ex(e, child[0])); break;

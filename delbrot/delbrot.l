@@ -44,9 +44,6 @@ D    [0-9]
                         yylval = mkStrNode(yytext);
                         return CONSTANT;
                     }
-    /* increment/decrement -- these are preincrements! Post increments are not supported! */
-"++"                    return INC;
-"--"                    return DEC;
     /* arithmetic operator */
 "+"                 { yylval = mkNumNode('+');  return '+';    }
 "-"                 { yylval = mkNumNode('-');  return '-';    }

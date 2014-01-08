@@ -17,18 +17,13 @@
 %token CONSTANT IDENTIFIER OPTARG
 %token ASSIGN BINOP
 %token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHAIN
-%token IF ELSE
+%token IF ELSE TERN
 %token FNCT FNDEF RETURN DEFAULT OTHER
+%token LOR LAND EQ NE GT LT GE LE
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
 %nonassoc ELSE
-%right '^' TERN
-%left EQ NE GT LT GE LE LOR LAND
-%left '+' '-'
-%left '*' '/' '%'
 %right NEG
-%left INC DEC
-
 
 %% /* grammar definition section  */
 
@@ -107,8 +102,8 @@ assignment_operator
     ;
 
 ternary_expr
-    : boolean_expr
-    | boolean_expr '?' ternary_expr '|' ternary_end           { $$ = mkOpNode(TERN, 3, $1, $3, $5);    } 
+    : boolean_or_expr
+    | boolean_or_expr '?' ternary_expr '|' ternary_end           { $$ = mkOpNode(TERN, 3, $1, $3, $5);    } 
     ;
 
 ternary_end
@@ -116,34 +111,61 @@ ternary_end
     | OTHER '?' ternary_expr                                  { $$ = $3;                               }
     ;
 
-boolean_expr
-    : arithmetic_expr
-    | boolean_expr boolean_operator arithmetic_expr           { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+boolean_or_expr
+    : boolean_and_expr
+    | boolean_or_expr LOR boolean_and_expr                    { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
     ;
 
-boolean_operator
-    : EQ | NE | GT | LT | GE | LE | LOR | LAND
+boolean_and_expr
+    : boolean_eq_expr
+    | boolean_and_expr LAND boolean_eq_expr                   { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
     ;
 
-arithmetic_expr
-    : prefix_expr
-    | arithmetic_expr arithmetic_operator prefix_expr         { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+boolean_eq_expr
+    : boolean_rel_expr
+    | boolean_eq_expr eq_operator boolean_rel_expr            { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
     ;
 
-arithmetic_operator
-    : '+' | '-' | '*' | '/' | '^' | '%'
+eq_operator
+    : EQ | NE
     ;
 
-prefix_expr
-    : postfix_expr
-    | '-' prefix_expr                                         { $$ = mkOpNode(NEG, 1, $2);             }
-    | '!' prefix_expr                                         { $$ = mkOpNode('!', 1, $2);             }
+boolean_rel_expr
+    : arithmetic_add_expr
+    | boolean_rel_expr rel_operator arithmetic_add_expr       { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
     ;
 
-postfix_expr
+rel_operator
+    : GT | LT | GE | LE
+    ;
+
+arithmetic_add_expr
+    : arithmetic_mul_expr
+    | arithmetic_add_expr add_operator arithmetic_mul_expr    { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    ;
+
+add_operator
+    : '+' | '-'
+    ;
+
+arithmetic_mul_expr
+    : arithmetic_exp_expr
+    | arithmetic_mul_expr mul_operator arithmetic_exp_expr    { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    ;
+
+mul_operator
+    : '*' | '/' | '%'
+    ;
+
+arithmetic_exp_expr
+    : unary_expr
+    | arithmetic_exp_expr '^' unary_expr                      { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    ;
+
+unary_expr
     : function_expr
-    | postfix_expr INC                                        { $$ = mkOpNode(INC, 1, $1);             }
-    | postfix_expr DEC                                        { $$ = mkOpNode(DEC, 1, $1);             }
+    | '-' function_expr                                       { $$ = mkOpNode(NEG, 1, $2);             }
+    | '!' function_expr                                       { $$ = mkOpNode('!', 1, $2);             }
     ;
 
 function_expr
