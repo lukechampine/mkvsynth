@@ -64,7 +64,7 @@ The main differences are:
 
 
 ### statements ###
-**function declaration:**
+**function declarations:**
 ```ruby
 function foo(bool b, :string s) {
     default s = "bar";
@@ -76,7 +76,8 @@ function foo(bool b, :string s) {
 ```
 This tiny example showcases everything you need to know about function definitions. Functions do not have an explicit return type; this example returns either a `num` or a `string`. Optional arguments are marked by a `:` preceding their type. Inside the function body, a `default` statement is used to set the value of an optional argument if it is not supplied in the function call. Next, an `if`/`else` statement is used to determine the return value of the function.
 
-**function call:**
+**function calls:**
+
 Now we can call `foo`:
 ```ruby
 foo True            # returns "bar"
@@ -85,7 +86,7 @@ foo True s:"baz"    # returns "baz"
 ```
 Function arguments are separated by spaces, as in Haskell. Note that this means that you may need to enclose arguments in parentheses, or you might get some strange error messages. Optional arguments are specified using their name, and can be declared in any order.
 
-**assignment statement**
+**assignment statements:**
 ```ruby
 x = "Hello";  # x is "Hello"
 x = 12;       # x is 12
@@ -93,7 +94,7 @@ y = (x %= 7); # x is 5, y is 5
 ```
 Assignment statements are pretty straightforward. Note that variable names are not preceded by a type, and a variable can easily be reassigned to a different type. Since assignment "statements" are really just expressions, they also return the value of the variable they are assigning to, as shown in the last line of the example.
 
-**ternary expression:**
+**ternary expressions:**
 ```ruby
 x = y < 100 ? 50 | 1000;
 
