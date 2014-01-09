@@ -4,16 +4,17 @@ The Mkvsynth scripting language is pretty simple and easy to learn. Those who ar
 
 The main differences are:
 
-|                | Avisynth                                        | Mkvsynth                                |
+| Property       | Avisynth                                        | Mkvsynth                                |
 |:---------------|:------------------------------------------------|:----------------------------------------|
-| Line endings   | Newline (use `\` for line continuation)         | Semicolon                               |
+| Terminator     | Newline (use `\` for line continuation)         | Semicolon                               |
 | Case sensitive | No                                              | Yes                                     |
 | Types          | `int`, `float`, `bool`, `string`, `clip`, `val` | `num`, `bool`, `string`, `clip`         |
 | Functions      | `Function foo(int i, bool "b") {...`            | `function foo(num n, :bool b) {...`     | 
 | Function calls | `foo(arg1, arg2 + 3, optArg=val)`               | `foo arg1 (arg2 + 3) optArg:val`        |
 | Chaining       | `clip.Foo().Bar().Baz()`                        | `clip -> Foo -> Bar -> Baz`             |
-| Defaults       | `radius = Default(radius, 2)`                   | `default radius = 2`                    |
-| if/else        | Not supported                                   | Supported                               |
+| Default        | `radius = Default(radius, 2)`                   | `default radius: 2`                     |
+| if/else        |  Not supported                                  | Supported                               |
+| Ternary        | `cond ? foo : bar`                              | `cond ? foo ¦ bar`                      |
 
 ## Full specification ##
 
@@ -32,7 +33,7 @@ The main differences are:
 | `function`   | Function definition     | `function foo(num x) { ...`                 |
 | `default`    | Specify default value   | `default radius = 2`                        |
 | `return`     | Function return value   | `return (result * 3)`                       |
-| `otherwise`  | Ternary syntactic sugar | `y = x == 1 ? "yes" | otherwise ? "no"`     |
+| `otherwise`  | Ternary syntactic sugar | `y = x == 1 ? "yes" ¦ otherwise ? "no"`     |
 
 ### built-in functions ###
 | function     | description                | example                                     |
@@ -46,20 +47,18 @@ The main differences are:
 | operator                | description                                                            |
 |:------------------------|:-----------------------------------------------------------------------|
 | `+`,`-`,`*`,`/`,`^`,`%` | Standard binary arithmetic operators. `^` is exponentiation, not XOR.  |
-| `==`,`!=`,`||`,`&&`     | Standard binary boolean operators.                                     |
+| `==`,`!=`,`¦¦`,`&&`     | Standard binary boolean operators.                                     |
 | `>`,`<`,`<=`,`>=`       | Standard binary relational operators.                                  |
 | `+=`, `-=`, `*=`...     | Arithmetic assignment operators.                                       |
 | `!`, `-`                | Standard unary negation operators.                                     |
 | `->`                    | Function chaining operator. Appends LHS to front of RHS argument list. |
-| `? |`                   | Standard ternary operator, using `|` in place of `:`                   |
+| `? ¦`                   | Standard ternary operator, using `¦` in place of `:`                   |
 | `:`                     | Optional argument operator. Marks function arguments as optional.      |
 
 ### misc. syntax ###
 | syntax                  | description                                                            |
 |:------------------------|:-----------------------------------------------------------------------|
-| `(`, `)`                | Standard high-precedence sigils. Also used with `function`.            |
-| `{`,`}`                 | Standard begin/end block sigils. Used with `if`/`else` and `function`. |
-| `#`                     | Comment signifier. There is no multi-line comment sigil.               |
+| `#`                     | Comment signifier. There is no multi-line comment signifier.           |
 | `;`                     | Statement terminator.                                                  |
 
 
@@ -67,7 +66,7 @@ The main differences are:
 **function declarations:**
 ```ruby
 function foo(bool b, :string s) {
-    default s = "bar";
+    default s: "bar";
     if (b)
         return s;
     else
@@ -84,7 +83,7 @@ foo True            # returns "bar"
 foo (True && False) # returns 0
 foo True s:"baz"    # returns "baz"
 ```
-Function arguments are separated by spaces, as in Haskell. Note that this means that you may need to enclose arguments in parentheses, or you might get some strange error messages. Optional arguments are specified using their name, and can be declared in any order.
+Function arguments are separated by spaces, as in Haskell. Note that this means that you may need to enclose arguments in parentheses, or you might get some strange error messages. Optional arguments are specified using their name, and can be declared in any order. Note how `:` is used in all expressions relating to optional arguments: function definitions, function calls, and default statements.
 
 **assignment statements:**
 ```ruby
@@ -96,11 +95,11 @@ Assignment statements are pretty straightforward. Note that variable names are n
 
 **ternary expressions:**
 ```ruby
-x = y < 100 ? 50 | 1000;
+x = y < 100 ? 50 ¦ 1000;
 
 speed = x < 100   ? "slow"
-      | x < 300   ? "medium"
-      | otherwise ? "fast";
+      ¦ x < 300   ? "medium"
+      ¦ otherwise ? "fast";
 ```
 In Avisynth, ternary expressions are used heavily to compensate for the language's lack of `if`/`else` statements. This is not an issue in Mkvsynth, but the ternary expression is still nice to have. In addition, the `otherwise` construct is provided to make long ternary chains more readable. `otherwise` acts as a catch-all, as in Haskell (or `default` in C).
 
