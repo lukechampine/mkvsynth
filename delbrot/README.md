@@ -27,7 +27,7 @@ clp -> Lanczos4Resize dx dy
 
 # optional arguments
 function foo(:string str) {
-    default str = "World";
+    default str: "World";
     print "Hello," str;
 }
 foo;            # prints "Hello, World"
