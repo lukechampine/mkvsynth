@@ -61,27 +61,26 @@ D    [0-9]
                         return CONSTANT;
                     }
     /* string literal */
-\"([^\\\"]|\\.)*\"  { //"
-                        /* TODO: add check for newlines */
+\"([^\\\"]|\\.)*\"  {
                         yylval = mkStrNode(yytext);
                         return CONSTANT;
                     }
     /* arithmetic operator */
-"+"                 { yylval = mkNumNode('+');  return '+';    }
-"-"                 { yylval = mkNumNode('-');  return '-';    }
-"*"                 { yylval = mkNumNode('*');  return '*';    }
-"/"                 { yylval = mkNumNode('/');  return '/';    }
-"^"                 { yylval = mkNumNode('^');  return '^';    }
-"%"                 { yylval = mkNumNode('%');  return '%';    }
+"+"                 { yylval = mkNumNode('+');   return '+';   }
+"-"                 { yylval = mkNumNode('-');   return '-';   }
+"*"                 { yylval = mkNumNode('*');   return '*';   }
+"/"                 { yylval = mkNumNode('/');   return '/';   }
+"^"                 { yylval = mkNumNode('^');   return '^';   }
+"%"                 { yylval = mkNumNode('%');   return '%';   }
     /* comparator or boolean operator */
-"=="                { yylval = mkNumNode(EQ);   return EQ;     }
-"!="                { yylval = mkNumNode(NE);   return NE;     }
-">"                 { yylval = mkNumNode(GT);   return GT;     }
-"<"                 { yylval = mkNumNode(LT);   return LT;     }
-">="                { yylval = mkNumNode(GE);   return GE;     }
-"<="                { yylval = mkNumNode(LE);   return LE;     }
-"||"                { yylval = mkNumNode(LOR);  return LOR;    }
-"&&"                { yylval = mkNumNode(LAND); return LAND;   }
+"=="                { yylval = mkNumNode(EQ);    return EQ;    }
+"!="                { yylval = mkNumNode(NE);    return NE;    }
+">"                 { yylval = mkNumNode(GT);    return GT;    }
+"<"                 { yylval = mkNumNode(LT);    return LT;    }
+">="                { yylval = mkNumNode(GE);    return GE;    }
+"<="                { yylval = mkNumNode(LE);    return LE;    }
+"||"                { yylval = mkNumNode(LOR);   return LOR;   }
+"&&"                { yylval = mkNumNode(LAND);  return LAND;  }
     /*assignment operator */
 "="                 { yylval = mkNumNode('=');   return '=';   }
 "+="                { yylval = mkNumNode(ADDEQ); return ADDEQ; }
@@ -93,13 +92,15 @@ D    [0-9]
     /* chaining operator */
 "->"                { yylval = mkNumNode(CHAIN); return CHAIN; }
     /* miscellaneous character */
-[(){}!.,?|:;]           return *yytext;
+[(){}!,?|:;]            return *yytext;
     /* comment */
 #.*\n                   ; 
     /* ignore whitespace (2D languages are pig disgusting) */
 [ \t]+                  ; 
     /* used for error messages */
 \n                      linenumber++; 
+    /* execute queued up filters
+<<EOF>>             { go_AST(); yyterminate();                 } */
     /* anything else is an error */
 .                       yyerror("unknown character");
 

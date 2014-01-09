@@ -141,7 +141,6 @@ int splitMandOpt(ASTnode *list, ASTnode **mand, ASTnode **opts) {
 }
 
 /* process a function definition */
-/* TODO: check for missing default statements */
 void funcDefine(Env *e, ASTnode *name, ASTnode *params, ASTnode *body) {
     if (name->type != typeId)
         MkvsynthError("function name \"%s\" is already in use", name->var.name);
@@ -429,6 +428,7 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
         args = args->next;
     }
     printf("\n");
+    p->type = typeFn;
     return p;
 }
 
@@ -446,6 +446,8 @@ ASTnode* assert(ASTnode *p, ASTnode *args) {
     checkArgs("assert", args, 2, typeBool, typeStr);
     if (args->bool == FALSE)
         MkvsynthError(args->next->str);
+    p->type = typeFn;
+    return p;
 }
 
 /* handle arithmetic / boolean operators */

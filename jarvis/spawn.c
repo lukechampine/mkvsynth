@@ -76,5 +76,5 @@ ASTnode *go_AST(ASTnode *p, ASTnode *args) {
 	mkvsynthJoin();
 	printf("All filters have completed\n");
 
-	RETURNVAL(0);
+	RETURNNULL();
 }

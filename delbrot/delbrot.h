@@ -9,9 +9,9 @@
 #define YYSTYPE ASTnode* /* all tokens are ASTnode */
 #define bool_t int       /* boolean type alias */
 /* useful abstractions for writing plugins */
-#define MANDNUM()  args->num;    args = args->next
-#define MANDBOOL() args->bool;   args = args->next
-#define MANDSTR()  args->str;    args = args->next
+#define MANDNUM()  args->num;     args = args->next
+#define MANDBOOL() args->bool;    args = args->next
+#define MANDSTR()  args->str;     args = args->next
 #define MANDCLIP() args->clipOut; args = args->next
 #define OPTNUM(name, default)  getOptArg(args, name, typeNum)  ?      *((double *) getOptArg(args, name, typeNum))  : default
 #define OPTBOOL(name, default) getOptArg(args, name, typeBool) ?        *((char *) getOptArg(args, name, typeBool)) : default
@@ -21,6 +21,7 @@
 #define RETURNBOOL(bool) p->type = typeBool; p->bool    = bool; return p
 #define RETURNSTR(str)   p->type = typeStr;  p->str     = str;  return p
 #define RETURNCLIP(clip) p->type = typeClip; p->clipOut = clip; return p
+#define RETURNNULL()     p->type = typeFn; return p;
 
 /* enums */
 typedef enum { fnCore, fnUser } fnType; /* function types */
