@@ -45,7 +45,7 @@ function_declaration
     ;
 
 default_stmt
-    : DEFAULT primary_expr '=' expr ';'                       { $$ = mkOpNode(DEFAULT, 2, $2, $4);     }
+    : DEFAULT primary_expr ':' expr ';'                       { $$ = mkOpNode(DEFAULT, 2, $2, $4);     }
     ;
 
 return_stmt
@@ -171,6 +171,7 @@ unary_expr
 function_expr
     : primary_expr
     | primary_expr arg_list                                   { $$ = mkOpNode(FNCT, 2, $1, $2);        }
+    | function_expr CHAIN primary_expr                        { $$ = mkOpNode(CHAIN, 3, $1, $3, NULL); }
     | function_expr CHAIN primary_expr arg_list               { $$ = mkOpNode(CHAIN, 3, $1, $3, $4);   }
     ;
 

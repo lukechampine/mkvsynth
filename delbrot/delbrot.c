@@ -27,6 +27,8 @@ ASTnode* assign(ASTnode *varNode, int op, ASTnode *valueNode) {
     if (op == '=') {
         if (varNode->type != typeVar)
             MkvsynthError("can't assign to a constant value (got %s)", typeNames[varNode->type]);
+        if (valueNode->type > typeClip)
+            MkvsynthError("can't assign type %s to variable", typeNames[valueNode->type]);
         /* new variable */
         if (UNDEFINED(varNode))
             varNode->var.value = newNode();
@@ -333,7 +335,7 @@ ASTnode* ex(Env *e, ASTnode *p) {
         case IF:      ifelse(e, p, ex(e, child[0]), child[1], child[2]); break;
         /* functions */
         case FNCT:    p = fnctCall(e, p, identify(e, child[0]), reduceArgs(e, child[1])); break;
-        case CHAIN:   child[0]->next = child[2]; p = fnctCall(e, p, ex(e, child[1]), ex(e, child[0])); break;
+        case CHAIN:   child[0]->next = child[2]; p = fnctCall(e, p, identify(e, child[1]), ex(e, child[0])); break;
         case DEFAULT: setDefault(e, child[0], ex(e, child[1])); break;
         case RETURN:  p = ex(e, child[0]); if (p != NULL) e->returnValue = p; longjmp(e->returnContext, 1); break;
         /* assignment */
