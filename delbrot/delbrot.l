@@ -99,8 +99,8 @@ D    [0-9]
 [ \t]+                  ; 
     /* used for error messages */
 \n                      linenumber++; 
-    /* execute queued up filters
-<<EOF>>             { go_AST(); yyterminate();                 } */
+    /* execute queued up filters */
+<<EOF>>             { go(newNode(), NULL); yyterminate();      }
     /* anything else is an error */
 .                       yyerror("unknown character");
 

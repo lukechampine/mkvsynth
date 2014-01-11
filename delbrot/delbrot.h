@@ -135,6 +135,7 @@ ASTnode* nlog(ASTnode *, ASTnode *);
 ASTnode* nsqrt(ASTnode *, ASTnode *);
 ASTnode* binOp(ASTnode *, ASTnode *, int, ASTnode *);
 /* builtin function prototypes */
+ASTnode* go(ASTnode *, ASTnode *);
 ASTnode* assert(ASTnode *, ASTnode *);
 ASTnode* MKVsource(ASTnode *, ASTnode *);
 ASTnode* print(ASTnode *, ASTnode *);

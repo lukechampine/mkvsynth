@@ -55,7 +55,7 @@ mkvsynth: $(DELBROT_OBJ)                                                       \
 
 delbrot: $(DELBROT_OBJ)                                                        \
          $(DUMMY_OBJ)
-	$(CC) $(CFLAGS) $^ $(DELBROT_LIBS) -o mkvsynth
+	$(CC) $(CFLAGS) -DDEBUG $^ $(DELBROT_LIBS) -o mkvsynth
 
 clean:
 	find . -type f -name "*.o" -delete

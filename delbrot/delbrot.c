@@ -432,6 +432,21 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
     return p;
 }
 
+/* execute queued up filters */
+/* if DEBUG is enabled, do nothing */
+ASTnode *go(ASTnode *p, ASTnode *args) {
+#ifndef DEBUG
+    checkArgs("go", args, 0);
+    printf("Initiating Multithreaded Filters\n");
+    mkvsynthSpawn();
+    printf("All filters are running\n");
+    mkvsynthJoin();
+    printf("All filters have completed\n");
+#endif
+    p->type = typeFn;
+    return p;
+}
+
 /* create a clip from a filename... eventually */
 ASTnode* MKVsource(ASTnode *p, ASTnode *args) {
     checkArgs("MKVsource", args, 1, typeStr);

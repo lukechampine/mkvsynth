@@ -367,7 +367,6 @@ void MkvsynthError(char *error, ...) {
     exit(1);
 }
 
-
 /* built-in functions */
 static fnEntry coreFunctions[] = {
     { "MKVsource", MKVsource },
@@ -375,20 +374,19 @@ static fnEntry coreFunctions[] = {
     { "print",     print     },
     { "show",      nshow     },
     { "read",      nread     },
+    { "sqrt",      nsqrt     },
     { "sin",       nsin      },
     { "cos",       ncos      },
     { "ln",        nlog      },
-    { "sqrt",      nsqrt     },
+    { "go",        go        },
     { 0,           0         },
 };
 
 int main(int argc, char **argv) {
-    //yydebug = 1;
-
     /* help message */
     if ((argc != 1 && argc != 2)
     || (argc > 1 && (!strcmp(argv[1],"-h") || !strcmp(argv[1],"--help")))) {
-        printf("Usage: mkvsynth [FILE]\nInterprets an mkvsynth script.\n\nIf FILE is omitted, STDIN will be used instead.\n\nReport bugs on github.com/DavidVorick/mkvsynth.\n");
+        printf("Usage: mkvsynth [FILE]\nInterprets an mkvsynth script.\n\nIf FILE is omitted, STDIN will be used instead.\n\nReport bugs on github.com/mkvsynth/mkvsynth.\n");
         exit(0);
     }
 
