@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 2.7.12-4996.  */
 
 /* Bison interface for Yacc-like parsers in C
    
-      Copyright (C) 1984, 1989-1990, 2000-2011 Free Software Foundation, Inc.
+      Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,15 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+#ifndef YY_YY_Y_TAB_H_INCLUDED
+# define YY_YY_Y_TAB_H_INCLUDED
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+#if YYDEBUG
+extern int yydebug;
+#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -37,76 +46,81 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     INT = 258,
-     DOUBLE = 259,
+     NUM = 258,
+     BOOL = 259,
      STRING = 260,
-     CONSTANT = 261,
-     IDENTIFIER = 262,
-     OPTARG = 263,
-     ASSIGN = 264,
-     BINOP = 265,
-     ADDEQ = 266,
-     SUBEQ = 267,
-     MULEQ = 268,
-     DIVEQ = 269,
-     POWEQ = 270,
-     MODEQ = 271,
-     IF = 272,
-     ELSE = 273,
-     FOR = 274,
-     WHILE = 275,
-     FNCT = 276,
-     FNDEF = 277,
-     RETURN = 278,
-     IFX = 279,
-     LAND = 280,
-     LOR = 281,
-     LE = 282,
-     GE = 283,
-     LT = 284,
-     GT = 285,
-     NE = 286,
-     EQ = 287,
-     NEG = 288,
-     DEC = 289,
-     INC = 290
+     CLIP = 261,
+     TRUE = 262,
+     FALSE = 263,
+     CONSTANT = 264,
+     IDENTIFIER = 265,
+     OPTARG = 266,
+     ASSIGN = 267,
+     BINOP = 268,
+     ADDEQ = 269,
+     SUBEQ = 270,
+     MULEQ = 271,
+     DIVEQ = 272,
+     POWEQ = 273,
+     MODEQ = 274,
+     CHAIN = 275,
+     IF = 276,
+     ELSE = 277,
+     TERN = 278,
+     FNCT = 279,
+     FNDEF = 280,
+     RETURN = 281,
+     DEFAULT = 282,
+     OTHER = 283,
+     LOR = 284,
+     LAND = 285,
+     EQ = 286,
+     NE = 287,
+     GT = 288,
+     LT = 289,
+     GE = 290,
+     LE = 291,
+     IFX = 292,
+     NEG = 293
    };
 #endif
 /* Tokens.  */
-#define INT 258
-#define DOUBLE 259
+#define NUM 258
+#define BOOL 259
 #define STRING 260
-#define CONSTANT 261
-#define IDENTIFIER 262
-#define OPTARG 263
-#define ASSIGN 264
-#define BINOP 265
-#define ADDEQ 266
-#define SUBEQ 267
-#define MULEQ 268
-#define DIVEQ 269
-#define POWEQ 270
-#define MODEQ 271
-#define IF 272
-#define ELSE 273
-#define FOR 274
-#define WHILE 275
-#define FNCT 276
-#define FNDEF 277
-#define RETURN 278
-#define IFX 279
-#define LAND 280
-#define LOR 281
-#define LE 282
-#define GE 283
-#define LT 284
-#define GT 285
-#define NE 286
-#define EQ 287
-#define NEG 288
-#define DEC 289
-#define INC 290
-
+#define CLIP 261
+#define TRUE 262
+#define FALSE 263
+#define CONSTANT 264
+#define IDENTIFIER 265
+#define OPTARG 266
+#define ASSIGN 267
+#define BINOP 268
+#define ADDEQ 269
+#define SUBEQ 270
+#define MULEQ 271
+#define DIVEQ 272
+#define POWEQ 273
+#define MODEQ 274
+#define CHAIN 275
+#define IF 276
+#define ELSE 277
+#define TERN 278
+#define FNCT 279
+#define FNDEF 280
+#define RETURN 281
+#define DEFAULT 282
+#define OTHER 283
+#define LOR 284
+#define LAND 285
+#define EQ 286
+#define NE 287
+#define GT 288
+#define LT 289
+#define GE 290
+#define LE 291
+#define IFX 292
+#define NEG 293
 
 
 
@@ -119,4 +133,18 @@ typedef int YYSTYPE;
 
 extern YYSTYPE yylval;
 
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void *YYPARSE_PARAM);
+#else
+int yyparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void);
+#else
+int yyparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
+#endif /* !YY_YY_Y_TAB_H_INCLUDED  */
