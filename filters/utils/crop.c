@@ -45,12 +45,12 @@ ASTnode *crop_AST(ASTnode *p, ASTnode *args) {
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("crop", args, 5, typeClip, typeVal, typeVal, typeVal, typeVal);
+	checkArgs("crop", args, 5, typeClip, typeNum, typeNum, typeNum, typeNum);
 	MkvsynthOutput *input = MANDCLIP();
-	params->left = (unsigned long long)MANDVAL();
-	params->top = (unsigned long long)MANDVAL();
-	params->right = (unsigned long long)MANDVAL();
-	params->bottom = (unsigned long long)MANDVAL();
+	params->left = (unsigned long long)MANDNUM();
+	params->top = (unsigned long long)MANDNUM();
+	params->right = (unsigned long long)MANDNUM();
+	params->bottom = (unsigned long long)MANDNUM();
 
 	params->input = createInputBuffer(input);
 	params->output = createOutputBuffer();

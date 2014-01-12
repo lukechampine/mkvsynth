@@ -301,6 +301,7 @@ ASTnode* setDefault(Env *e, ASTnode *paramNode, ASTnode *valueNode) {
     /* check that paramNode is an unset optional parameter */
     if (paramNode->var.opt == 1 && paramNode->var.value == NULL)
         assign(paramNode, '=', valueNode);
+    return paramNode;
 }
 
 /* execute a section of the AST */
@@ -550,7 +551,7 @@ ASTnode* nshow(ASTnode *p, ASTnode *args) {
         case typeNum:  p->str = malloc(256); sprintf(p->str, "%.10g", args->num); break;
         case typeBool: p->str = args->bool == TRUE ? "True" : "False"; break;
         case typeStr:  p->str = args->str; break;
-        case typeClip: MkvsynthError("show is not defined for clips (yet)");
+        default: MkvsynthError("show is not defined for type %s", typeNames[args->type]);
     }
     p->type = typeStr;
     return p;
