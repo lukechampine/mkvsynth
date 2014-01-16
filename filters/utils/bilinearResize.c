@@ -80,7 +80,7 @@ ASTnode *bilinearResize_AST(ASTnode *p, ASTnode *args) {
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("bilinearResize", args, 3, typeClip, typeVal, typeVal);
+	checkArgs("bilinearResize", args, 3, typeClip, typeNum, typeNum);
 	MkvsynthOutput *input = MANDCLIP();
 
 	params->input = createInputBuffer(input);
@@ -90,8 +90,8 @@ ASTnode *bilinearResize_AST(ASTnode *p, ASTnode *args) {
 	// Meta Data //
 	///////////////
 	params->output->metaData->colorspace = input->metaData->colorspace;
-	params->output->metaData->width = (unsigned long long)MANDVAL();
-	params->output->metaData->height = (unsigned long long)MANDVAL();
+	params->output->metaData->width = (unsigned long long)MANDNUM();
+	params->output->metaData->height = (unsigned long long)MANDNUM();
 	params->output->metaData->fpsNumerator = input->metaData->fpsNumerator;
 	params->output->metaData->fpsDenominator = input->metaData->fpsDenominator;
 

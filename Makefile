@@ -8,7 +8,6 @@ DELBROT_DEPS = delbrot/delbrot.h
 DELBROT_LIBS = -lm
 
 PLUGIN_OBJ = delbrot/plugins.o
-DUMMY_OBJ = delbrot/dummyplugins.o
 
 FFMPEG_CFLAGS = $(shell pkg-config --cflags libavformat libavcodec libswscale)
 FFMPEG_LIBS = $(shell pkg-config --libs libavformat libavcodec libswscale)
@@ -53,13 +52,14 @@ mkvsynth: $(DELBROT_OBJ)                                                       \
           $(X264_OBJ)
 	$(CC) $(CFLAGS) $^ $(FFMPEG_LIBS) $(DELBROT_LIBS) $(JARVIS_LIBS) -o $@
 
+delbrot: CFLAGS := -DDEBUG
 delbrot: $(DELBROT_OBJ)                                                        \
-         $(DUMMY_OBJ)
+         $(PLUGIN_OBJ)
 	$(CC) $(CFLAGS) $^ $(DELBROT_LIBS) -o mkvsynth
 
 clean:
-	find . -type f -name "*.o" -delete
-	rm -rf mkvsynth test unitTests/testOut1.mkv unitTests/testOut2.mkv
+	@find . -type f -name "*.o" -delete
+	@rm -rf mkvsynth test unitTests/testOut1.mkv unitTests/testOut2.mkv
 
 FLEX_VERSION := $(shell flex --version 2> /dev/null)
 YACC_VERSION := $(shell yacc --version 2> /dev/null)

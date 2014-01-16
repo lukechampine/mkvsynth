@@ -28,9 +28,9 @@ void *gradientVideoGenerate(void *filterParams) {
 
 ASTnode *gradientVideoGenerate_AST(ASTnode *p, ASTnode *args) {
 	checkArgs("gradientVideoGenerate", args, 0);
-	long long numFrames = (long long)OPTVAL("frames", 1000);
-	long long width = (long long)OPTVAL("width", 200);
-	long long height = (long long)OPTVAL("height", 200);
+	long long numFrames = (long long)OPTNUM("frames", 1000);
+	long long width = (long long)OPTNUM("width", 200);
+	long long height = (long long)OPTNUM("height", 200);
 
 	////////////////////
 	// Error Checking //

@@ -13,22 +13,17 @@
     #define YYDEBUG 1
 %}
 
-%token INT DOUBLE STRING
+%token NUM BOOL STRING CLIP TRUE FALSE
 %token CONSTANT IDENTIFIER OPTARG
 %token ASSIGN BINOP
-%token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ
-%token IF ELSE FOR WHILE
-%token FNCT FNDEF RETURN
+%token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHAIN
+%token IF ELSE TERN
+%token FNCT FNDEF RETURN DEFAULT OTHER
+%token LOR LAND EQ NE GT LT GE LE
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
 %nonassoc ELSE
-%right '^'
-%left EQ NE GT LT GE LE LOR LAND
-%left '+' '-'
-%left '*' '/' '%'
 %right NEG
-%left INC DEC
-
 
 %% /* grammar definition section  */
 
@@ -39,14 +34,23 @@ program
 
 stmt
     : function_declaration
+    | default_stmt
+    | return_stmt
     | expression_stmt
     | selection_stmt
-    | iteration_stmt
-    | return_stmt
     ;
 
 function_declaration
     : FNDEF primary_expr '(' param_list ')' '{' stmt_list '}' { $$ = mkOpNode(FNDEF, 3, $2, $4, $7);   }
+    ;
+
+default_stmt
+    : DEFAULT primary_expr ':' expr ';'                       { $$ = mkOpNode(DEFAULT, 2, $2, $4);     }
+    ;
+
+return_stmt
+    : RETURN expr ';'                                         { $$ = mkOpNode(RETURN, 1, $2);          }
+    | RETURN ';'                                              { $$ = mkOpNode(RETURN, 1, NULL);        }
     ;
 
 expression_stmt
@@ -59,16 +63,6 @@ selection_stmt
     | IF '(' expr ')' block ELSE block                        { $$ = mkOpNode(IF, 3, $3, $5, $7);      }
     ;
 
-iteration_stmt
-    : WHILE '(' expr ')' block                                { $$ = mkOpNode(WHILE, 2, $3, $5);       }
-    | FOR '(' expr ';' expr ';' expr ')' block                { $$ = mkOpNode(FOR, 4, $3, $5, $7, $9); }
-    ;
-
-return_stmt
-    : RETURN expr ';'                                         { $$ = mkOpNode(RETURN, 1, $2);          }
-    | RETURN ';'                                              { $$ = mkOpNode(RETURN, 1, NULL);        }
-    ;
-
 param_list
     : /* empty */                                             { $$ = NULL;                             }
     | param                                                   { $$ = $1;                               }
@@ -76,9 +70,12 @@ param_list
     ;
 
 param
-    : INT primary_expr                                        { $2->type = typeVal; $$ = $2;           }
-    | DOUBLE primary_expr                                     { $2->type = typeVal; $$ = $2;           }
-    | STRING primary_expr                                     { $2->type = typeStr; $$ = $2;           }
+    : type primary_expr                                       { $$ = mkParamNode(0, $1->num, $2);      }
+    | ':' type primary_expr                                   { $$ = mkParamNode(1, $2->num, $3);      }
+    ;
+
+type
+    : NUM | BOOL | STRING | CLIP
     ;
 
 block
@@ -96,7 +93,7 @@ expr
     ;
 
 assignment_expr
-    : boolean_expr
+    : ternary_expr
     | primary_expr assignment_operator assignment_expr        { $$ = mkOpNode(ASSIGN, 3, $1, $2, $3);  }
     ;
 
@@ -104,52 +101,88 @@ assignment_operator
     : '=' | ADDEQ | SUBEQ | MULEQ | DIVEQ | POWEQ | MODEQ
     ;
 
-boolean_expr
-    : arithmetic_expr
-    | boolean_expr boolean_operator arithmetic_expr           { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+ternary_expr
+    : boolean_or_expr
+    | boolean_or_expr '?' ternary_expr '|' ternary_end        { $$ = mkOpNode(TERN, 3, $1, $3, $5);    } 
     ;
 
-boolean_operator
-    : EQ | NE | GT | LT | GE | LE | LOR | LAND
+ternary_end
+    : ternary_expr                                            { $$ = $1;                               }
+    | OTHER '?' ternary_expr                                  { $$ = $3;                               }
     ;
 
-arithmetic_expr
-    : prefix_expr
-    | arithmetic_expr arithmetic_operator prefix_expr         { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+boolean_or_expr
+    : boolean_and_expr
+    | boolean_or_expr LOR boolean_and_expr                    { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
     ;
 
-arithmetic_operator
-    : '+' | '-' | '*' | '/' | '^' | '%'
+boolean_and_expr
+    : boolean_eq_expr
+    | boolean_and_expr LAND boolean_eq_expr                   { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
     ;
 
-prefix_expr
-    : postfix_expr
-    | '-' prefix_expr                                         { $$ = mkOpNode(NEG, 1, $2);             }
-    | '!' prefix_expr                                         { $$ = mkOpNode('!', 1, $2);             }
+boolean_eq_expr
+    : boolean_rel_expr
+    | boolean_eq_expr eq_operator boolean_rel_expr            { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
     ;
 
-postfix_expr
+eq_operator
+    : EQ | NE
+    ;
+
+boolean_rel_expr
+    : arithmetic_add_expr
+    | boolean_rel_expr rel_operator arithmetic_add_expr       { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    ;
+
+rel_operator
+    : GT | LT | GE | LE
+    ;
+
+arithmetic_add_expr
+    : arithmetic_mul_expr
+    | arithmetic_add_expr add_operator arithmetic_mul_expr    { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    ;
+
+add_operator
+    : '+' | '-'
+    ;
+
+arithmetic_mul_expr
+    : arithmetic_exp_expr
+    | arithmetic_mul_expr mul_operator arithmetic_exp_expr    { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    ;
+
+mul_operator
+    : '*' | '/' | '%'
+    ;
+
+arithmetic_exp_expr
+    : unary_expr
+    | arithmetic_exp_expr '^' unary_expr                      { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    ;
+
+unary_expr
     : function_expr
-    | postfix_expr INC                                        { $$ = mkOpNode(INC, 1, $1);             }
-    | postfix_expr DEC                                        { $$ = mkOpNode(DEC, 1, $1);             }
+    | '-' function_expr                                       { $$ = mkOpNode(NEG, 1, $2);             }
+    | '!' function_expr                                       { $$ = mkOpNode('!', 1, $2);             }
     ;
 
 function_expr
     : primary_expr
-    | primary_expr '(' arg_list ')'                           { $$ = mkOpNode(FNCT, 2, $1, $3);        }
-    | function_expr '.' primary_expr '(' arg_list ')'         { $$ = mkOpNode('.',  3, $1, $3, $5);    }
-    | function_expr '.' primary_expr  /* sugar */             { $$ = mkOpNode('.',  3, $1, $3, NULL);  }
+    | primary_expr arg_list                                   { $$ = mkOpNode(FNCT, 2, $1, $2);        }
+    | function_expr CHAIN primary_expr                        { $$ = mkOpNode(CHAIN, 3, $1, $3, NULL); }
+    | function_expr CHAIN primary_expr arg_list               { $$ = mkOpNode(CHAIN, 3, $1, $3, $4);   }
     ;
 
 arg_list
-    : /* empty */                                             { $$ = NULL;                             }
-    | function_arg                                            { $$ = $1;                               }
-    | arg_list ',' function_arg                               { $$ = append($1, $3);                   }
+    : function_arg                                            { $$ = $1;                               }
+    | arg_list function_arg                                   { $$ = append($1, $2);                   }
     ;
 
 function_arg
-    : expr                                                    { $$ = $1;                               }
-    | OPTARG expr                                             { $1->opt.value = $2;                    }
+    : primary_expr                                            { $$ = $1;                               }
+    | primary_expr ':' primary_expr                           { $$ = mkOptArgNode($1, $3);             }
     ;
 
 primary_expr
@@ -175,11 +208,19 @@ void freeNodes() {
     /* free */
 }
 
-/* create a value node in the AST */
-ASTnode *mkValNode(double val) {
+/* create a number node in the AST */
+ASTnode *mkNumNode(double num) {
     ASTnode *p = newNode();
-    p->type = typeVal;
-    p->val = val;
+    p->type = typeNum;
+    p->num = num;
+    return p;
+}
+
+/* create a boolean node in the AST */
+ASTnode *mkBoolNode(int bool) {
+    ASTnode *p = newNode();
+    p->type = typeBool;
+    p->bool = bool;
     return p;
 }
 
@@ -201,11 +242,28 @@ ASTnode *mkIdNode(char *ident) {
     return p;
 }
 
+/* create a parameter node in the AST */
+ASTnode *mkParamNode(char opt, int type, ASTnode *p) {
+    p->type = typeVar;
+    p->var.name = p->id;
+    p->var.opt = opt;
+    switch(type) {
+        case NUM:    p->var.type = typeNum; break;
+        case BOOL:   p->var.type = typeBool; break;
+        case STRING: p->var.type = typeStr; break;
+        case CLIP:   p->var.type = typeClip; break;
+    }
+    return p;
+}
+
 /* create an optional argument node in the AST */
-ASTnode *mkOptArgNode(char *name) {
-    ASTnode *p = newNode();
+ASTnode *mkOptArgNode(ASTnode *p, ASTnode *value) {
     p->type = typeOptArg;
-    p->opt.name = strdup(name);
+    p->var.name = p->id;
+    p->var.opt = 1;
+    p->var.type = value->type;
+    p->var.value = newNode();
+    memcpy(p->var.value, value, sizeof(ASTnode));
     return p;
 }
 
@@ -227,7 +285,7 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
     return p;
 }
 
-/* add an ASTnode to a linked list of arguments */
+/* add an ASTnode to the end of a linked list */
 ASTnode *append(ASTnode *root, ASTnode *node) {
     if (!root)
         yyerror("invalid argument");
@@ -267,9 +325,7 @@ ASTnode *getFn(Env const *e, char const *fnName) {
 /* allocate a new variable */
 ASTnode *putVar(Env *e, char const *varName) {
     /* create entry */
-    ASTnode *ptr;
-    if ((ptr = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
+    ASTnode *ptr = newNode();
     ptr->type = typeVar;
     ptr->var.name = strdup(varName);
     ptr->var.value = NULL;
@@ -288,11 +344,20 @@ ASTnode *getVar(Env const *e, char const *varName) {
         if (strcmp(traverse->var.name, varName) == 0)
             return traverse;
     /* check parent environment */
-    return getVar(e->parent, varName);
+    //return getVar(e->parent, varName);
+    return NULL;
 }
 
-/* Called by yyparse on error. */
+/* Called by yyparse on error, passed through to Mkvsynth Error */
 void yyerror(char *error, ...) {
+    va_list arglist;
+    va_start(arglist, error);
+    MkvsynthError(error, arglist);
+    va_end(arglist);
+}
+
+/* alias for yyerror */
+void MkvsynthError(char *error, ...) {
     fprintf(stderr, "\x1B[31mdelbrot:%d error: ", linenumber);
     va_list arglist;
     va_start(arglist, error);
@@ -305,21 +370,23 @@ void yyerror(char *error, ...) {
 /* built-in functions */
 static fnEntry coreFunctions[] = {
     { "MKVsource", MKVsource },
+    { "assert",    assert    },
     { "print",     print     },
+    { "show",      nshow     },
+    { "read",      nread     },
+    { "sqrt",      nsqrt     },
     { "sin",       nsin      },
     { "cos",       ncos      },
     { "ln",        nlog      },
-    { "sqrt",      nsqrt     },
+    { "go",        go        },
     { 0,           0         },
 };
 
 int main(int argc, char **argv) {
-    //yydebug = 1;
-
     /* help message */
     if ((argc != 1 && argc != 2)
     || (argc > 1 && (!strcmp(argv[1],"-h") || !strcmp(argv[1],"--help")))) {
-        printf("Usage: mkvsynth [FILE]\nInterprets an mkvsynth script.\n\nIf FILE is omitted, STDIN will be used instead.\n\nReport bugs on github.com/DavidVorick/mkvsynth.\n");
+        printf("Usage: mkvsynth [FILE]\nInterprets an mkvsynth script.\n\nIf FILE is omitted, STDIN will be used instead.\n\nReport bugs on github.com/mkvsynth/mkvsynth.\n");
         exit(0);
     }
 

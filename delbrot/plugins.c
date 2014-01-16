@@ -1,5 +1,7 @@
 #include "delbrot.h"
-
+#ifdef DEBUG
+fnEntry pluginFunctions[] = {};
+#else
 ASTnode* bilinearResize_AST(ASTnode *p, ASTnode *args);
 ASTnode* convertColorspace_AST(ASTnode *p, ASTnode *args);
 ASTnode* crop_AST(ASTnode *p, ASTnode *args);
@@ -26,3 +28,4 @@ fnEntry pluginFunctions[] = {
 	{ "colorspacingTests",     colorspacingTests_AST     },
 	{ 0,                       0                         },
 };
+#endif

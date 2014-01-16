@@ -1,13 +1,11 @@
-a = ffmpegDecode("unitTests/testVid.mkv");
-b = testingGradient();
+a = ffmpegDecode "unitTests/testVid.mkv";
+b = testingGradient;
 
-a = colorspacingTests(a);
-b = colorspacingTests(b);
+a = colorspacingTests a;
+b = colorspacingTests b;
 
-a = convertColorspace(a, "rgb24");
-b = convertColorspace(b, "rgb24");
+a = convertColorspace a "rgb24";
+b = convertColorspace b "rgb24";
 
-x264Encode(a, "unitTests/colorspaceTestOut1.mkv");
-x264Encode(b, "unitTests/colorspaceTestOut2.mkv");
-
-go();
+x264Encode a "unitTests/colorspaceTestOut1.mkv";
+x264Encode b "unitTests/colorspaceTestOut2.mkv";
