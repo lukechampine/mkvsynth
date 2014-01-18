@@ -52,7 +52,7 @@ mkvsynth: $(DELBROT_OBJ)                                                       \
           $(X264_OBJ)
 	$(CC) $(CFLAGS) $^ $(FFMPEG_LIBS) $(DELBROT_LIBS) $(JARVIS_LIBS) -o $@
 
-delbrot: CFLAGS := -DDEBUG
+delbrot: CFLAGS := -DDELBROT
 delbrot: $(DELBROT_OBJ)                                                        \
          $(PLUGIN_OBJ)
 	$(CC) $(CFLAGS) $^ $(DELBROT_LIBS) -o mkvsynth

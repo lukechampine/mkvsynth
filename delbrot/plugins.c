@@ -1,5 +1,5 @@
 #include "delbrot.h"
-#ifdef DEBUG
+#ifdef DELBROT
 fnEntry pluginFunctions[] = {};
 #else
 ASTnode* bilinearResize_AST(ASTnode *p, ASTnode *args);
@@ -11,7 +11,6 @@ ASTnode* removeRange_AST(ASTnode *p, ASTnode *args);
 ASTnode* testingGradient_AST(ASTnode *p, ASTnode *args);
 ASTnode* writeRawFile_AST(ASTnode *p, ASTnode *args);
 ASTnode* x264Encode_AST(ASTnode *p, ASTnode *args);
-ASTnode* go_AST(ASTnode *p, ASTnode *args);
 ASTnode* colorspacingTests_AST(ASTnode *p, ASTnode *args);
 
 fnEntry pluginFunctions[] = {
@@ -24,7 +23,6 @@ fnEntry pluginFunctions[] = {
 	{ "testingGradient",       testingGradient_AST       },
 	{ "writeRawFile",          writeRawFile_AST          },
 	{ "x264Encode",            x264Encode_AST            },
-	{ "go",                    go_AST                    },
 	{ "colorspacingTests",     colorspacingTests_AST     },
 	{ 0,                       0                         },
 };

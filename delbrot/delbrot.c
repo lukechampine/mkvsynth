@@ -434,9 +434,9 @@ ASTnode* print(ASTnode *p, ASTnode *args) {
 }
 
 /* execute queued up filters */
-/* if DEBUG is enabled, do nothing */
+/* if running `make delbrot`, do nothing */
 ASTnode *go(ASTnode *p, ASTnode *args) {
-#ifndef DEBUG
+#ifndef DELBROT
     checkArgs("go", args, 0);
     printf("Initiating Multithreaded Filters\n");
     mkvsynthSpawn();
