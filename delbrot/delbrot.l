@@ -100,7 +100,12 @@ D    [0-9]
     /* used for error messages */
 \n                      linenumber++; 
     /* execute queued up filters */
-<<EOF>>             { go(newNode(), NULL); yyterminate();      }
+<<EOF>>             { 
+                        #ifndef DELBROT
+                        go_AST(newNode(), NULL);
+                        #endif
+                        yyterminate();
+                    }
     /* anything else is an error */
 .                       yyerror("unknown character");
 
