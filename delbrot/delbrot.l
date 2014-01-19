@@ -6,7 +6,6 @@ D    [0-9]
     #include <stdio.h>
     #include "delbrot.h"
     #include "y.tab.h"
-    extern void yyerror(char *, ...);
     int resWord(char *);
     int linenumber = 1;
 %}
@@ -107,7 +106,7 @@ D    [0-9]
                         yyterminate();
                     }
     /* anything else is an error */
-.                       yyerror("unknown character");
+.                       MkvsynthError("unknown character");
 
 %%
 

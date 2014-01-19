@@ -14,7 +14,7 @@
 #define MANDSTR()  args->str;     args = args->next
 #define MANDCLIP() args->clipOut; args = args->next
 #define OPTNUM(name, default)  getOptArg(args, name, typeNum)  ?      *((double *) getOptArg(args, name, typeNum))  : default
-#define OPTBOOL(name, default) getOptArg(args, name, typeBool) ?        *((char *) getOptArg(args, name, typeBool)) : default
+#define OPTBOOL(name, default) getOptArg(args, name, typeBool) ?        *((bool_t) getOptArg(args, name, typeBool)) : default
 #define OPTSTR(name, default)  getOptArg(args, name, typeStr)  ?          (char *) getOptArg(args, name, typeStr)   : default
 #define OPTCLIP(name, default) getOptArg(args, name, typeClip) ? (MkvsynthInput *) getOptArg(args, name, typeClip)  : default
 #define RETURNNUM(num)   p->type = typeNum;  p->num     = num;  return p
@@ -103,45 +103,32 @@ struct ASTnode {
 };
 
 /* function declarations */
-ASTnode* ex(Env *, ASTnode *);
 /* error handling */
-void yyerror(char *, ...);
 void MkvsynthError(char *, ...);
-/* node creation */
+/* AST creation */
 void freeNodes();
-ASTnode* newNode();
-ASTnode* mkNumNode(double);
-ASTnode* mkBoolNode(int);
-ASTnode* mkStrNode(char *);
-ASTnode* mkIdNode(char *);
-ASTnode* mkOpNode(int, int, ...);
-ASTnode* mkParamNode(char, int, ASTnode *);
-ASTnode* mkOptArgNode(ASTnode *, ASTnode *);
-ASTnode* initList(ASTnode *);
 ASTnode* append(ASTnode *, ASTnode *);
+ASTnode* initList(ASTnode *);
+ASTnode* mkBoolNode(int);
+ASTnode* mkIdNode(char *);
+ASTnode* mkNumNode(double);
+ASTnode* mkOpNode(int, int, ...);
+ASTnode* mkOptArgNode(ASTnode *, ASTnode *);
+ASTnode* mkParamNode(char, int, ASTnode *);
+ASTnode* mkStrNode(char *);
+ASTnode* newNode();
 /* variable/function access prototypes */
-ASTnode* putVar(Env *, char const *);
+ASTnode* getFn(Env const *, char const *);
 ASTnode* getVar(Env const *, char const *);
 ASTnode* putFn(Env *, fnEntry);
-ASTnode* getFn(Env const *, char const *);
+ASTnode* putVar(Env *, char const *);
+/* AST evaluation */
+ASTnode* ex(Env *, ASTnode *);
 void checkArgs(char *, ASTnode *, int, ...);
 void* getOptArg(ASTnode *, char *, int);
-/* standard mathematical function prototypes */
-ASTnode* nneg(ASTnode *, ASTnode *);
-ASTnode* nnot(ASTnode *, ASTnode *);
-ASTnode* nsin(ASTnode *, ASTnode *);
-ASTnode* ncos(ASTnode *, ASTnode *);
-ASTnode* nlog(ASTnode *, ASTnode *);
-ASTnode* nsqrt(ASTnode *, ASTnode *);
-ASTnode* binOp(ASTnode *, ASTnode *, int, ASTnode *);
-/* builtin function prototypes */
-ASTnode* go(ASTnode *, ASTnode *);
-ASTnode* assert(ASTnode *, ASTnode *);
-ASTnode* MKVsource(ASTnode *, ASTnode *);
-ASTnode* print(ASTnode *, ASTnode *);
-ASTnode* nshow(ASTnode *, ASTnode *);
-ASTnode* nread(ASTnode *, ASTnode *);
+
 /* global variables */
-extern Env *global; /* the global execution environment */
-extern fnEntry pluginFunctions[]; /* plugin functions */
+Env *global; /* the global execution environment */
+extern fnEntry coreFunctions[];
+extern fnEntry internalFilters[];
 #endif

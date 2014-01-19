@@ -73,9 +73,9 @@
     #include <string.h>
     #include <stdarg.h>
     #include "delbrot.h"
-    /* prototypes */
-    Env *global;
-    extern int linenumber;
+    /* prototypes to please -Wall */
+    void yyerror(char *error, ...);
+    int yylex();
     /* script file */
     extern FILE *yyin;
     /* debug */
@@ -2086,7 +2086,7 @@ yyreturn:
 ASTnode *newNode() {
     ASTnode *p;
     if ((p = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
+        MkvsynthError("out of memory");
     /* record in unfreed table */
     p->next = NULL;
     return p;
@@ -2161,7 +2161,7 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
     ASTnode *p = newNode();
     /* allocate space for ops */
     if ((p->op.ops = malloc(nops * sizeof(ASTnode *))) == NULL)
-        yyerror("out of memory");
+        MkvsynthError("out of memory");
     p->type = typeOp;
     p->op.oper = oper;
     p->op.nops = nops;
@@ -2177,7 +2177,7 @@ ASTnode *mkOpNode(int oper, int nops, ...) {
 /* add an ASTnode to the end of a linked list */
 ASTnode *append(ASTnode *root, ASTnode *node) {
     if (!root)
-        yyerror("invalid argument");
+        MkvsynthError("invalid argument");
     ASTnode *traverse;
     for(traverse = root; traverse->next; traverse = traverse->next);
     traverse->next = node;
@@ -2189,7 +2189,7 @@ ASTnode *putFn(Env *e, fnEntry fn) {
     /* create entry */
     ASTnode *ptr;
     if ((ptr = malloc(sizeof(ASTnode))) == NULL)
-        yyerror("out of memory");
+        MkvsynthError("out of memory");
     ptr->type = typeFn;
     ptr->fn.name = fn.name;
     ptr->fn.core.fnPtr = fn.fnPtr;
@@ -2237,39 +2237,13 @@ ASTnode *getVar(Env const *e, char const *varName) {
     return NULL;
 }
 
-/* Called by yyparse on error, passed through to Mkvsynth Error */
+/* alias for MkvsynthError */
 void yyerror(char *error, ...) {
     va_list arglist;
     va_start(arglist, error);
     MkvsynthError(error, arglist);
     va_end(arglist);
 }
-
-/* alias for yyerror */
-void MkvsynthError(char *error, ...) {
-    fprintf(stderr, "\x1B[31mdelbrot:%d error: ", linenumber);
-    va_list arglist;
-    va_start(arglist, error);
-    vfprintf(stderr, error, arglist);
-    va_end(arglist);
-    fprintf(stderr, "\x1B[0m\n");
-    exit(1);
-}
-
-/* built-in functions */
-static fnEntry coreFunctions[] = {
-    { "MKVsource", MKVsource },
-    { "assert",    assert    },
-    { "print",     print     },
-    { "show",      nshow     },
-    { "read",      nread     },
-    { "sqrt",      nsqrt     },
-    { "sin",       nsin      },
-    { "cos",       ncos      },
-    { "ln",        nlog      },
-    { "go",        go        },
-    { 0,           0         },
-};
 
 int main(int argc, char **argv) {
     /* help message */
@@ -2300,8 +2274,8 @@ int main(int argc, char **argv) {
     int i;
     for(i = 0; coreFunctions[i].name != 0; i++)
         putFn(global, coreFunctions[i]);
-    for(i = 0; pluginFunctions[i].name != 0; i++)
-        putFn(global, pluginFunctions[i]);
+    for(i = 0; internalFilters[i].name != 0; i++)
+        putFn(global, internalFilters[i]);
 
     /* main parse loop */
     return yyparse();
