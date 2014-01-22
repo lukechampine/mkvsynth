@@ -1,5 +1,6 @@
+#line 2 "delbrot/lex.yy.c"
 
-#line 3 "lex.yy.c"
+#line 4 "delbrot/lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -8,7 +9,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 37
+#define YY_FLEX_SUBMINOR_VERSION 35
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -141,7 +142,15 @@ typedef unsigned int flex_uint32_t;
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k.
+ * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
+ * Ditto for the __ia64__ case accordingly.
+ */
+#define YY_BUF_SIZE 32768
+#else
 #define YY_BUF_SIZE 16384
+#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -153,12 +162,7 @@ typedef unsigned int flex_uint32_t;
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 #endif
 
-#ifndef YY_TYPEDEF_YY_SIZE_T
-#define YY_TYPEDEF_YY_SIZE_T
-typedef size_t yy_size_t;
-#endif
-
-extern yy_size_t yyleng;
+extern int yyleng;
 
 extern FILE *yyin, *yyout;
 
@@ -184,6 +188,11 @@ extern FILE *yyin, *yyout;
 
 #define unput(c) yyunput( c, (yytext_ptr)  )
 
+#ifndef YY_TYPEDEF_YY_SIZE_T
+#define YY_TYPEDEF_YY_SIZE_T
+typedef size_t yy_size_t;
+#endif
+
 #ifndef YY_STRUCT_YY_BUFFER_STATE
 #define YY_STRUCT_YY_BUFFER_STATE
 struct yy_buffer_state
@@ -201,7 +210,7 @@ struct yy_buffer_state
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
 	 */
-	yy_size_t yy_n_chars;
+	int yy_n_chars;
 
 	/* Whether we "own" the buffer - i.e., we know we created it,
 	 * and can realloc() it to grow it, and should free() it to
@@ -271,8 +280,8 @@ static YY_BUFFER_STATE * yy_buffer_stack = 0; /**< Stack as an array. */
 
 /* yy_hold_char holds the character lost when yytext is formed. */
 static char yy_hold_char;
-static yy_size_t yy_n_chars;		/* number of characters read into yy_ch_buf */
-yy_size_t yyleng;
+static int yy_n_chars;		/* number of characters read into yy_ch_buf */
+int yyleng;
 
 /* Points to current character in buffer. */
 static char *yy_c_buf_p = (char *) 0;
@@ -300,7 +309,7 @@ static void yy_init_buffer (YY_BUFFER_STATE b,FILE *file  );
 
 YY_BUFFER_STATE yy_scan_buffer (char *base,yy_size_t size  );
 YY_BUFFER_STATE yy_scan_string (yyconst char *yy_str  );
-YY_BUFFER_STATE yy_scan_bytes (yyconst char *bytes,yy_size_t len  );
+YY_BUFFER_STATE yy_scan_bytes (yyconst char *bytes,int len  );
 
 void *yyalloc (yy_size_t  );
 void *yyrealloc (void *,yy_size_t  );
@@ -332,7 +341,7 @@ void yyfree (void *  );
 
 /* Begin user sect3 */
 
-#define yywrap() 1
+#define yywrap(n) 1
 #define YY_SKIP_YYWRAP
 
 typedef unsigned char YY_CHAR;
@@ -500,17 +509,16 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "delbrot.l"
-#line 5 "delbrot.l"
+#line 1 "delbrot/delbrot.l"
+#line 5 "delbrot/delbrot.l"
     #include <stdlib.h>
     #include <stdio.h>
     #include "delbrot.h"
     #include "y.tab.h"
-    extern void yyerror(char *, ...);
     int resWord(char *);
     int linenumber = 1;
 /* don't keep scanning after EOF */
-#line 514 "lex.yy.c"
+#line 522 "delbrot/lex.yy.c"
 
 #define INITIAL 0
 
@@ -549,7 +557,7 @@ FILE *yyget_out (void );
 
 void yyset_out  (FILE * out_str  );
 
-yy_size_t yyget_leng (void );
+int yyget_leng (void );
 
 char *yyget_text (void );
 
@@ -591,7 +599,12 @@ static int input (void );
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k */
+#define YY_READ_BUF_SIZE 16384
+#else
 #define YY_READ_BUF_SIZE 8192
+#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -692,11 +705,11 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 16 "delbrot.l"
+#line 15 "delbrot/delbrot.l"
 
 
     /* boolean */
-#line 700 "lex.yy.c"
+#line 713 "delbrot/lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -781,7 +794,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 19 "delbrot.l"
+#line 18 "delbrot/delbrot.l"
 {
                         yylval = mkBoolNode(TRUE);
                         return CONSTANT;
@@ -789,7 +802,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 23 "delbrot.l"
+#line 22 "delbrot/delbrot.l"
 {
                         yylval = mkBoolNode(FALSE);
                         return CONSTANT;
@@ -798,7 +811,7 @@ YY_RULE_SETUP
 /* type */
 case 3:
 YY_RULE_SETUP
-#line 28 "delbrot.l"
+#line 27 "delbrot/delbrot.l"
 {
                         yylval = mkNumNode(NUM);
                         return NUM;
@@ -806,7 +819,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 32 "delbrot.l"
+#line 31 "delbrot/delbrot.l"
 {
                         yylval = mkNumNode(BOOL);
                         return BOOL;
@@ -814,7 +827,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 36 "delbrot.l"
+#line 35 "delbrot/delbrot.l"
 {
                         yylval = mkNumNode(STRING);
                         return STRING;
@@ -822,7 +835,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 40 "delbrot.l"
+#line 39 "delbrot/delbrot.l"
 {
                         yylval = mkNumNode(CLIP);
                         return CLIP;
@@ -831,7 +844,7 @@ YY_RULE_SETUP
 /* keyword, function, or variable */
 case 7:
 YY_RULE_SETUP
-#line 45 "delbrot.l"
+#line 44 "delbrot/delbrot.l"
 {
                         /* reserved word */
                         if (resWord(yytext))
@@ -844,7 +857,7 @@ YY_RULE_SETUP
 /* number, with optional decimal */
 case 8:
 YY_RULE_SETUP
-#line 54 "delbrot.l"
+#line 53 "delbrot/delbrot.l"
 {
                         yylval = mkNumNode(atof(yytext));
                         return CONSTANT;
@@ -853,7 +866,7 @@ YY_RULE_SETUP
 /* number, without initial 0 */
 case 9:
 YY_RULE_SETUP
-#line 59 "delbrot.l"
+#line 58 "delbrot/delbrot.l"
 {
                         yylval = mkNumNode(atof(yytext));
                         return CONSTANT;
@@ -863,7 +876,7 @@ YY_RULE_SETUP
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 64 "delbrot.l"
+#line 63 "delbrot/delbrot.l"
 {
                         yylval = mkStrNode(yytext);
                         return CONSTANT;
@@ -872,160 +885,165 @@ YY_RULE_SETUP
 /* arithmetic operator */
 case 11:
 YY_RULE_SETUP
-#line 69 "delbrot.l"
+#line 68 "delbrot/delbrot.l"
 { yylval = mkNumNode('+');   return '+';   }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 70 "delbrot.l"
+#line 69 "delbrot/delbrot.l"
 { yylval = mkNumNode('-');   return '-';   }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 71 "delbrot.l"
+#line 70 "delbrot/delbrot.l"
 { yylval = mkNumNode('*');   return '*';   }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 72 "delbrot.l"
+#line 71 "delbrot/delbrot.l"
 { yylval = mkNumNode('/');   return '/';   }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 73 "delbrot.l"
+#line 72 "delbrot/delbrot.l"
 { yylval = mkNumNode('^');   return '^';   }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 74 "delbrot.l"
+#line 73 "delbrot/delbrot.l"
 { yylval = mkNumNode('%');   return '%';   }
 	YY_BREAK
 /* comparator or boolean operator */
 case 17:
 YY_RULE_SETUP
-#line 76 "delbrot.l"
+#line 75 "delbrot/delbrot.l"
 { yylval = mkNumNode(EQ);    return EQ;    }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 77 "delbrot.l"
+#line 76 "delbrot/delbrot.l"
 { yylval = mkNumNode(NE);    return NE;    }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 78 "delbrot.l"
+#line 77 "delbrot/delbrot.l"
 { yylval = mkNumNode(GT);    return GT;    }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 79 "delbrot.l"
+#line 78 "delbrot/delbrot.l"
 { yylval = mkNumNode(LT);    return LT;    }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 80 "delbrot.l"
+#line 79 "delbrot/delbrot.l"
 { yylval = mkNumNode(GE);    return GE;    }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 81 "delbrot.l"
+#line 80 "delbrot/delbrot.l"
 { yylval = mkNumNode(LE);    return LE;    }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 82 "delbrot.l"
+#line 81 "delbrot/delbrot.l"
 { yylval = mkNumNode(LOR);   return LOR;   }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 83 "delbrot.l"
+#line 82 "delbrot/delbrot.l"
 { yylval = mkNumNode(LAND);  return LAND;  }
 	YY_BREAK
 /*assignment operator */
 case 25:
 YY_RULE_SETUP
-#line 85 "delbrot.l"
+#line 84 "delbrot/delbrot.l"
 { yylval = mkNumNode('=');   return '=';   }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 86 "delbrot.l"
+#line 85 "delbrot/delbrot.l"
 { yylval = mkNumNode(ADDEQ); return ADDEQ; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 87 "delbrot.l"
+#line 86 "delbrot/delbrot.l"
 { yylval = mkNumNode(SUBEQ); return SUBEQ; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 88 "delbrot.l"
+#line 87 "delbrot/delbrot.l"
 { yylval = mkNumNode(MULEQ); return MULEQ; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 89 "delbrot.l"
+#line 88 "delbrot/delbrot.l"
 { yylval = mkNumNode(DIVEQ); return DIVEQ; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 90 "delbrot.l"
+#line 89 "delbrot/delbrot.l"
 { yylval = mkNumNode(POWEQ); return POWEQ; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 91 "delbrot.l"
+#line 90 "delbrot/delbrot.l"
 { yylval = mkNumNode(MODEQ); return MODEQ; }
 	YY_BREAK
 /* chaining operator */
 case 32:
 YY_RULE_SETUP
-#line 93 "delbrot.l"
+#line 92 "delbrot/delbrot.l"
 { yylval = mkNumNode(CHAIN); return CHAIN; }
 	YY_BREAK
 /* miscellaneous character */
 case 33:
 YY_RULE_SETUP
-#line 95 "delbrot.l"
+#line 94 "delbrot/delbrot.l"
 return *yytext;
 	YY_BREAK
 /* comment */
 case 34:
 /* rule 34 can match eol */
 YY_RULE_SETUP
-#line 97 "delbrot.l"
+#line 96 "delbrot/delbrot.l"
 ; 
 	YY_BREAK
 /* ignore whitespace (2D languages are pig disgusting) */
 case 35:
 YY_RULE_SETUP
-#line 99 "delbrot.l"
+#line 98 "delbrot/delbrot.l"
 ; 
 	YY_BREAK
 /* used for error messages */
 case 36:
 /* rule 36 can match eol */
 YY_RULE_SETUP
-#line 101 "delbrot.l"
+#line 100 "delbrot/delbrot.l"
 linenumber++; 
 	YY_BREAK
 /* execute queued up filters */
 case YY_STATE_EOF(INITIAL):
-#line 103 "delbrot.l"
-{ go(newNode(), NULL); yyterminate();      }
+#line 102 "delbrot/delbrot.l"
+{ 
+                        #ifndef DELBROT
+                        go_AST(newNode(), NULL);
+                        #endif
+                        yyterminate();
+                    }
 	YY_BREAK
 /* anything else is an error */
 case 37:
 YY_RULE_SETUP
-#line 105 "delbrot.l"
-yyerror("unknown character");
+#line 109 "delbrot/delbrot.l"
+MkvsynthError("unknown character");
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 107 "delbrot.l"
+#line 111 "delbrot/delbrot.l"
 ECHO;
 	YY_BREAK
-#line 1029 "lex.yy.c"
+#line 1047 "delbrot/lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1209,21 +1227,21 @@ static int yy_get_next_buffer (void)
 
 	else
 		{
-			yy_size_t num_to_read =
+			int num_to_read =
 			YY_CURRENT_BUFFER_LVALUE->yy_buf_size - number_to_move - 1;
 
 		while ( num_to_read <= 0 )
 			{ /* Not enough room in the buffer - grow it. */
 
 			/* just a shorter name for the current buffer */
-			YY_BUFFER_STATE b = YY_CURRENT_BUFFER_LVALUE;
+			YY_BUFFER_STATE b = YY_CURRENT_BUFFER;
 
 			int yy_c_buf_p_offset =
 				(int) ((yy_c_buf_p) - b->yy_ch_buf);
 
 			if ( b->yy_is_our_buffer )
 				{
-				yy_size_t new_size = b->yy_buf_size * 2;
+				int new_size = b->yy_buf_size * 2;
 
 				if ( new_size <= 0 )
 					b->yy_buf_size += b->yy_buf_size / 8;
@@ -1254,7 +1272,7 @@ static int yy_get_next_buffer (void)
 
 		/* Read in more data. */
 		YY_INPUT( (&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move]),
-			(yy_n_chars), num_to_read );
+			(yy_n_chars), (size_t) num_to_read );
 
 		YY_CURRENT_BUFFER_LVALUE->yy_n_chars = (yy_n_chars);
 		}
@@ -1349,7 +1367,7 @@ static int yy_get_next_buffer (void)
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 	yy_is_jam = (yy_current_state == 75);
 
-		return yy_is_jam ? 0 : yy_current_state;
+	return yy_is_jam ? 0 : yy_current_state;
 }
 
     static void yyunput (int c, register char * yy_bp )
@@ -1364,7 +1382,7 @@ static int yy_get_next_buffer (void)
 	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
 		{ /* need to shift things up to make room */
 		/* +2 for EOB chars. */
-		register yy_size_t number_to_move = (yy_n_chars) + 2;
+		register int number_to_move = (yy_n_chars) + 2;
 		register char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
 					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
 		register char *source =
@@ -1413,7 +1431,7 @@ static int yy_get_next_buffer (void)
 
 		else
 			{ /* need more input */
-			yy_size_t offset = (yy_c_buf_p) - (yytext_ptr);
+			int offset = (yy_c_buf_p) - (yytext_ptr);
 			++(yy_c_buf_p);
 
 			switch ( yy_get_next_buffer(  ) )
@@ -1573,6 +1591,10 @@ static void yy_load_buffer_state  (void)
 	yyfree((void *) b  );
 }
 
+#ifndef __cplusplus
+extern int isatty (int );
+#endif /* __cplusplus */
+    
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
  * such as during a yyrestart() or at EOF.
@@ -1685,7 +1707,7 @@ void yypop_buffer_state (void)
  */
 static void yyensure_buffer_stack (void)
 {
-	yy_size_t num_to_alloc;
+	int num_to_alloc;
     
 	if (!(yy_buffer_stack)) {
 
@@ -1782,7 +1804,7 @@ YY_BUFFER_STATE yy_scan_string (yyconst char * yystr )
  * 
  * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len )
+YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, int  _yybytes_len )
 {
 	YY_BUFFER_STATE b;
 	char *buf;
@@ -1869,7 +1891,7 @@ FILE *yyget_out  (void)
 /** Get the length of the current token.
  * 
  */
-yy_size_t yyget_leng  (void)
+int yyget_leng  (void)
 {
         return yyleng;
 }
@@ -2017,7 +2039,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 107 "delbrot.l"
+#line 111 "delbrot/delbrot.l"
 
 
 

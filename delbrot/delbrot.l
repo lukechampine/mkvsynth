@@ -6,7 +6,6 @@ D    [0-9]
     #include <stdio.h>
     #include "delbrot.h"
     #include "y.tab.h"
-    extern void yyerror(char *, ...);
     int resWord(char *);
     int linenumber = 1;
 %}
@@ -100,9 +99,14 @@ D    [0-9]
     /* used for error messages */
 \n                      linenumber++; 
     /* execute queued up filters */
-<<EOF>>             { go(newNode(), NULL); yyterminate();      }
+<<EOF>>             { 
+                        #ifndef DELBROT
+                        go_AST(newNode(), NULL);
+                        #endif
+                        yyterminate();
+                    }
     /* anything else is an error */
-.                       yyerror("unknown character");
+.                       MkvsynthError("unknown character");
 
 %%
 
