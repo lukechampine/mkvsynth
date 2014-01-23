@@ -5,10 +5,10 @@
 a = ffmpegDecode "unitTests/testVid.mkv";
 
 # Test 2: crop, outputs to a single filter
-a = a -> crop 5 5 5 5;
+a => crop 5 5 5 5;
 
 # Test 3: removeRange, outputs to 2 filters
-a = a -> removeRange a 0 140;
+a => removeRange 0 140;
 
 # Test 4: crop 'a' again to get 'b'
 b = a -> crop 25 25 25 25;
@@ -17,10 +17,8 @@ b = a -> crop 25 25 25 25;
 c = a -> bilinearResize 460 150;
 
 # Needed for compatibility on machines with certain compilations of x264
-b = b -> convertColorspace "rgb24";
-
-# Needed for compatibility on machines with certain compilations of x264
-c = c -> convertColorspace "rgb24";
+b => convertColorspace "rgb24";
+c => convertColorspace "rgb24";
 
 # Test 6: encode 'b'
 b -> x264Encode "unitTests/testOut1.mkv";
