@@ -52,6 +52,7 @@ The main differences are:
 | `+=`, `-=`, `*=`...     | Arithmetic assignment operators.                                       |
 | `!`, `-`                | Standard unary negation operators.                                     |
 | `->`                    | Function chaining operator. Appends LHS to front of RHS argument list. |
+| `=>`                    | Chaining assignment operator. `a =>` is equivalent to `a = a ->`       |
 | `? ¦`                   | Standard ternary operator, using `¦` in place of `:`                   |
 | `:`                     | Optional argument operator. Marks function arguments as optional.      |
 
@@ -112,4 +113,4 @@ clp -> Lanczos4Resize dx dy
     -> SangNom aa:aath
     -> LanczosResize ox oy;
 ```
-The `->` operator is used to pass a variable through a series of functions, allowing the script author to avoid lengthy, unreadable nested function calls. Internally, the value on the left side is appended to the front of the argument list on the right side. This is why all video filters should have the input clip as their first argument.
+The `->` operator is used to pass a variable through a series of functions, allowing the script author to avoid lengthy, unreadable nested function calls. Internally, the value on the left side is appended to the front of the argument list on the right side. This is why all video filters should have the input clip as their first argument. The `=>` operator can be used to assign the resulting value to the original variable.
