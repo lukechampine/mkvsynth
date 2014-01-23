@@ -82,12 +82,13 @@ D    [0-9]
 "&&"                { yylval = mkNumNode(LAND);  return LAND;  }
     /*assignment operator */
 "="                 { yylval = mkNumNode('=');   return '=';   }
-"+="                { yylval = mkNumNode(ADDEQ); return ADDEQ; }
-"-="                { yylval = mkNumNode(SUBEQ); return SUBEQ; }
-"*="                { yylval = mkNumNode(MULEQ); return MULEQ; }
-"/="                { yylval = mkNumNode(DIVEQ); return DIVEQ; }
-"^="                { yylval = mkNumNode(POWEQ); return POWEQ; }
-"%="                { yylval = mkNumNode(MODEQ); return MODEQ; }
+"+="                { yylval = mkNumNode('+');   return ADDEQ; }
+"-="                { yylval = mkNumNode('-');   return SUBEQ; }
+"*="                { yylval = mkNumNode('*');   return MULEQ; }
+"/="                { yylval = mkNumNode('/');   return DIVEQ; }
+"^="                { yylval = mkNumNode('^');   return POWEQ; }
+"%="                { yylval = mkNumNode('%');   return MODEQ; }
+"=>"                { yylval = mkNumNode(CHNEQ); return CHNEQ; }
     /* chaining operator */
 "->"                { yylval = mkNumNode(CHAIN); return CHAIN; }
     /* miscellaneous character */
