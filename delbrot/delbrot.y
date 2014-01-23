@@ -16,7 +16,7 @@
 %token NUM BOOL STRING CLIP TRUE FALSE
 %token CONSTANT IDENTIFIER OPTARG
 %token ASSIGN BINOP
-%token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHAIN
+%token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHNEQ CHAIN
 %token IF ELSE TERN
 %token FNCT FNDEF RETURN DEFAULT OTHER
 %token LOR LAND EQ NE GT LT GE LE
@@ -98,7 +98,7 @@ assignment_expr
     ;
 
 assignment_operator
-    : '=' | ADDEQ | SUBEQ | MULEQ | DIVEQ | POWEQ | MODEQ
+    : '=' | ADDEQ | SUBEQ | MULEQ | DIVEQ | POWEQ | MODEQ | CHNEQ
     ;
 
 ternary_expr
@@ -158,21 +158,18 @@ mul_operator
     ;
 
 arithmetic_exp_expr
-    : unary_expr
-    | arithmetic_exp_expr '^' unary_expr                      { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    : chain_expr
+    | arithmetic_exp_expr '^' chain_expr                      { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
     ;
 
-unary_expr
+chain_expr
     : function_expr
-    | '-' function_expr                                       { $$ = mkOpNode(NEG, 1, $2);             }
-    | '!' function_expr                                       { $$ = mkOpNode('!', 1, $2);             }
+    | function_expr CHAIN chain_expr                          { $$ = mkOpNode(CHAIN, 2, $1, $3);       }
     ;
 
 function_expr
-    : primary_expr
-    | primary_expr arg_list                                   { $$ = mkOpNode(FNCT, 2, $1, $2);        }
-    | function_expr CHAIN primary_expr                        { $$ = mkOpNode(CHAIN, 3, $1, $3, NULL); }
-    | function_expr CHAIN primary_expr arg_list               { $$ = mkOpNode(CHAIN, 3, $1, $3, $4);   }
+    : unary_expr
+    | unary_expr arg_list                                     { $$ = mkOpNode(FNCT, 2, $1, $2);        }
     ;
 
 arg_list
@@ -183,6 +180,12 @@ arg_list
 function_arg
     : primary_expr                                            { $$ = $1;                               }
     | primary_expr ':' primary_expr                           { $$ = mkOptArgNode($1, $3);             }
+    ;
+
+unary_expr
+    : primary_expr
+    | '-' primary_expr                                        { $$ = mkOpNode(NEG, 1, $2);             }
+    | '!' primary_expr                                        { $$ = mkOpNode('!', 1, $2);             }
     ;
 
 primary_expr

@@ -54,25 +54,26 @@
      DIVEQ = 272,
      POWEQ = 273,
      MODEQ = 274,
-     CHAIN = 275,
-     IF = 276,
-     ELSE = 277,
-     TERN = 278,
-     FNCT = 279,
-     FNDEF = 280,
-     RETURN = 281,
-     DEFAULT = 282,
-     OTHER = 283,
-     LOR = 284,
-     LAND = 285,
-     EQ = 286,
-     NE = 287,
-     GT = 288,
-     LT = 289,
-     GE = 290,
-     LE = 291,
-     IFX = 292,
-     NEG = 293
+     CHNEQ = 275,
+     CHAIN = 276,
+     IF = 277,
+     ELSE = 278,
+     TERN = 279,
+     FNCT = 280,
+     FNDEF = 281,
+     RETURN = 282,
+     DEFAULT = 283,
+     OTHER = 284,
+     LOR = 285,
+     LAND = 286,
+     EQ = 287,
+     NE = 288,
+     GT = 289,
+     LT = 290,
+     GE = 291,
+     LE = 292,
+     IFX = 293,
+     NEG = 294
    };
 #endif
 /* Tokens.  */
@@ -93,25 +94,26 @@
 #define DIVEQ 272
 #define POWEQ 273
 #define MODEQ 274
-#define CHAIN 275
-#define IF 276
-#define ELSE 277
-#define TERN 278
-#define FNCT 279
-#define FNDEF 280
-#define RETURN 281
-#define DEFAULT 282
-#define OTHER 283
-#define LOR 284
-#define LAND 285
-#define EQ 286
-#define NE 287
-#define GT 288
-#define LT 289
-#define GE 290
-#define LE 291
-#define IFX 292
-#define NEG 293
+#define CHNEQ 275
+#define CHAIN 276
+#define IF 277
+#define ELSE 278
+#define TERN 279
+#define FNCT 280
+#define FNDEF 281
+#define RETURN 282
+#define DEFAULT 283
+#define OTHER 284
+#define LOR 285
+#define LAND 286
+#define EQ 287
+#define NE 288
+#define GT 289
+#define LT 290
+#define GE 291
+#define LE 292
+#define IFX 293
+#define NEG 294
 
 
 
