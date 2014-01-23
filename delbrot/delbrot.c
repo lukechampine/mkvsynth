@@ -10,10 +10,12 @@
 #define UNDEFINED(n) n->type == typeVar && n->var.value == NULL
 
 /* function declarations */
-static ASTnode* assign(ASTnode *, int, ASTnode *);
+static ASTnode* assign(ASTnode *, ASTnode *);
+static ASTnode* assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
 static ASTnode* binaryOp(ASTnode *, ASTnode *, int, ASTnode *);
-static ASTnode* copy(ASTnode *);
+static void     chain(Env *, ASTnode *, ASTnode *);
        void     checkArgs(char *, ASTnode *, int, ...);
+static ASTnode* copy(ASTnode *);
 static ASTnode* dereference(ASTnode *);
        ASTnode* ex(Env *, ASTnode *p);
 static ASTnode* fnctCall(Env *, ASTnode *, ASTnode *, ASTnode *);
@@ -34,41 +36,33 @@ static char *typeNames[] = {"number", "boolean", "string", "clip", "identifier",
 extern int linenumber;
 
 /* function definitions */
-/* assign or modify a variable */
-ASTnode* assign(ASTnode *varNode, int op, ASTnode *valueNode) {
-    /* standard assignment */
-    if (op == '=') {
-        if (varNode->type != typeVar)
-            MkvsynthError("can't assign to a constant value (got %s)", typeNames[varNode->type]);
-        if (valueNode->type > typeClip)
-            MkvsynthError("can't assign type %s to variable", typeNames[valueNode->type]);
-        /* new variable */
-        if (UNDEFINED(varNode))
-            varNode->var.value = newNode();
-        /* copy new value */
-        return memcpy(varNode->var.value, valueNode, sizeof(ASTnode));
-    }
-
-    /* arithmetic operation + assignment */
+/* create or modify a variable */
+ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
     if (varNode->type != typeVar)
-        MkvsynthError("can't modify constant value (got %s)", typeNames[varNode->type]);
+        MkvsynthError("can't assign to a constant value (got %s)", typeNames[varNode->type]);
+    if (valueNode->type > typeClip)
+        MkvsynthError("can't assign type %s to variable", typeNames[valueNode->type]);
+    /* new variable */
     if (UNDEFINED(varNode))
-        MkvsynthError("reference to uninitialized variable \"%s\"", varNode->var.name);
-    if (varNode->var.value->type != typeNum)
-        MkvsynthError("can't modify non-numeric variable \"%s\"", varNode->var.name);
-    if (valueNode && valueNode->type != typeNum)
-        MkvsynthError("can't modify variable %s with non-numeric type (expected number, got %s)\n", varNode->var.name, typeNames[valueNode->type]);
+        varNode->var.value = newNode();
+    /* copy new value */
+    return memcpy(varNode->var.value, valueNode, sizeof(ASTnode));
+}
 
-    switch (op) {
-        case ADDEQ: varNode->var.value->num += valueNode->num; break;
-        case SUBEQ: varNode->var.value->num -= valueNode->num; break;
-        case MULEQ: varNode->var.value->num *= valueNode->num; break;
-        case DIVEQ: varNode->var.value->num /= valueNode->num; break;
-        case POWEQ: varNode->var.value->num = pow(varNode->var.value->num, valueNode->num); break;
-        case MODEQ: varNode->var.value->num = ((int)varNode->var.value->num % (int)valueNode->num); break;
-    }
+/* handle assignment operators */
+ASTnode* assignOp(Env *e, ASTnode *varNode, ASTnode *op, ASTnode *valueNode) {
+    /* special cases */
+    if (op->num == '=')
+        return assign(identify(e, varNode), ex(e, valueNode));
 
-    return dereference(varNode);
+    ASTnode *RHS;
+    if (op->num == CHNEQ)
+        RHS = mkOpNode(CHAIN, 2, varNode, valueNode);
+    else
+        RHS = mkOpNode(BINOP, 3, varNode, op, valueNode);
+
+    /* unfold syntactic sugar and reprocess */
+    return ex(e, mkOpNode(ASSIGN, 3, varNode, mkNumNode('='), RHS));
 }
 
 /* handle arithmetic / boolean operators */
@@ -84,8 +78,6 @@ ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
             case '/':  p->num = c1->num / c2->num; break;
             case '^':  p->num = pow(c1->num, c2->num); break;
             case '%':  p->num = (double) ((int) c1->num % (int) c2->num); break;
-            /* should never wind up here */
-            default: MkvsynthError("unrecognized binary operator");
         }
         p->type = typeNum;
     }
@@ -98,13 +90,13 @@ ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
         opStrs[GE] = ">="; opStrs[LE] = "<="; opStrs[LOR] = "||"; opStrs[LAND] = "&&";
         if (c1->type == typeNum) {
             switch(op) {
-                case EQ:   p->bool = c1->num == c2->num ? TRUE : FALSE; break;
-                case NE:   p->bool = c1->num != c2->num ? TRUE : FALSE; break;
-                case GT:   p->bool = c1->num  > c2->num ? TRUE : FALSE; break;
-                case LT:   p->bool = c1->num  < c2->num ? TRUE : FALSE; break;
-                case GE:   p->bool = c1->num >= c2->num ? TRUE : FALSE; break;
-                case LE:   p->bool = c1->num <= c2->num ? TRUE : FALSE; break;
-                default:  MkvsynthError("type mismatch: operator %s is not defined for numbers", opStrs[op]);
+                case EQ: p->bool = c1->num == c2->num ? TRUE : FALSE; break;
+                case NE: p->bool = c1->num != c2->num ? TRUE : FALSE; break;
+                case GT: p->bool = c1->num  > c2->num ? TRUE : FALSE; break;
+                case LT: p->bool = c1->num  < c2->num ? TRUE : FALSE; break;
+                case GE: p->bool = c1->num >= c2->num ? TRUE : FALSE; break;
+                case LE: p->bool = c1->num <= c2->num ? TRUE : FALSE; break;
+                default: MkvsynthError("type mismatch: operator %s is not defined for numbers", opStrs[op]);
             }
         }
         else if (c1->type == typeBool) {
@@ -113,14 +105,14 @@ ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
                 case NE:   p->bool = (c1->bool == TRUE) != (c2->bool == TRUE) ? TRUE : FALSE; break;
                 case LOR:  p->bool = (c1->bool == TRUE) || (c2->bool == TRUE) ? TRUE : FALSE; break;
                 case LAND: p->bool = (c1->bool == TRUE) && (c2->bool == TRUE) ? TRUE : FALSE; break;
-                default:  MkvsynthError("type mismatch: operator %s is not defined for booleans", opStrs[op]);
+                default: MkvsynthError("type mismatch: operator %s is not defined for booleans", opStrs[op]);
             }
         }
         else if (c1->type == typeStr) {
             switch(op) {
-                case EQ:   p->bool = strcmp(c1->str, c2->str) == 0 ? TRUE : FALSE; break;
-                case NE:   p->bool = strcmp(c1->str, c2->str) != 0 ? TRUE : FALSE; break;
-                default:  MkvsynthError("type mismatch: operator %s is not defined for strings", opStrs[op]);
+                case EQ: p->bool = strcmp(c1->str, c2->str) == 0 ? TRUE : FALSE; break;
+                case NE: p->bool = strcmp(c1->str, c2->str) != 0 ? TRUE : FALSE; break;
+                default: MkvsynthError("type mismatch: operator %s is not defined for strings", opStrs[op]);
             }
         }
         else {
@@ -131,27 +123,16 @@ ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
     return p;
 }
 
-/* copy a node and its children */
-ASTnode* copy(ASTnode *p) {
-    if (!p)
-        return NULL;
-
-    ASTnode *dup = newNode();
-    memcpy(dup, p, sizeof(ASTnode));
-
-    /* recurse to children, if any */
-    if (dup->type == typeOp) {
-        if ((dup->op.ops = malloc(dup->op.nops * sizeof(ASTnode *))) == NULL)
-            MkvsynthError("out of memory");
-        int i;
-        for (i = 0; i < dup->op.nops; i++)
-            dup->op.ops[i] = copy(p->op.ops[i]);
-    }
-
-    /* recurse to linked node */
-    dup->next = copy(dup->next);
-    
-    return dup;
+/* append LHS to argument list of RHS */
+void chain(Env *e, ASTnode *valueNode, ASTnode *fnNode) {
+    if (fnNode->type == typeOp && fnNode->op.oper == CHAIN)
+        chain(e, valueNode, fnNode->op.ops[0]);
+    else if (fnNode->type == typeOp && fnNode->op.oper == FNCT)
+        valueNode->next = fnNode->op.ops[1], fnNode->op.ops[1] = valueNode;
+    else if (fnNode->type == typeId)
+        memcpy(fnNode, mkOpNode(FNCT, 2, copy(fnNode), valueNode), sizeof(ASTnode));
+    else
+        MkvsynthError("expected function name, got %s", typeNames[fnNode->type]);
 }
 
 /* ensure that a function call is valid */
@@ -176,6 +157,29 @@ void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
         while ((traverse = traverse->next) != NULL) i++;
         MkvsynthError("%s expected %d argument%s, got %d", funcName, numArgs, (numArgs == 1 ? "" : "s"), ++i);
     }
+}
+
+/* copy a node and its children */
+ASTnode* copy(ASTnode *p) {
+    if (!p)
+        return NULL;
+
+    ASTnode *dup = newNode();
+    memcpy(dup, p, sizeof(ASTnode));
+
+    /* recurse to children, if any */
+    if (dup->type == typeOp) {
+        if ((dup->op.ops = malloc(dup->op.nops * sizeof(ASTnode *))) == NULL)
+            MkvsynthError("out of memory");
+        int i;
+        for (i = 0; i < dup->op.nops; i++)
+            dup->op.ops[i] = copy(p->op.ops[i]);
+    }
+
+    /* recurse to linked node */
+    dup->next = copy(dup->next);
+    
+    return dup;
 }
 
 /* dereference a variable */
@@ -203,7 +207,7 @@ ASTnode* ex(Env *e, ASTnode *p) {
 
     /* catch functions with no arguments */
     if (p->type == typeFn)
-        p = fnctCall(e, p, p, NULL);
+        p = mkOpNode(FNCT, 2, p, NULL);
 
     /* only nodes with children can be reduced */
     if (p->type != typeOp)
@@ -219,11 +223,11 @@ ASTnode* ex(Env *e, ASTnode *p) {
         case IF:      ifelse(e, p, ex(e, child[0]), child[1], child[2]); break;
         /* functions */
         case FNCT:    p = fnctCall(e, p, identify(e, child[0]), reduceArgs(e, child[1])); break;
-        case CHAIN:   child[0]->next = child[2]; p = fnctCall(e, p, identify(e, child[1]), reduceArgs(e, child[0])); break;
+        case CHAIN:   chain(e, ex(e, child[0]), child[1]); p = ex(e, child[1]); break;
         case DEFAULT: setDefault(e, child[0], ex(e, child[1])); break;
         case RETURN:  p = ex(e, child[0]); if (p != NULL) e->returnValue = p; longjmp(e->returnContext, 1); break;
         /* assignment */
-        case ASSIGN:  p = assign(identify(e, child[0]), child[1]->num, ex(e, child[2])); break;
+        case ASSIGN:  p = assignOp(e, identify(e, child[0]), child[1], child[2]); break;
         /* unary operators */
         case NEG:     p = unaryOp(p, ex(e, child[0]), NEG); break;
         case '!':     p = unaryOp(p, ex(e, child[0]), '!'); break;
@@ -357,7 +361,7 @@ ASTnode* setDefault(Env *e, ASTnode *paramNode, ASTnode *valueNode) {
     paramNode = getVar(e, paramNode->id);
     /* check that paramNode is an unset optional parameter */
     if (paramNode->var.opt == 1 && paramNode->var.value == NULL)
-        assign(paramNode, '=', valueNode);
+        assign(paramNode, valueNode);
     return paramNode;
 }
 
@@ -471,7 +475,7 @@ ASTnode* userDefFnCall(Env *e, ASTnode *fnNode, ASTnode *args) {
     pTraverse = fnNode->fn.user.params;
     aTraverse = args;
     while (pTraverse && aTraverse) {
-        assign(getVar(local, pTraverse->var.name), '=', aTraverse);
+        assign(getVar(local, pTraverse->var.name), aTraverse);
         pTraverse = pTraverse->next;
         aTraverse = aTraverse->next;
     }
@@ -490,7 +494,7 @@ ASTnode* userDefFnCall(Env *e, ASTnode *fnNode, ASTnode *args) {
             MkvsynthError("type mismatch: opt arg %s of %s expected %s, got %s",
                 pTraverse->var.name, fnNode->fn.name, typeNames[pTraverse->var.type], typeNames[aTraverse->var.type]);
         /* assign value */
-        assign(getVar(local, pTraverse->var.name), '=', aTraverse->var.value);
+        assign(getVar(local, pTraverse->var.name), aTraverse->var.value);
         aTraverse = aTraverse->next;
     }
 
