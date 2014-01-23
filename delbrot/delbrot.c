@@ -27,7 +27,7 @@ static ASTnode* setDefault(Env *, ASTnode *, ASTnode *);
 static int      splitMandOpt(ASTnode *, ASTnode **, ASTnode **);
 static ASTnode* ternary(Env *, ASTnode *, ASTnode *, ASTnode *);
 static ASTnode* unaryOp(ASTnode *, ASTnode *, int);
-static ASTnode* userDefFnCall(Env *, ASTnode *, ASTnode *, ASTnode *);
+static ASTnode* userDefFnCall(Env *, ASTnode *, ASTnode *);
 
 /* global variables */
 static char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "optional argument", "function", "operation"};
@@ -250,7 +250,7 @@ ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     if (fnNode->fn.type == fnCore)
         p = (*(fnNode->fn.core.fnPtr))(p, args);
     else
-        p = userDefFnCall(e, p, fnNode, args);
+        p = userDefFnCall(e, fnNode, args);
 
     return p;
 }
@@ -422,7 +422,7 @@ ASTnode* unaryOp(ASTnode* p, ASTnode* c1, int op) {
 }
 
 /* process a user-defined function call */
-ASTnode* userDefFnCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
+ASTnode* userDefFnCall(Env *e, ASTnode *fnNode, ASTnode *args) {
     /* create new environment */
     Env *local = (Env *) malloc(sizeof(Env));
     local->parent = e;
