@@ -1,4 +1,9 @@
-CC = gcc
+# prevent yacc from clobbering delbrot.c... hopefully
+.SUFFIXES:
+.SUFFIXES: .c .o
+
+all: mkvsynth
+
 CFLAGS = -Wall
 
 DELBROT_OBJ = delbrot/lex.yy.o                                                 \
@@ -37,6 +42,11 @@ FILTERS_UTIL_OBJ =  filters/utils/bilinearResize.o                             \
 
 X264_OBJ = filters/coding/x264Encode.o
 
+# always rebuild these, since they change depending on -DDELBROT
+delbrot/lex.yy.o: .FORCE
+delbrot/internalfilters.o: .FORCE
+.FORCE:
+
 %.o: %.c                                                                       \
      $(JARVIS_DEPS)                                                            \
      $(MPL_DEPS)                                                               \
@@ -56,7 +66,7 @@ mkvsynth: $(DELBROT_OBJ)                                                       \
 delbrot: EXTRA_CFLAGS := -DDELBROT
 delbrot: $(DELBROT_OBJ)                                                        \
          $(CORE_OBJ)
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $^ $(DELBROT_LIBS) -o mkvsynth
+	$(CC) $(CFLAGS) $^ $(DELBROT_LIBS) -o mkvsynth
 
 clean:
 	@find . -type f -name "*.o" -delete
@@ -74,7 +84,6 @@ endif
 
 delbrot/y.tab.c: delbrot/delbrot.y
 ifdef YACC_VERSION
-	@touch delbrot/delbrot.c # prevent makefile from clobbering delbrot.c
 	yacc -o delbrot/y.tab.c -d delbrot/delbrot.y
 else
 	$(error yacc/bison not found. Either install it or revert your changes to delbrot.y)
