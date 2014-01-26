@@ -16,14 +16,13 @@ $ make && make install
 ```
 You may also need more dev packages depending on your system. For ubuntu, you need:
 
-libavcodec-dev
-libavformat-dev
-libavutil-dev
-libgtk-3-dev
+- libavcodec-dev
+- libavformat-dev
+- libavutil-dev
 
 Now you can run `make` to build mkvsynth.
 
-If you want to hack on the interpreter, you'll have to install Flex and Bison, which can be found through your package manager. The makefile will automatically detect changes to `delbrot.l` and `delbrot.y` and will call Flex and/or Bison accordingly.
+If you want to hack on the interpreter, you'll have to install Flex and Bison, which can be found through your package manager. The makefile will automatically detect changes to `delbrot.l` and `delbrot.y` and will call Flex and/or Bison accordingly. For convenience, `make delbrot` will build just the bare interpreter without any video processing capabilities. This has the dual advantage of 1) faster compilation times, and 2) no need to install FFmpeg or x264 if you just want to contribute to delbrot.
 
 delbrot
 -------
