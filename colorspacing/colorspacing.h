@@ -40,6 +40,30 @@ struct MkvsynthPixel {
 			uint8_t u;
 			uint8_t v;
 		} yuv444_24;
+		
+		struct {
+			uint8_t h;
+			uint8_t s;
+			uint8_t v;
+		} hsv24;
+		
+		struct {
+			uint16_t h;
+			uint16_t s;
+			uint16_t v;
+		} hsv48;
+		
+		struct {
+			uint8_t h;
+			uint8_t s;
+			uint8_t l;
+		} hsl24;
+		
+		struct {
+			uint16_t h;
+			uint16_t s;
+			uint16_t l;
+		} hsl48;
 
 		struct {
 			uint8_t channel[8];
