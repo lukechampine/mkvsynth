@@ -31,9 +31,9 @@ The main differences are:
 |:-------------|:------------------------|:--------------------------------------------|
 | `if`, `else` | Conditional statement   | `if (x == 1) print "yes"; else print "no";` |
 | `function`   | Function definition     | `function foo(num x) { ...`                 |
-| `default`    | Specify default value   | `default radius = 2`                        |
-| `return`     | Function return value   | `return (result * 3)`                       |
-| `otherwise`  | Ternary syntactic sugar | `y = x == 1 ? "yes" ¦ otherwise ? "no"`     |
+| `default`    | Specify default value   | `default radius = 2;`                       |
+| `return`     | Function return value   | `return (result * 3);`                      |
+| `otherwise`  | Ternary syntactic sugar | `y = x == 1 ? "yes" ¦ otherwise ? "no";`    |
 
 ### built-in functions ###
 | function     | description                | example                                     |
@@ -96,17 +96,17 @@ Assignment statements are pretty straightforward. Note that variable names are n
 
 **ternary expressions:**
 ```ruby
-x = y < 100 ? 50 ¦ 1000;
+x = y < 100 ? 50 | 1000;
 
 speed = x < 100   ? "slow"
-      ¦ x < 300   ? "medium"
-      ¦ otherwise ? "fast";
+      | x < 300   ? "medium"
+      | otherwise ? "fast";
 ```
 In Avisynth, ternary expressions are used heavily to compensate for the language's lack of `if`/`else` statements. This is not an issue in Mkvsynth, but the ternary expression is still nice to have. In addition, the `otherwise` construct is provided to make long ternary chains more readable. `otherwise` acts as a catch-all, as in Haskell (or `default` in C).
 
 **function chains:**
 ```ruby
-clp -> Lanczos4Resize dx dy
+clp => Lanczos4Resize dx dy
     -> TurnLeft
     -> SangNom aa:aath
     -> TurnRight
