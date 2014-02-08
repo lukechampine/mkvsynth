@@ -59,6 +59,11 @@ D    [0-9]
                         yylval = mkNumNode(atof(yytext));
                         return CONSTANT;
                     }
+    /* number, hex literal */
+0x[a-fA-F0-9]+      {
+                        yylval = mkNumNode(strtol(yytext, NULL, 16));
+                        return CONSTANT;
+                    }
     /* string literal */
 \"([^\\\"]|\\.)*\"  {
                         yylval = mkStrNode(yytext);
@@ -107,7 +112,7 @@ D    [0-9]
                         yyterminate();
                     }
     /* anything else is an error */
-.                       MkvsynthError("unknown character");
+.                       MkvsynthError("unknown character %s", yytext);
 
 %%
 
