@@ -51,19 +51,14 @@ MkvsynthPixel getPixel (uint8_t *payload, MkvsynthMetaData *metaData, int widthO
 			pixel.hsv48.v                 = deepPayload[offset+2];
 			break;
 		case MKVS_HSV24:
-			pixel.hsv24.h                 = payload[offset];
-			pixel.hsv24.s                 = payload[offset+1];
-			pixel.hsv24.v                 = payload[offset+2];
-			break;
-		case MKVS_HSL48:
-			pixel.hsv48.h                 = deepPayload[offset];
-			pixel.hsv48.s                 = deepPayload[offset+1];
-			pixel.hsv48.l                 = deepPayload[offset+2];
+			pixel.hsl48.h                 = deepPayload[offset];
+			pixel.hsl48.s                 = deepPayload[offset+1];
+			pixel.hsl48.l                 = deepPayload[offset+2];
 			break;
 		case MKVS_HSL24:
-			pixel.hsv24.h                 = payload[offset];
-			pixel.hsv24.s                 = payload[offset+1];
-			pixel.hsv24.l                 = payload[offset+2];
+			pixel.hsl24.h                 = payload[offset];
+			pixel.hsl24.s                 = payload[offset+1];
+			pixel.hsl24.l                 = payload[offset+2];
 			break;
 	}
 
