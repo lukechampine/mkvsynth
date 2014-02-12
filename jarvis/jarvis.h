@@ -10,6 +10,10 @@
 #define MKVS_RGB24     2
 #define MKVS_YUV444_48 3
 #define MKVS_YUV444_24 4
+#define MKVS_HSV24    5
+#define MKVS_HSV48    6
+#define MKVS_HSL24    7
+#define MKVS_HSL48    8
 
 typedef struct MkvsynthMetaData MkvsynthMetaData;
 typedef struct MkvsynthSemaphoreList MkvsynthSemaphoreList;

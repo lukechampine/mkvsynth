@@ -45,6 +45,26 @@ MkvsynthPixel getPixel (uint8_t *payload, MkvsynthMetaData *metaData, int widthO
 			pixel.yuv444_24.u             = payload[offset+1];
 			pixel.yuv444_24.v             = payload[offset+2];
 			break;
+		case MKVS_HSV48:
+			pixel.hsv48.h                 = deepPayload[offset];
+			pixel.hsv48.s                 = deepPayload[offset+1];
+			pixel.hsv48.v                 = deepPayload[offset+2];
+			break;
+		case MKVS_HSV24:
+			pixel.hsv24.h                 = payload[offset];
+			pixel.hsv24.s                 = payload[offset+1];
+			pixel.hsv24.v                 = payload[offset+2];
+			break;
+		case MKVS_HSL48:
+			pixel.hsv48.h                 = deepPayload[offset];
+			pixel.hsv48.s                 = deepPayload[offset+1];
+			pixel.hsv48.l                 = deepPayload[offset+2];
+			break;
+		case MKVS_HSL24:
+			pixel.hsv24.h                 = payload[offset];
+			pixel.hsv24.s                 = payload[offset+1];
+			pixel.hsv24.l                 = payload[offset+2];
+			break;
 	}
 
 	return pixel;
@@ -1202,4 +1222,38 @@ void adjustCr(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 			}
 			break;
 	}
+}
+
+
+
+uint16_t getHSVSaturation(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	uint16_t hsvs = 0;
+	switch(metaData->colorspace){
+		case MKVS_RGB24:
+		yyerror("This colorspace interaction is not yet supported");
+		break;
+		
+		case MKVS_RGB48:
+		yyerror("This colorspace interaction is not yet supported");
+		break;
+		
+		case MKVS_YUV444_24:
+		yyerror("This colorspace interaction is not yet supported");
+		break;
+		
+		case MKVS_YUV444_48:
+		yyerror("This colorspace interaction is not yet supported");
+		break;
+		
+		case MKVS_HSV24:
+		hsvs = pixel->hsv24.s;
+		hsvs *= 256;
+		break;
+		
+		case MKVS_HSV48:
+		hsvs = pixel->hsv48.s;
+		break;
+		
+	}
+	return hsvs;
 }
