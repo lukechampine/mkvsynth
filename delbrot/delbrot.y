@@ -16,7 +16,7 @@
 %token NUM BOOL STRING CLIP TRUE FALSE
 %token CONSTANT IDENTIFIER OPTARG
 %token ASSIGN BINOP
-%token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHNEQ CHAIN
+%token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHNEQ CHAIN CNCAT
 %token IF ELSE TERN
 %token FNCT FNDEF RETURN DEFAULT OTHER
 %token LOR LAND EQ NE GT LT GE LE
@@ -158,9 +158,13 @@ mul_operator
     ;
 
 arithmetic_exp_expr
-    : chain_expr
-    | arithmetic_exp_expr '^' chain_expr                      { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
+    : concat_expr
+    | arithmetic_exp_expr '^' concat_expr                     { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
     ;
+
+concat_expr
+    : chain_expr
+    | concat_expr CNCAT chain_expr                            { $$ = mkOpNode(BINOP, 3, $1, $2, $3);   }
 
 chain_expr
     : function_expr

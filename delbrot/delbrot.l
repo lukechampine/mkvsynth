@@ -65,7 +65,7 @@ D    [0-9]
                         return CONSTANT;
                     }
     /* string literal */
-\"([^\\\"]|\\.)*\"  {
+\"([^\\\"]|\\.)*\"  { //"
                         yylval = mkStrNode(yytext);
                         return CONSTANT;
                     }
@@ -96,6 +96,8 @@ D    [0-9]
 "=>"                { yylval = mkNumNode(CHNEQ); return CHNEQ; }
     /* chaining operator */
 "->"                { yylval = mkNumNode(CHAIN); return CHAIN; }
+    /* concatenation operator */
+"++"                { yylval = mkNumNode(CNCAT); return CNCAT; }
     /* miscellaneous character */
 [(){}!,?|:;]            return *yytext;
     /* comment */

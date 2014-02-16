@@ -72,14 +72,32 @@ ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
         if (c1->type != typeNum) MkvsynthError("type mismatch: LHS of %c expected number, got %s", op, typeNames[c1->type]);
         if (c2->type != typeNum) MkvsynthError("type mismatch: RHS of %c expected number, got %s", op, typeNames[c2->type]);
         switch(op) {
-            case '+':  p->num = c1->num + c2->num; break;
-            case '-':  p->num = c1->num - c2->num; break;
-            case '*':  p->num = c1->num * c2->num; break;
-            case '/':  p->num = c1->num / c2->num; break;
-            case '^':  p->num = pow(c1->num, c2->num); break;
-            case '%':  p->num = (double) ((int) c1->num % (int) c2->num); break;
+            case '+': p->num = c1->num + c2->num; break;
+            case '-': p->num = c1->num - c2->num; break;
+            case '*': p->num = c1->num * c2->num; break;
+            case '/': p->num = c1->num / c2->num; break;
+            case '^': p->num = pow(c1->num, c2->num); break;
+            case '%': p->num = (double) ((int) c1->num % (int) c2->num); break;
         }
         p->type = typeNum;
+    }
+    /* concatenation operator */
+    else if (op == CNCAT) {
+        if (c1->type != c2->type) MkvsynthError("type mismatch: cannot concatenate %s with %s", typeNames[c1->type], typeNames[c2->type]);
+        if (c1->type == typeStr) {
+            // allocate space for new string
+            char *newString = malloc(strlen(c1->str) + strlen(c2->str) + 1);
+            strcpy(newString, c1->str);
+            strcat(newString, c2->str);
+            p->str = newString;
+            p->type = typeStr;
+        }
+        else if (c1->type == typeClip) {
+            MkvsynthError("clip concatenation is not supported (yet)");
+        }
+        else {
+            MkvsynthError("the concatenation operator is not supported for type %s", typeNames[c1->type]);
+        }
     }
     /* boolean operators */
     else {
