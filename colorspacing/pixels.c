@@ -1227,13 +1227,130 @@ void adjustCr(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 
 uint16_t getHue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	uint16_t hue = 0;
+	double rp = 0;
+	double bp = 0;
+	double gp = 0; //these variable represent the portion of the red, green, or blue value that is present in the color
+	double cmin, cmax, delta, dhue, fhue; //dhue represents the hue out of one, fhue is the float form of hue
+	int x, y;
 	switch(metaData->colorspace){
 		case MKVS_RGB24:
-		yyerror("This colorspace interaction is not yet supported");
+		rp = (double)pixel->rgb24.r / 256.0;
+		gp = (double)pixel->rgb24.g / 256.0;
+		bp = (double)pixel->rgb24.b / 256.0;
+		x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
+		y = -1;
+		//This is a maximum and minimum function
+		if(rp < gp){
+			if(bp > gp){
+				y = 1;
+				cmin = rp;
+				x = 3;
+				cmax = bp;
+			}else if(bp < rp){
+				y = 3;
+				cmin = bp;
+				x = 2;
+				cmax = gp;
+			}else{
+				y = 1;
+				cmin = rp;
+				x = 2;
+				cmax = gp;
+			}
+		}else{
+			if(bp > rp){
+				y = 2;
+				cmin = gp;
+				x = 3;
+				cmax = bp;
+			}else if(bp < gp){
+				y = 3;
+				cmin = bp;
+				x = 1;
+				cmax = rp;
+			}else{
+				y = 2;
+				cmin = gp;
+				x = 1;
+				cmax = rp;
+			}
+		}
+		delta = cmax - cmin;
+		if(cmax == 0){
+			hue = 0;
+		}else if(x == 1){
+			dhue = (gp - bp) / delta;
+			if(dhue < 0)
+			{
+				dhue += 6;
+			}
+		}else if(x == 2){
+			dhue = (bp - rp) / delta + 2;
+		}else{
+			dhue = (rp - gp) /delta + 4;
+		}
+		fhue = dhue / 6.0 * 65536;
+		hue = (int)fhue;
 		break;
 		
 		case MKVS_RGB48:
-		yyerror("This colorspace interaction is not yet supported");
+		rp = (double)pixel->rgb48.r / 65536.0;
+		gp = (double)pixel->rgb48.g / 65536.0;
+		bp = (double)pixel->rgb48.b / 65536.0;
+		x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
+		y = -1;
+		//This is a maximum and minimum function
+		if(rp < gp){
+			if(bp > gp){
+				y = 1;
+				cmin = rp;
+				x = 3;
+				cmax = bp;
+			}else if(bp < rp){
+				y = 3;
+				cmin = bp;
+				x = 2;
+				cmax = gp;
+			}else{
+				y = 1;
+				cmin = rp;
+				x = 2;
+				cmax = gp;
+			}
+		}else{
+			if(bp > rp){
+				y = 2;
+				cmin = gp;
+				x = 3;
+				cmax = bp;
+			}else if(bp < gp){
+				y = 3;
+				cmin = bp;
+				x = 1;
+				cmax = rp;
+			}else{
+				y = 2;
+				cmin = gp;
+				x = 1;
+				cmax = rp;
+			}
+		}
+		delta = cmax - cmin;
+		if(cmax == 0){
+			hue = 0;
+		}else if(x == 1){
+			dhue = (gp - bp) / delta;
+			if(dhue < 0)
+			{
+				dhue += 6;
+			}
+		}else if(x == 2){
+			dhue = (bp - rp) / delta + 2;
+		}else{
+			dhue = (rp - gp) /delta + 4;
+		}
+		fhue = dhue / 6.0 * 65536;
+		hue = (int)fhue;
 		break;
 		
 		case MKVS_YUV444_24:
@@ -1295,13 +1412,100 @@ uint16_t getHSVSaturation(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 
 uint16_t getValue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	uint16_t hsvv = 0;
+	double rp = 0;
+	double bp = 0;
+	double gp = 0; //these variable represent the portion of the red, green, or blue value that is present in the color
+	double cmin, cmax;
+	int x, y;
 	switch(metaData->colorspace){
 		case MKVS_RGB24:
-		yyerror("This colorspace interaction is not yet supported");
+		rp = (double)pixel->rgb24.r / 256.0;
+		gp = (double)pixel->rgb24.g / 256.0;
+		bp = (double)pixel->rgb24.b / 256.0;
+		x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
+		y = -1;
+		//This is a maximum and minimum function
+		if(rp < gp){
+			if(bp > gp){
+				y = 1;
+				cmin = rp;
+				x = 3;
+				cmax = bp;
+			}else if(bp < rp){
+				y = 3;
+				cmin = bp;
+				x = 2;
+				cmax = gp;
+			}else{
+				y = 1;
+				cmin = rp;
+				x = 2;
+				cmax = gp;
+			}
+		}else{
+			if(bp > rp){
+				y = 2;
+				cmin = gp;
+				x = 3;
+				cmax = bp;
+			}else if(bp < gp){
+				y = 3;
+				cmin = bp;
+				x = 1;
+				cmax = rp;
+			}else{
+				y = 2;
+				cmin = gp;
+				x = 1;
+				cmax = rp;
+			}
+		}
+		hsvv = cmax * 65536.0;
 		break;
 		
 		case MKVS_RGB48:
-		yyerror("This colorspace interaction is not yet supported");
+		rp = (double)pixel->rgb48.r / 65536.0;
+		gp = (double)pixel->rgb48.g / 65536.0;
+		bp = (double)pixel->rgb48.b / 65536.0;
+		x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
+		y = -1;
+		//This is a maximum and minimum function
+		if(rp < gp){
+			if(bp > gp){
+				y = 1;
+				cmin = rp;
+				x = 3;
+				cmax = bp;
+			}else if(bp < rp){
+				y = 3;
+				cmin = bp;
+				x = 2;
+				cmax = gp;
+			}else{
+				y = 1;
+				cmin = rp;
+				x = 2;
+				cmax = gp;
+			}
+		}else{
+			if(bp > rp){
+				y = 2;
+				cmin = gp;
+				x = 3;
+				cmax = bp;
+			}else if(bp < gp){
+				y = 3;
+				cmin = bp;
+				x = 1;
+				cmax = rp;
+			}else{
+				y = 2;
+				cmin = gp;
+				x = 1;
+				cmax = rp;
+			}
+		}
+		hsvv = cmax * 65536.0;
 		break;
 		
 		case MKVS_YUV444_24:
