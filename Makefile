@@ -6,8 +6,8 @@ all: mkvsynth
 
 CFLAGS = -Wall
 
-DELBROT_OBJ = delbrot/lex.yy.o                                                 \
-              delbrot/y.tab.o                                                  \
+DELBROT_OBJ = delbrot/y.tab.o                                                  \
+              delbrot/lex.yy.o                                                 \
               delbrot/delbrot.o
 DELBROT_DEPS = delbrot/delbrot.h
 DELBROT_LIBS = -lm
