@@ -90,7 +90,7 @@ ASTnode* show_AST(ASTnode *p, ASTnode *args) {
 		case typeNum:  p->str = malloc(256); sprintf(p->str, "%.10g", args->num); break;
 		case typeBool: p->str = args->bool == TRUE ? "True" : "False"; break;
 		case typeStr:  p->str = args->str; break;
-		default: MkvsynthError("show is not defined for type %s", typeNames[args->type]);
+		default: MkvsynthError("show is not defined for %ss", typeNames[args->type]);
 	}
 	p->type = typeStr;
 	return p;

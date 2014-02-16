@@ -96,7 +96,7 @@ ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
             MkvsynthError("clip concatenation is not supported (yet)");
         }
         else {
-            MkvsynthError("the concatenation operator is not supported for type %s", typeNames[c1->type]);
+            MkvsynthError("the concatenation operator is not defined on %ss", typeNames[c1->type]);
         }
     }
     /* boolean operators */
@@ -134,7 +134,7 @@ ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
             }
         }
         else {
-            MkvsynthError("comparison operators are not supported for type %s (yet)", typeNames[c1->type]);
+            MkvsynthError("comparison operators are not supported for %ss (yet)", typeNames[c1->type]);
         }
         p->type = typeBool;
     }
@@ -267,7 +267,7 @@ ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
     if (UNDEFINED(fnNode))
         MkvsynthError("reference to undefined function \"%s\"", fnNode->var.name);
     if (fnNode->type != typeFn)
-        MkvsynthError("expected function name before '(' (got %s)", typeNames[fnNode->type]);
+        MkvsynthError("expected function, got %s", typeNames[fnNode->type]);
 
     if (fnNode->fn.type == fnCore)
         p = (*(fnNode->fn.core.fnPtr))(p, args);
