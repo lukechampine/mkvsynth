@@ -17,10 +17,10 @@
 #define OPTBOOL(name, default) getOptArg(args, name, typeBool) ?        *((bool_t) getOptArg(args, name, typeBool)) : default
 #define OPTSTR(name, default)  getOptArg(args, name, typeStr)  ?          (char *) getOptArg(args, name, typeStr)   : default
 #define OPTCLIP(name, default) getOptArg(args, name, typeClip) ? (MkvsynthInput *) getOptArg(args, name, typeClip)  : default
-#define RETURNNUM(num)   p->type = typeNum;  p->num     = num;  return p
-#define RETURNBOOL(bool) p->type = typeBool; p->bool    = bool; return p
-#define RETURNSTR(str)   p->type = typeStr;  p->str     = str;  return p
-#define RETURNCLIP(clip) p->type = typeClip; p->clipOut = clip; return p
+#define RETURNNUM(_num)   p->type = typeNum;  p->num     = _num;  return p
+#define RETURNBOOL(_bool) p->type = typeBool; p->bool    = _bool; return p
+#define RETURNSTR(_str)   p->type = typeStr;  p->str     = _str;  return p
+#define RETURNCLIP(clip)  p->type = typeClip; p->clipOut = clip;  return p
 #define RETURNNULL()     p->type = typeFn; return p;
 
 /* enums */
