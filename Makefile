@@ -4,6 +4,9 @@
 
 all: mkvsynth
 
+install: mkvsynth
+	@mkdir -p ~/.config/mkvsynth
+
 CFLAGS = -Wall
 
 DELBROT_OBJ = delbrot/y.tab.o                                                  \
@@ -66,7 +69,7 @@ mkvsynth: $(DELBROT_OBJ)                                                       \
 delbrot: EXTRA_CFLAGS := -DDELBROT
 delbrot: $(DELBROT_OBJ)                                                        \
          $(CORE_OBJ)
-	$(CC) $(CFLAGS) $^ $(DELBROT_LIBS) -o mkvsynth
+	$(CC) $(CFLAGS) $^ $(DELBROT_LIBS) -ldl -o mkvsynth
 
 clean:
 	@find . -type f -name "*.o" -delete
