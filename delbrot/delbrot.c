@@ -1,10 +1,11 @@
-#include "delbrot.h"
-#include "y.tab.h"
+#include <dlfcn.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "delbrot.h"
+#include "y.tab.h"
 
 /* macros */
 #define UNDEFINED(n) n->type == typeVar && n->var.value == NULL
@@ -23,6 +24,7 @@ static void     funcDefine(Env *, ASTnode *, ASTnode *, ASTnode *);
        void*    getOptArg(ASTnode *, char *, int);
 static ASTnode* identify(Env *, ASTnode *);
 static void     ifelse(Env *, ASTnode *, ASTnode *, ASTnode *, ASTnode *);
+static void     import(ASTnode *);
        void     MkvsynthError(char *error, ...);
 static ASTnode* reduceArgs(Env *, ASTnode *);
 static ASTnode* setDefault(Env *, ASTnode *, ASTnode *);
@@ -147,7 +149,7 @@ void chain(Env *e, ASTnode *valueNode, ASTnode *fnNode) {
         chain(e, valueNode, fnNode->op.ops[0]);
     else if (fnNode->type == typeOp && fnNode->op.oper == FNCT)
         valueNode->next = fnNode->op.ops[1], fnNode->op.ops[1] = valueNode;
-    else if (fnNode->type == typeId)
+    else if (fnNode->type == typeId || fnNode->type == typeFn)
         memcpy(fnNode, mkOpNode(FNCT, 2, copy(fnNode), valueNode), sizeof(ASTnode));
     else
         MkvsynthError("expected function name, got %s", typeNames[fnNode->type]);
@@ -244,6 +246,8 @@ ASTnode* ex(Env *e, ASTnode *p) {
         case CHAIN:   chain(e, ex(e, child[0]), child[1]); p = ex(e, child[1]); break;
         case DEFAULT: setDefault(e, child[0], ex(e, child[1])); break;
         case RETURN:  p = ex(e, child[0]); if (p != NULL) e->returnValue = p; longjmp(e->returnContext, 1); break;
+        /* library imports */
+        case IMPORT:  import(child[0]); break;
         /* assignment */
         case ASSIGN:  p = assignOp(e, identify(e, child[0]), child[1], child[2]); break;
         /* unary operators */
@@ -343,6 +347,29 @@ void ifelse(Env *e, ASTnode *p, ASTnode *cond, ASTnode *ifNode, ASTnode *elseNod
         ex(e, ifNode);
     else if (p->op.nops == 3)
         ex(e, elseNode);
+}
+
+/* import a library */
+void import(ASTnode *libName) {
+    if (libName->type != typeId)
+        MkvsynthError("invalid library name");
+    /* construct library path */
+    char *home = getenv("HOME");
+    char *libPath = malloc(strlen(libName->id) + strlen(home) + 24);
+    strcpy(libPath, home);
+    strcat(libPath, "/.config/mkvsynth/lib");
+    strcat(libPath, libName->id);
+    strcat(libPath, ".so");
+    /* load library */
+    void *handle = dlopen(libPath, RTLD_NOW);
+    if (!handle)
+        MkvsynthError("could not load library %s: %s", libName->id, dlerror());
+    /* create and append new lib entry */
+    Lib *newLib = malloc(sizeof(Lib));
+    newLib->name = libName->id;
+    newLib->handle = handle;
+    newLib->next = libList;
+    libList = newLib;
 }
 
 /* display error message in red and exit */
