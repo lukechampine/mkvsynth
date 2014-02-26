@@ -1,8 +1,9 @@
 %{
-    #include <stdlib.h>
-    #include <stdio.h>
-    #include <string.h>
+    #include <dlfcn.h>
     #include <stdarg.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
     #include "delbrot.h"
     /* prototypes to please -Wall */
     void yyerror(char *error, ...);
@@ -315,9 +316,7 @@ ASTnode *append(ASTnode *root, ASTnode *node) {
 /* add a core function to the function table */
 ASTnode *putFn(Env *e, fnEntry fn) {
     /* create entry */
-    ASTnode *ptr;
-    if ((ptr = malloc(sizeof(ASTnode))) == NULL)
-        MkvsynthError("out of memory");
+    ASTnode *ptr = newNode();
     ptr->type = typeFn;
     ptr->fn.name = fn.name;
     ptr->fn.core.fnPtr = fn.fnPtr;
@@ -337,6 +336,29 @@ ASTnode *getFn(Env const *e, char const *fnName) {
             return traverse;
     /* check parent environment */
     return getFn(e->parent, fnName);
+}
+
+/* look up a library function */
+ASTnode *getLibFn(ASTnode *libName, ASTnode *fnName) {
+    /* look up library */
+    Lib *libTraverse;
+    ASTnode * (*libFn) (ASTnode *, ASTnode *);
+    for (libTraverse = libList; libTraverse != NULL; libTraverse = libTraverse->next) {
+        if (strcmp(libTraverse->name, libName->id) == 0) {
+            /* look up symbol */
+            dlerror();
+            libFn = dlsym(libTraverse->handle, fnName->id);
+            if (dlerror() != NULL)
+                MkvsynthError("function \"%s\" not found in library %s", fnName->id, libName->id);
+            ASTnode *fnNode = newNode();
+            fnNode->type = typeFn;
+            fnNode->fn.name = fnName->id;
+            fnNode->fn.core.fnPtr = libFn;
+            return fnNode;
+        }
+    }
+    MkvsynthError("library \"%s\" not loaded", libName->id);
+    return NULL;
 }
 
 /* allocate a new variable */
