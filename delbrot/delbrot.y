@@ -18,7 +18,7 @@
 %token ASSIGN BINOP
 %token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHNEQ CHAIN CNCAT
 %token IF ELSE TERN
-%token FNCT FNDEF RETURN DEFAULT OTHER
+%token FNCT FNDEF RETURN DEFAULT OTHER IMPORT
 %token LOR LAND EQ NE GT LT GE LE
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
@@ -38,6 +38,7 @@ stmt
     | return_stmt
     | expression_stmt
     | selection_stmt
+    | import_stmt
     ;
 
 function_declaration
@@ -61,6 +62,10 @@ expression_stmt
 selection_stmt
     : IF '(' expr ')' block %prec IFX                         { $$ = mkOpNode(IF, 2, $3, $5);          }
     | IF '(' expr ')' block ELSE block                        { $$ = mkOpNode(IF, 3, $3, $5, $7);      }
+    ;
+
+import_stmt
+    : IMPORT primary_expr ';'                                 { $$ = mkOpNode(IMPORT, 1, $2);          }
     ;
 
 param_list
@@ -172,8 +177,13 @@ chain_expr
     ;
 
 function_expr
+    : fn_name_expr
+    | fn_name_expr arg_list                                   { $$ = mkOpNode(FNCT, 2, $1, $2);        }
+    ;
+
+fn_name_expr
     : unary_expr
-    | unary_expr arg_list                                     { $$ = mkOpNode(FNCT, 2, $1, $2);        }
+    | unary_expr '.' unary_expr                               { $$ = getLibFn($1, $3);                 }
     ;
 
 arg_list

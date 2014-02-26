@@ -99,7 +99,7 @@ D    [0-9]
     /* concatenation operator */
 "++"                { yylval = mkNumNode(CNCAT); return CNCAT; }
     /* miscellaneous character */
-[(){}!,?|:;]            return *yytext;
+[(){}!.,?|:;]           return *yytext;
     /* comment */
 #.*\n                   ; 
     /* ignore whitespace (2D languages are pig disgusting) */
@@ -119,21 +119,20 @@ D    [0-9]
 %%
 
 int resWord(char *str) {
-    /* blocks */
-    if      (!strcmp(str, "if"))
-        return IF;
+    if (!strcmp(str, "default"))
+        return DEFAULT;
     else if (!strcmp(str, "else"))
         return ELSE;
-    /* function definition */
     else if (!strcmp(str, "function"))
         return FNDEF;
-    /* misc */
-    else if (!strcmp(str, "return"))
-        return RETURN;
-    else if (!strcmp(str, "default"))
-        return DEFAULT;
+    else if (!strcmp(str, "if"))
+        return IF;
+    else if (!strcmp(str, "import"))
+        return IMPORT;
     else if (!strcmp(str, "otherwise"))
         return OTHER;
+    else if (!strcmp(str, "return"))
+        return RETURN;   
     /* not a reserved word */
     else
         return 0;
