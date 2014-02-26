@@ -1,0 +1,6 @@
+#!/bin/bash
+cc -fPIC -g -c -Wall $1.c plugins.c
+cc -shared -Wl,-soname,lib$1.so -o lib$1.so $1.o plugins.o -lc
+mv lib$1.so ~/.config/mkvsynth/
+rm $1.o plugins.o
+echo "Installation successful!"
