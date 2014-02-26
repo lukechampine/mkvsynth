@@ -65,16 +65,17 @@
      RETURN = 283,
      DEFAULT = 284,
      OTHER = 285,
-     LOR = 286,
-     LAND = 287,
-     EQ = 288,
-     NE = 289,
-     GT = 290,
-     LT = 291,
-     GE = 292,
-     LE = 293,
-     IFX = 294,
-     NEG = 295
+     IMPORT = 286,
+     LOR = 287,
+     LAND = 288,
+     EQ = 289,
+     NE = 290,
+     GT = 291,
+     LT = 292,
+     GE = 293,
+     LE = 294,
+     IFX = 295,
+     NEG = 296
    };
 #endif
 /* Tokens.  */
@@ -106,16 +107,17 @@
 #define RETURN 283
 #define DEFAULT 284
 #define OTHER 285
-#define LOR 286
-#define LAND 287
-#define EQ 288
-#define NE 289
-#define GT 290
-#define LT 291
-#define GE 292
-#define LE 293
-#define IFX 294
-#define NEG 295
+#define IMPORT 286
+#define LOR 287
+#define LAND 288
+#define EQ 289
+#define NE 290
+#define GT 291
+#define LT 292
+#define GE 293
+#define LE 294
+#define IFX 295
+#define NEG 296
 
 
 

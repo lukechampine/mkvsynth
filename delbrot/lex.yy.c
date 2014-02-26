@@ -384,7 +384,7 @@ struct yy_trans_info
 static yyconst flex_int16_t yy_accept[81] =
     {   0,
         0,    0,   42,   40,   38,   39,   36,   40,   40,   17,
-       40,   36,   14,   12,   13,   40,   15,    8,    8,   21,
+       40,   36,   14,   12,   13,   36,   15,    8,    8,   21,
        26,   20,    7,    7,    7,   16,    7,    7,    7,    7,
        36,   38,   19,    0,   11,    0,    0,   37,   32,   25,
        29,   35,   27,   28,   34,    9,   30,    0,    8,    0,
@@ -2071,21 +2071,20 @@ void yyfree (void * ptr )
 
 
 int resWord(char *str) {
-    /* blocks */
-    if      (!strcmp(str, "if"))
-        return IF;
+    if (!strcmp(str, "default"))
+        return DEFAULT;
     else if (!strcmp(str, "else"))
         return ELSE;
-    /* function definition */
     else if (!strcmp(str, "function"))
         return FNDEF;
-    /* misc */
-    else if (!strcmp(str, "return"))
-        return RETURN;
-    else if (!strcmp(str, "default"))
-        return DEFAULT;
+    else if (!strcmp(str, "if"))
+        return IF;
+    else if (!strcmp(str, "import"))
+        return IMPORT;
     else if (!strcmp(str, "otherwise"))
         return OTHER;
+    else if (!strcmp(str, "return"))
+        return RETURN;   
     /* not a reserved word */
     else
         return 0;
