@@ -246,7 +246,7 @@ ASTnode* ex(Env *e, ASTnode *p) {
         case CHAIN:   chain(e, ex(e, child[0]), child[1]); p = ex(e, child[1]); break;
         case DEFAULT: setDefault(e, child[0], ex(e, child[1])); break;
         case RETURN:  p = ex(e, child[0]); if (p != NULL) e->returnValue = p; longjmp(e->returnContext, 1); break;
-        /* library imports */
+        /* plugin imports */
         case IMPORT:  import(child[0]); break;
         /* assignment */
         case ASSIGN:  p = assignOp(e, identify(e, child[0]), child[1], child[2]); break;
@@ -349,27 +349,27 @@ void ifelse(Env *e, ASTnode *p, ASTnode *cond, ASTnode *ifNode, ASTnode *elseNod
         ex(e, elseNode);
 }
 
-/* import a library */
-void import(ASTnode *libName) {
-    if (libName->type != typeId)
-        MkvsynthError("invalid library name");
-    /* construct library path */
+/* import a plugin */
+void import(ASTnode *pluginName) {
+    if (pluginName->type != typeId)
+        MkvsynthError("invalid plugin name");
+    /* construct plugin path */
     char *home = getenv("HOME");
-    char *libPath = malloc(strlen(libName->id) + strlen(home) + 24);
-    strcpy(libPath, home);
-    strcat(libPath, "/.config/mkvsynth/lib");
-    strcat(libPath, libName->id);
-    strcat(libPath, ".so");
-    /* load library */
-    void *handle = dlopen(libPath, RTLD_NOW);
+    char *pluginPath = malloc(strlen(pluginName->id) + strlen(home) + 24);
+    strcpy(pluginPath, home);
+    strcat(pluginPath, "/.config/mkvsynth/lib");
+    strcat(pluginPath, pluginName->id);
+    strcat(pluginPath, ".so");
+    /* load plugin */
+    void *handle = dlopen(pluginPath, RTLD_NOW);
     if (!handle)
-        MkvsynthError("could not load library %s: %s", libName->id, dlerror());
-    /* create and append new lib entry */
-    Lib *newLib = malloc(sizeof(Lib));
-    newLib->name = libName->id;
-    newLib->handle = handle;
-    newLib->next = libList;
-    libList = newLib;
+        MkvsynthError("could not load plugin %s: %s", pluginName->id, dlerror());
+    /* create and append new plugin entry */
+    Plugin *newPlugin = malloc(sizeof(Plugin));
+    newPlugin->name = pluginName->id;
+    newPlugin->handle = handle;
+    newPlugin->next = pluginList;
+    pluginList = newPlugin;
 }
 
 /* display error message in red and exit */

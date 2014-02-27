@@ -1805,7 +1805,7 @@ yyreduce:
 
 /* Line 1806 of yacc.c  */
 #line 187 "delbrot/delbrot.y"
-    { (yyval) = getLibFn((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));                 }
+    { (yyval) = getPluginFn((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));              }
     break;
 
   case 80:
@@ -2235,26 +2235,26 @@ ASTnode *getFn(Env const *e, char const *fnName) {
     return getFn(e->parent, fnName);
 }
 
-/* look up a library function */
-ASTnode *getLibFn(ASTnode *libName, ASTnode *fnName) {
-    /* look up library */
-    Lib *libTraverse;
-    ASTnode * (*libFn) (ASTnode *, ASTnode *);
-    for (libTraverse = libList; libTraverse != NULL; libTraverse = libTraverse->next) {
-        if (strcmp(libTraverse->name, libName->id) == 0) {
+/* look up a plugin function */
+ASTnode *getPluginFn(ASTnode *pluginName, ASTnode *fnName) {
+    /* look up plugin */
+    Plugin *pTraverse;
+    ASTnode * (*pluginFn) (ASTnode *, ASTnode *);
+    for (pTraverse = pluginList; pTraverse != NULL; pTraverse = pTraverse->next) {
+        if (strcmp(pTraverse->name, pluginName->id) == 0) {
             /* look up symbol */
             dlerror();
-            libFn = dlsym(libTraverse->handle, fnName->id);
+            pluginFn = dlsym(pTraverse->handle, fnName->id);
             if (dlerror() != NULL)
-                MkvsynthError("function \"%s\" not found in library %s", fnName->id, libName->id);
+                MkvsynthError("function \"%s\" not found in plugin %s", fnName->id, pluginName->id);
             ASTnode *fnNode = newNode();
             fnNode->type = typeFn;
             fnNode->fn.name = fnName->id;
-            fnNode->fn.core.fnPtr = libFn;
+            fnNode->fn.core.fnPtr = pluginFn;
             return fnNode;
         }
     }
-    MkvsynthError("library \"%s\" not loaded", libName->id);
+    MkvsynthError("plugin \"%s\" not loaded", pluginName->id);
     return NULL;
 }
 

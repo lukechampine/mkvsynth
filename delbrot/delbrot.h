@@ -4,7 +4,6 @@
 /* includes */
 #include <setjmp.h>
 #include "../jarvis/jarvis.h"
-#include "y.tab.h"
 
 /* macros */
 #define YYSTYPE ASTnode* /* all tokens are ASTnode */
@@ -103,12 +102,12 @@ struct ASTnode {
     ASTnode *next;
 };
 
-/* a loaded library */
-typedef struct Lib Lib;
-struct Lib {
+/* a loaded plugin */
+typedef struct Plugin Plugin;
+struct Plugin {
     char *name;
     void *handle;
-    Lib *next;
+    Plugin *next;
 };
 
 /* function declarations */
@@ -128,7 +127,7 @@ ASTnode* mkStrNode(char *);
 ASTnode* newNode();
 /* variable/function access prototypes */
 ASTnode* getFn(Env const *, char const *);
-ASTnode* getLibFn(ASTnode *, ASTnode *);
+ASTnode* getPluginFn(ASTnode *, ASTnode *);
 ASTnode* getVar(Env const *, char const *);
 ASTnode* putFn(Env *, fnEntry);
 ASTnode* putVar(Env *, char const *);
@@ -139,7 +138,7 @@ void* getOptArg(ASTnode *, char *, int);
 
 /* global variables */
 Env *global; /* the global execution environment */
-Lib *libList; /* loaded libraries */
+Plugin *pluginList; /* loaded plugins */
 extern fnEntry coreFunctions[];
 extern fnEntry internalFilters[];
 #endif

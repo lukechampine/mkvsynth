@@ -184,7 +184,7 @@ function_expr
 
 fn_name_expr
     : unary_expr
-    | unary_expr '.' unary_expr                               { $$ = getLibFn($1, $3);                 }
+    | unary_expr '.' unary_expr                               { $$ = getPluginFn($1, $3);              }
     ;
 
 arg_list
@@ -338,26 +338,26 @@ ASTnode *getFn(Env const *e, char const *fnName) {
     return getFn(e->parent, fnName);
 }
 
-/* look up a library function */
-ASTnode *getLibFn(ASTnode *libName, ASTnode *fnName) {
-    /* look up library */
-    Lib *libTraverse;
-    ASTnode * (*libFn) (ASTnode *, ASTnode *);
-    for (libTraverse = libList; libTraverse != NULL; libTraverse = libTraverse->next) {
-        if (strcmp(libTraverse->name, libName->id) == 0) {
+/* look up a plugin function */
+ASTnode *getPluginFn(ASTnode *pluginName, ASTnode *fnName) {
+    /* look up plugin */
+    Plugin *pTraverse;
+    ASTnode * (*pluginFn) (ASTnode *, ASTnode *);
+    for (pTraverse = pluginList; pTraverse != NULL; pTraverse = pTraverse->next) {
+        if (strcmp(pTraverse->name, pluginName->id) == 0) {
             /* look up symbol */
             dlerror();
-            libFn = dlsym(libTraverse->handle, fnName->id);
+            pluginFn = dlsym(pTraverse->handle, fnName->id);
             if (dlerror() != NULL)
-                MkvsynthError("function \"%s\" not found in library %s", fnName->id, libName->id);
+                MkvsynthError("function \"%s\" not found in plugin %s", fnName->id, pluginName->id);
             ASTnode *fnNode = newNode();
             fnNode->type = typeFn;
             fnNode->fn.name = fnName->id;
-            fnNode->fn.core.fnPtr = libFn;
+            fnNode->fn.core.fnPtr = pluginFn;
             return fnNode;
         }
     }
-    MkvsynthError("library \"%s\" not loaded", libName->id);
+    MkvsynthError("plugin \"%s\" not loaded", pluginName->id);
     return NULL;
 }
 
