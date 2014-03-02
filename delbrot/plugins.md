@@ -1,44 +1,55 @@
 ## writing plugins ##
-Plugins are user-defined functions that live in their own .c file. Since the parser deals only in ASTnodes, all functions are required to take two ASTnodes as arguments and return an ASTnode as their result. The first argument is the "result" node which the function will modify and return. The second node is a linked list of ASTnodes, each containing an argument. Some helpful macros are provided for translating these AST functions into "standard" C functions.
+Plugins are collections of functions that are written in C and loaded at runtime. Since the parser deals only in ASTnodes, all functions are required to take two ASTnodes as arguments and return an ASTnode as their result. The first argument is the "result" node which the function will modify and return. The second node is a linked list of ASTnodes, each containing an argument. Some helpful macros are provided for translating these AST functions into "standard" C functions.
 
-As an example, let's examine the provided "myPlugin" plugin, specifically the `myPlugin_AST()` function.
+As an example, let's walk through the creation of a plugin, "fact", that implements just a single function, `factorial`. First, we'll navigate to `mkvsynth/plugins/`, which contains `plugins.c` and `makeplugin`. We'll create a new file here called `fact.c` and start coding.
+
+The first crucial step is to include the delbrot.h header file. This file contains the definition of `ASTnode` and all its associated functions/macros. y.tab.h should also be included if your function deals with booleans, because it contains the TRUE and FALSE macros. The function arguments must look exactly like they do below, or the plugin macros will break:
 
 ```c
-#include "delbrot.h"
-ASTnode* myPlugin_AST(ASTnode *p, ASTnode *args) {
-    /* check that (mandatory) arguments are valid */
-    checkArgs("myPlugin", args, 1);
+#include "../delbrot/delbrot.h"
+#include "../delbrot/y.tab.h"
+ASTnode* factorial(ASTnode *p, ASTnode *args) {
+    /* check that mandatory arguments are valid */
+    checkArgs("factorial", args, 1, typeNum);
     ...
 ```
-The first crucial step is to include the delbrot.h header file. This file contains the definition of `ASTnode` and all its associated functions/macros. For most plugins, the first step should be to call the `checkArgs()` function, which ensures that the function received the correct number of mandatory arguments (later, type-checking will be added as well).
+Most plugin functions should call `checkArgs()` before doing anything else. `checkArgs()` ensures that the proper number and type of arguments were supplied. In this case, our function only takes one argument of type number.
+
+Now we can extract the function arguments from `args`:
 
 ```c
     ...
-    /* get arguments */
-    char *str = args->str;
-    /* get optional arguments */
-    double frames = OPTVAL("frames", -1);
-    char *output  = OPTSTR("output", NULL);
+    /* get mandatory arguments */
+    int n = (int) MANDNUM();
+    /* get optional arguments, if we had any */
+    /* bool_t factFlag = OPTBOOL("flag", TRUE); */
     ...
 ```
-Then we can extract the arguments from `args`. Mandatory arguments are accessed directly. To get the next argument, use `args->next->`, `args->next->next->`, etc. This method will probably be replaced with a macro at some point to simplify things.
 
-Next come the optional arguments. A different macro must be called depending on the expected return value. Simply provide the name of the argument and the default value, and the macro will do the rest.
+Mandatory arguments are accessed using `MANDNUM()`, `MANDSTR()`, etc., and optional arguments are accessed using `OPTNUM(argName, defaultValue)`. **Important: mandatory arguments must be accessed in order.** This is because the `MAND*()` macros all advance `args` by one step. Of course, these macros are just conveniences; you are free to traverse and manipulate `args` as you see fit.
+ 
+Next, we'll define the actual function logic. In this case, it's pretty straightforward:
 
 ```c
     ...
-    myPlugin(str, frames, output);
+    double i = 1.0;
+    for (n; n > 0; n--)
+        i *= n;
     ...
 ```
-If we so choose, we can pass these extracted values to a more traditional function that takes standard data types. This makes it easy to abstract away the argument handling and focus on the function logic. Alternatively, just write out the logic as usual and save yourself an extra function definition.
+
+And finally, we'll define the function's return value:
 
 ```c
-    /* return value */
-    p->type = typeVal;
-    p->val = 0;
-    return p;
+    ...
+    RETURNNUM(i);
 }
 ```
-Finally, we define what the function should return. In this case, our function just prints strings to STDOUT, so we return a dummy value of 0. This code will also probably be replaced with a macro.
 
-To load your plugin into the interpreter and start using it, there's just one more step. Simply call the provided `loadplugin` program with the name of your plugin, and recompile everything (eventually, `loadplugin` will handle this step as well). In this case, we would run `./loadplugin myPlugin`. It is imperative that your function have the same name as your .c file! Otherwise, things may break.
+The `RETURN*(arg)` macros place their argument in `p`, give it the proper type, and call `return p`. Again, this can be written by hand if you so choose. We're done!
+
+## compiling and loading plugins ##
+
+To load your plugin into the interpreter and start using it, you'll have to compile it as a shared library using the provided `makeplugin` script. In this case, we'll run `./makeplugin fact`, which will create `libfact.so` and move it to the mkvsynth plugin directory, `~/.config/mkvsynth`. This library can easily be distributed on the internet. **It is strongly suggested** that you distribute your plugin as an archive containing the `.so` library, the source code, and a README documenting each of the functions contained in your plugin.
+
+Finally, we're ready to use our function in mkvsynth. All we have to do is `import fact`, and then we can call our function as `fact.factorial`. Further information on plugin syntax and usage is provided in [documentation.md](documentation.md).

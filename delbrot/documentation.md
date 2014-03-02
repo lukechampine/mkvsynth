@@ -13,6 +13,7 @@ The main differences are:
 | Function calls | `foo(arg1, arg2 + 3, optArg=val)`               | `foo arg1 (arg2 + 3) optArg:val`        |
 | Chaining       | `clip.Foo().Bar().Baz()`                        | `clip -> Foo -> Bar -> Baz`             |
 | Default        | `radius = Default(radius, 2)`                   | `default radius: 2`                     |
+| Plugins        | Can clobber existing function names             | No namespace conflicts                  |
 | if/else        |  Not supported                                  | Supported                               |
 | Ternary        | `cond ? foo : bar`                              | `cond ? foo ¦ bar`                      |
 
@@ -32,7 +33,8 @@ The main differences are:
 | `if`, `else` | Conditional statement   | `if (x == 1) print "yes"; else print "no";` |
 | `function`   | Function definition     | `function foo(num x) { ...`                 |
 | `default`    | Specify default value   | `default radius = 2;`                       |
-| `return`     | Function return value   | `return (result * 3);`                      |
+| `import`     | Import a plugin         | `import libfoo;`                            |
+| `return`     | Function return value   | `return result * 3;`                        |
 | `otherwise`  | Ternary syntactic sugar | `y = x == 1 ? "yes" ¦ otherwise ? "no";`    |
 
 ### built-in functions ###
@@ -55,6 +57,7 @@ The main differences are:
 | `=>`                    | Chaining assignment operator. `a =>` is equivalent to `a = a ->`       |
 | `? ¦`                   | Standard ternary operator, using `¦` in place of `:`                   |
 | `:`                     | Optional argument operator. Marks function arguments as optional.      |
+| `.`                     | References a plugin function.                                          |
 
 ### misc. syntax ###
 | syntax                  | description                                                            |
@@ -64,7 +67,15 @@ The main differences are:
 
 
 ### statements ###
-**function declarations:**
+**assignment statements:**
+```ruby
+x = "Hello";  # x is "Hello"
+x = 12;       # x is 12
+y = (x %= 7); # x is 5, y is 5
+```
+Assignment statements are pretty straightforward. Note that variable names are not preceded by a type, and a variable can easily be reassigned to a different type. Since assignment "statements" are really just expressions, they also return the value of the variable they are assigning to, as shown in the last line of the example.
+
+**function declarations (and default statements):**
 ```ruby
 function foo(bool b, :string s) {
     default s: "bar";
@@ -76,9 +87,16 @@ function foo(bool b, :string s) {
 ```
 This tiny example showcases everything you need to know about function definitions. Functions do not have an explicit return type; this example returns either a `num` or a `string`. Optional arguments are marked by a `:` preceding their type. Inside the function body, a `default` statement is used to set the value of an optional argument if it is not supplied in the function call. Next, an `if`/`else` statement is used to determine the return value of the function.
 
+**import statements:**
+```ruby
+import libfoo;
+```
+Plugins can be imported with `import`. Plugins are shared object (.so) files containing functions written in C. Constructs like `import libfoo as bar` and `import baz from libfoo` will probably be added in the future. Unlike most languages, import statements can be placed anywhere, allowing for things like conditional imports.
+
+### expressions ###
 **function calls:**
 
-Now we can call `foo`:
+We can call `foo` (defined above) like so:
 ```ruby
 foo True            # returns "bar"
 foo (True && False) # returns 0
@@ -86,13 +104,11 @@ foo True s:"baz"    # returns "baz"
 ```
 Function arguments are separated by spaces, as in Haskell. Note that this means that you may need to enclose arguments in parentheses, or you might get some strange error messages. Optional arguments are specified using their name, and can be declared in any order. Note how `:` is used in all expressions relating to optional arguments: function definitions, function calls, and default statements.
 
-**assignment statements:**
+Plugin functions are called by prepending them with the plugin name:
 ```ruby
-x = "Hello";  # x is "Hello"
-x = 12;       # x is 12
-y = (x %= 7); # x is 5, y is 5
+libfoo.foo True
 ```
-Assignment statements are pretty straightforward. Note that variable names are not preceded by a type, and a variable can easily be reassigned to a different type. Since assignment "statements" are really just expressions, they also return the value of the variable they are assigning to, as shown in the last line of the example.
+This means that plugin function names can't conflict with core or user functions.
 
 **ternary expressions:**
 ```ruby

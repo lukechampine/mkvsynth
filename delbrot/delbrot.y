@@ -1,8 +1,9 @@
 %{
-    #include <stdlib.h>
-    #include <stdio.h>
-    #include <string.h>
+    #include <dlfcn.h>
     #include <stdarg.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
     #include "delbrot.h"
     /* prototypes to please -Wall */
     void yyerror(char *error, ...);
@@ -18,7 +19,7 @@
 %token ASSIGN BINOP
 %token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHNEQ CHAIN CNCAT
 %token IF ELSE TERN
-%token FNCT FNDEF RETURN DEFAULT OTHER
+%token FNCT FNDEF RETURN DEFAULT OTHER IMPORT
 %token LOR LAND EQ NE GT LT GE LE
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
@@ -38,6 +39,7 @@ stmt
     | return_stmt
     | expression_stmt
     | selection_stmt
+    | import_stmt
     ;
 
 function_declaration
@@ -61,6 +63,10 @@ expression_stmt
 selection_stmt
     : IF '(' expr ')' block %prec IFX                         { $$ = mkOpNode(IF, 2, $3, $5);          }
     | IF '(' expr ')' block ELSE block                        { $$ = mkOpNode(IF, 3, $3, $5, $7);      }
+    ;
+
+import_stmt
+    : IMPORT primary_expr ';'                                 { $$ = mkOpNode(IMPORT, 1, $2);          }
     ;
 
 param_list
@@ -172,8 +178,13 @@ chain_expr
     ;
 
 function_expr
+    : fn_name_expr
+    | fn_name_expr arg_list                                   { $$ = mkOpNode(FNCT, 2, $1, $2);        }
+    ;
+
+fn_name_expr
     : unary_expr
-    | unary_expr arg_list                                     { $$ = mkOpNode(FNCT, 2, $1, $2);        }
+    | unary_expr '.' unary_expr                               { $$ = getPluginFn($1, $3);              }
     ;
 
 arg_list
@@ -305,9 +316,7 @@ ASTnode *append(ASTnode *root, ASTnode *node) {
 /* add a core function to the function table */
 ASTnode *putFn(Env *e, fnEntry fn) {
     /* create entry */
-    ASTnode *ptr;
-    if ((ptr = malloc(sizeof(ASTnode))) == NULL)
-        MkvsynthError("out of memory");
+    ASTnode *ptr = newNode();
     ptr->type = typeFn;
     ptr->fn.name = fn.name;
     ptr->fn.core.fnPtr = fn.fnPtr;
@@ -327,6 +336,29 @@ ASTnode *getFn(Env const *e, char const *fnName) {
             return traverse;
     /* check parent environment */
     return getFn(e->parent, fnName);
+}
+
+/* look up a plugin function */
+ASTnode *getPluginFn(ASTnode *pluginName, ASTnode *fnName) {
+    /* look up plugin */
+    Plugin *pTraverse;
+    ASTnode * (*pluginFn) (ASTnode *, ASTnode *);
+    for (pTraverse = pluginList; pTraverse != NULL; pTraverse = pTraverse->next) {
+        if (strcmp(pTraverse->name, pluginName->id) == 0) {
+            /* look up symbol */
+            dlerror();
+            pluginFn = dlsym(pTraverse->handle, fnName->id);
+            if (dlerror() != NULL)
+                MkvsynthError("function \"%s\" not found in plugin %s", fnName->id, pluginName->id);
+            ASTnode *fnNode = newNode();
+            fnNode->type = typeFn;
+            fnNode->fn.name = fnName->id;
+            fnNode->fn.core.fnPtr = pluginFn;
+            return fnNode;
+        }
+    }
+    MkvsynthError("plugin \"%s\" not loaded", pluginName->id);
+    return NULL;
 }
 
 /* allocate a new variable */

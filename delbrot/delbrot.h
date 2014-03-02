@@ -102,6 +102,14 @@ struct ASTnode {
     ASTnode *next;
 };
 
+/* a loaded plugin */
+typedef struct Plugin Plugin;
+struct Plugin {
+    char *name;
+    void *handle;
+    Plugin *next;
+};
+
 /* function declarations */
 /* error handling */
 void MkvsynthError(char *, ...);
@@ -119,6 +127,7 @@ ASTnode* mkStrNode(char *);
 ASTnode* newNode();
 /* variable/function access prototypes */
 ASTnode* getFn(Env const *, char const *);
+ASTnode* getPluginFn(ASTnode *, ASTnode *);
 ASTnode* getVar(Env const *, char const *);
 ASTnode* putFn(Env *, fnEntry);
 ASTnode* putVar(Env *, char const *);
@@ -129,6 +138,7 @@ void* getOptArg(ASTnode *, char *, int);
 
 /* global variables */
 Env *global; /* the global execution environment */
+Plugin *pluginList; /* loaded plugins */
 extern fnEntry coreFunctions[];
 extern fnEntry internalFilters[];
 #endif
