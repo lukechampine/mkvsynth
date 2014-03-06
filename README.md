@@ -1,6 +1,8 @@
 # mkvsynth #
 
-mkvsynth is a modular set of specifications designed to enable parallel video processing. Right now, the major features include a parser and a control program. mkvsynth itself is nothing more than documentation and specification, but each piece is being implemented by separate programs (included in this project) titled 'delbrot' (the parser) and 'Jarvis' (the control program). The goal is to keep these programs fully modular, such that if either was substituted out for a different program that still perfectly followed spec, the other piece would still cooperate.
+mkvsynth is a non-linear video editor for Linux, designed with parallel video processing in mind. It allows users to manipulate and encode videos through an easy-to-learn scripting system. mkvsynth was created out of frustration with Avisynth, the current standard for non-linear video editing. Avisynth is Windows-only, unmaintained, and has an ugly and unintuitive scripting language. For this reason, we feel that starting from scratch is a better approach than simply porting Avisynth to Linux.
+
+mkvsynth is comprised of two parts: Jarvis, the control program, which manages the video processing; and delbrot, the scripting language interpreter. These programs are described in more detail below.
 
 Installation
 ------------
@@ -26,24 +28,16 @@ If you want to hack on the interpreter, you'll have to install Flex and Bison, w
 
 delbrot
 -------
-delbrot is the interpreter for the mkvsynth scripting language. AviSynth is controlled solely through scripts, and we hope to provide users with the power and portability of script-based video editing in mkvsynth. However, we will also be providing a GUI to allow for visual editing and frame comparisons. At present, it is unknown how mkvsynth's scripting language will interface with the GUI; one approach is to directly translate UI actions into delbrot commands. This would facilitate easy sharing of scripts without requiring the user to manually write any code.
+delbrot is the interpreter for the mkvsynth scripting language. AviSynth is controlled solely through scripts, and we hope to provide users with the power and portability of script-based video editing in mkvsynth. However, we will also be providing a GUI to allow for visual editing and frame comparisons. Check out delbrot's [documentation](delbrot/documentation.md) for the full language specification, and the [plugin guide](delbrot/plugins.md) for information on writing video plugins.
 
 Jarvis
 ------
-Jarvis is the (new) codename for the program that spawns and manages filters and frame streams. Jarvis operates as a parent thread that spawns and monitors filters in child threads. If a filter has a run-time error, it will be handled by Jarvis. Part of Jarvis is also a small set of functions and structs that help filters to communicate eachother. Full details can be found in the documentaion inside of the 'filters' folder, but these functions include 'getFrame()' 'putFrame()' and the structs include mkvsynthFrame and mkvsynthControlNode.
-
-Roles
------
-- David: project lead, filter creation, x264 integration
-- Luke: scripting language lead, delbrot implementation
-- Forest: GUI wizard, scripting language design
+Jarvis is a control program that spawns and manages filters and frame streams. Jarvis operates as a parent thread that spawns and monitors filters in child threads. If a filter has a run-time error, it will be handled by Jarvis. Part of Jarvis is also a small set of functions and structs that help filters to communicate eachother. Read the [documentation](filters/Creating Filters.md) for instructions on writing filters with Jarvis.
 
 Questions?
 ----------
 Contact david.vorick@gmail.com for general project questions.
 
 Contact luke.champine@gmail.com for questions related to delbrot.
-
-Contact trimble.forest@gmail.com for questions related to the GUI.
 
 *an RCOS Project*
