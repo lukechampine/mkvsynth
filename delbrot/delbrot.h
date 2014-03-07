@@ -141,4 +141,5 @@ Env *global; /* the global execution environment */
 Plugin *pluginList; /* loaded plugins */
 extern fnEntry coreFunctions[];
 extern fnEntry internalFilters[];
+extern char *typeNames[];
 #endif

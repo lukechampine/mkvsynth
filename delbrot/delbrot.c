@@ -34,7 +34,7 @@ static ASTnode* unaryOp(ASTnode *, ASTnode *, int);
 static ASTnode* userDefFnCall(Env *, ASTnode *, ASTnode *);
 
 /* global variables */
-static char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "optional argument", "function", "operation"};
+char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "optional argument", "function", "operation", "arglist"};
 extern int linenumber;
 
 /* function definitions */

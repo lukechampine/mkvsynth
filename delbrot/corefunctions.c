@@ -26,9 +26,6 @@ fnEntry coreFunctions[] = {
 	{ 0,           0          },
 };
 
-/* global variables */
-static char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "optional argument", "function", "operation"};
-
 /* function definitions */
 /* exit with error message if assertion fails */
 ASTnode* assert_AST(ASTnode *p, ASTnode *args) {
