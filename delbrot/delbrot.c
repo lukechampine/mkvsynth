@@ -38,7 +38,7 @@ extern int linenumber;
 /* create or modify a variable */
 ASTnode* assign(Env *e, ASTnode *varNode, ASTnode *valueNode) {
     if (varNode->type != typeVar && varNode->type != typeId)
-        MkvsynthError("can't assign to a constant value (got %s)", typeNames[varNode->type]);
+        MkvsynthError("can't assign to a constant value (got %s)", typeNames[ex(e, varNode)->type]);
     if (valueNode->type > typeClip)
         MkvsynthError("can't assign type %s to variable", typeNames[valueNode->type]);
     /* new variable */
@@ -52,7 +52,7 @@ ASTnode* assign(Env *e, ASTnode *varNode, ASTnode *valueNode) {
 ASTnode* assignOp(Env *e, ASTnode *varNode, ASTnode *op, ASTnode *valueNode) {
     /* special cases */
     if (op->num == '=')
-        return assign(e, varNode), ex(e, valueNode));
+        return assign(e, varNode, valueNode);
 
     ASTnode *RHS;
     if (op->num == CHNEQ)
@@ -202,7 +202,7 @@ ASTnode* copy(ASTnode *p) {
 /* dereference a variable */
 ASTnode* dereference(ASTnode *p) {
     if (p->type == typeId)
-        MkvsynthError("reference to undefined variable %s", p->id);
+        MkvsynthError("reference to undefined variable or function \"%s\"", p->id);
     if (p->type != typeVar)
         return p;
     return p->var.value;
@@ -240,7 +240,7 @@ ASTnode* ex(Env *e, ASTnode *p) {
         /* plugin imports */
         case IMPORT:  import(child[0]); break;
         /* assignment */
-        case ASSIGN:  p = assignOp(e, identify(e, child[0]), child[1], child[2]); break;
+        case ASSIGN:  p = assignOp(e, identify(e, child[0]), child[1], ex(e, child[2])); break;
         /* unary operators */
         case NEG:     p = unaryOp(p, ex(e, child[0]), NEG); break;
         case '!':     p = unaryOp(p, ex(e, child[0]), '!'); break;
