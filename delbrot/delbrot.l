@@ -11,6 +11,9 @@ D    [0-9]
 %}
     /* don't keep scanning after EOF */
 %option noyywrap
+    /* suppress gcc warnings */
+%option noinput
+%option nounput
 
 %%  /* rule definition section */
 
