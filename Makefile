@@ -4,7 +4,7 @@
 
 all: mkvsynth
 
-install: mkvsynth
+install:
 	@mkdir -p ~/.config/mkvsynth
 
 CFLAGS = -Wall
