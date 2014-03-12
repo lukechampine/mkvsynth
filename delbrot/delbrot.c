@@ -14,7 +14,7 @@
 static ASTnode* assign(ASTnode *, ASTnode *);
 static ASTnode* assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
 static ASTnode* binaryOp(ASTnode *, ASTnode *, int, ASTnode *);
-static void     chain(Env *, ASTnode *, ASTnode *);
+static void     chain(ASTnode *, ASTnode *);
        void     checkArgs(char *, ASTnode *, int, ...);
 static ASTnode* copy(ASTnode *);
 static ASTnode* dereference(ASTnode *);
@@ -144,9 +144,9 @@ ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
 }
 
 /* append LHS to argument list of RHS */
-void chain(Env *e, ASTnode *valueNode, ASTnode *fnNode) {
+void chain(ASTnode *valueNode, ASTnode *fnNode) {
     if (fnNode->type == typeOp && fnNode->op.oper == CHAIN)
-        chain(e, valueNode, fnNode->op.ops[0]);
+        chain(valueNode, fnNode->op.ops[0]);
     else if (fnNode->type == typeOp && fnNode->op.oper == FNCT)
         valueNode->next = fnNode->op.ops[1], fnNode->op.ops[1] = valueNode;
     else if (fnNode->type == typeId || fnNode->type == typeFn)
@@ -243,7 +243,7 @@ ASTnode* ex(Env *e, ASTnode *p) {
         case IF:      ifelse(e, p, ex(e, child[0]), child[1], child[2]); break;
         /* functions */
         case FNCT:    p = fnctCall(e, p, identify(e, child[0]), reduceArgs(e, child[1])); break;
-        case CHAIN:   chain(e, ex(e, child[0]), child[1]); p = ex(e, child[1]); break;
+        case CHAIN:   chain(ex(e, child[0]), child[1]); p = ex(e, child[1]); break;
         case DEFAULT: setDefault(e, child[0], ex(e, child[1])); break;
         case RETURN:  p = ex(e, child[0]); if (p != NULL) e->returnValue = p; longjmp(e->returnContext, 1); break;
         /* plugin imports */
