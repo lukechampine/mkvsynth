@@ -7,11 +7,8 @@
 #include "delbrot.h"
 #include "y.tab.h"
 
-/* macros */
-#define UNDEFINED(n) n->type == typeVar && n->var.value == NULL
-
 /* function declarations */
-static ASTnode* assign(ASTnode *, ASTnode *);
+static ASTnode* assign(Env *, ASTnode *, ASTnode *);
 static ASTnode* assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
 static ASTnode* binaryOp(ASTnode *, ASTnode *, int, ASTnode *);
 static void     chain(ASTnode *, ASTnode *);
@@ -39,14 +36,14 @@ extern int linenumber;
 
 /* function definitions */
 /* create or modify a variable */
-ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
-    if (varNode->type != typeVar)
+ASTnode* assign(Env *e, ASTnode *varNode, ASTnode *valueNode) {
+    if (varNode->type != typeVar && varNode->type != typeId)
         MkvsynthError("can't assign to a constant value (got %s)", typeNames[varNode->type]);
     if (valueNode->type > typeClip)
         MkvsynthError("can't assign type %s to variable", typeNames[valueNode->type]);
     /* new variable */
-    if (UNDEFINED(varNode))
-        varNode->var.value = newNode();
+    if (varNode->type == typeId)
+        varNode = putVar(e, varNode->id);
     /* copy new value */
     return memcpy(varNode->var.value, valueNode, sizeof(ASTnode));
 }
@@ -55,7 +52,7 @@ ASTnode* assign(ASTnode *varNode, ASTnode *valueNode) {
 ASTnode* assignOp(Env *e, ASTnode *varNode, ASTnode *op, ASTnode *valueNode) {
     /* special cases */
     if (op->num == '=')
-        return assign(identify(e, varNode), ex(e, valueNode));
+        return assign(e, varNode), ex(e, valueNode));
 
     ASTnode *RHS;
     if (op->num == CHNEQ)
@@ -204,12 +201,11 @@ ASTnode* copy(ASTnode *p) {
 
 /* dereference a variable */
 ASTnode* dereference(ASTnode *p) {
-    if (UNDEFINED(p))
-        MkvsynthError("dereference called on uninitialized variable %s", p->var.name);
-    ASTnode *d = newNode();
-    memcpy(d, p->var.value, sizeof(ASTnode));
-    d->next = p->next;
-    return d;
+    if (p->type == typeId)
+        MkvsynthError("reference to undefined variable %s", p->id);
+    if (p->type != typeVar)
+        return p;
+    return p->var.value;
 }
 
 /* execute a section of the AST */
@@ -218,12 +214,7 @@ ASTnode* ex(Env *e, ASTnode *p) {
         return NULL;
 
     /* resolve identifiers */
-    if (p->type == typeId)
-        p = identify(e, p);
-
-    /* dereference variables */
-    if (p->type == typeVar)
-        p = dereference(p);
+    p = dereference(identify(e, p));
 
     /* catch functions with no arguments */
     if (p->type == typeFn)
@@ -268,7 +259,7 @@ ASTnode* ex(Env *e, ASTnode *p) {
 
 /* handle function calls */
 ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
-    if (UNDEFINED(fnNode))
+    if (fnNode->type == typeId)
         MkvsynthError("reference to undefined function \"%s\"", fnNode->var.name);
     if (fnNode->type != typeFn)
         MkvsynthError("expected function, got %s", typeNames[fnNode->type]);
@@ -332,9 +323,6 @@ ASTnode* identify(Env *e, ASTnode *p) {
     /* existing variable */
     else if ((i = getVar(e, p->id)) != NULL)
         p = copy(i);
-    /* new variable */
-    else
-        p = putVar(e, p->id);
 
     return p;
 }
@@ -406,7 +394,7 @@ ASTnode* setDefault(Env *e, ASTnode *paramNode, ASTnode *valueNode) {
     paramNode = getVar(e, paramNode->id);
     /* check that paramNode is an unset optional parameter */
     if (paramNode->var.opt == 1 && paramNode->var.value == NULL)
-        assign(paramNode, valueNode);
+        assign(e, paramNode, valueNode);
     return paramNode;
 }
 
@@ -520,7 +508,7 @@ ASTnode* userDefFnCall(Env *e, ASTnode *fnNode, ASTnode *args) {
     pTraverse = fnNode->fn.user.params;
     aTraverse = args;
     while (pTraverse && aTraverse) {
-        assign(getVar(local, pTraverse->var.name), aTraverse);
+        assign(e, getVar(local, pTraverse->var.name), aTraverse);
         pTraverse = pTraverse->next;
         aTraverse = aTraverse->next;
     }
@@ -539,7 +527,7 @@ ASTnode* userDefFnCall(Env *e, ASTnode *fnNode, ASTnode *args) {
             MkvsynthError("type mismatch: opt arg %s of %s expected %s, got %s",
                 pTraverse->var.name, fnNode->fn.name, typeNames[pTraverse->var.type], typeNames[aTraverse->var.type]);
         /* assign value */
-        assign(getVar(local, pTraverse->var.name), aTraverse->var.value);
+        assign(e, getVar(local, pTraverse->var.name), aTraverse->var.value);
         aTraverse = aTraverse->next;
     }
 

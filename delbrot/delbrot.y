@@ -367,7 +367,7 @@ ASTnode *putVar(Env *e, char const *varName) {
     ASTnode *ptr = newNode();
     ptr->type = typeVar;
     ptr->var.name = strdup(varName);
-    ptr->var.value = NULL;
+    ptr->var.value = newNode();
     /* add to variable table */
     ptr->next = e->varTable;
     e->varTable = ptr;
