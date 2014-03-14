@@ -8,33 +8,63 @@
 #include "y.tab.h"
 
 /* function declarations */
+static argList* argify(Env *, ASTnode *);
 static ASTnode* assign(Env *, ASTnode *, ASTnode *);
 static ASTnode* assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
 static ASTnode* binaryOp(ASTnode *, ASTnode *, int, ASTnode *);
 static void     chain(ASTnode *, ASTnode *);
-       void     checkArgs(char *, ASTnode *, int, ...);
+       void     checkArgs(char *, argList *, int, ...);
 static ASTnode* copy(ASTnode *);
 static ASTnode* dereference(ASTnode *);
        ASTnode* ex(Env *, ASTnode *p);
-static ASTnode* fnctCall(Env *, ASTnode *, ASTnode *, ASTnode *);
+static ASTnode* fnctCall(Env *, ASTnode *, ASTnode *, argList *);
 static void     funcDefine(Env *, ASTnode *, ASTnode *, ASTnode *);
-       void*    getOptArg(ASTnode *, char *, int);
+       void*    getOptArg(argList *, char *, int);
 static ASTnode* identify(Env *, ASTnode *);
 static void     ifelse(Env *, ASTnode *, ASTnode *, ASTnode *, ASTnode *);
 static void     import(ASTnode *);
        void     MkvsynthError(char *error, ...);
-static ASTnode* reduceArgs(Env *, ASTnode *);
 static ASTnode* setDefault(Env *, ASTnode *, ASTnode *);
-static int      splitMandOpt(ASTnode *, ASTnode **, ASTnode **);
 static ASTnode* ternary(Env *, ASTnode *, ASTnode *, ASTnode *);
 static ASTnode* unaryOp(ASTnode *, ASTnode *, int);
-static ASTnode* userDefFnCall(Env *, ASTnode *, ASTnode *);
+static ASTnode* userDefFnCall(Env *, ASTnode *, argList *);
 
 /* global variables */
-char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "optional argument", "function", "operation", "arglist"};
+char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "function", "operation", "argument", "optional argument", "parameter", "optional parameter"};
 extern int linenumber;
 
 /* function definitions */
+/* transform a linked list of nodes into an argList */
+argList* argify(Env *e, ASTnode *p) {
+    argList *a = malloc(sizeof(argList));
+    if (!p)
+        return a;
+
+    /* count # of arguments */
+    a->nargs = 1;
+    ASTnode *traverse = p;
+    while ((traverse = traverse->next)) a->nargs++;
+    /* allocate space */
+    a->args = malloc(a->nargs * sizeof(varNode));
+
+    /* place arguments in args array */
+    int i;
+    for (i = 0, traverse = p; traverse; traverse = traverse->next, i++) {
+        if (traverse->type == typeOptArg)
+            a->args[i] = traverse->var;
+        else {
+            a->args[i].type = typeArg;
+            a->args[i].name = NULL;
+            a->args[i].value = traverse;
+        }
+    }
+    /* evaluate arguments */
+    for (i = 0; i < a->nargs; i++)
+        a->args[i].value = ex(e, a->args[i].value);
+
+    return a;
+}
+
 /* create or modify a variable */
 ASTnode* assign(Env *e, ASTnode *varNode, ASTnode *valueNode) {
     if (varNode->type != typeVar && varNode->type != typeId)
@@ -154,26 +184,20 @@ void chain(ASTnode *valueNode, ASTnode *fnNode) {
 
 /* ensure that a function call is valid */
 /* TODO: check optional arguments */
-void checkArgs(char *funcName, ASTnode *args, int numArgs, ...) {
+void checkArgs(char *funcName, argList *a, int numArgs, ...) {
+    /* check number of arguments */
+    if (a->nargs != numArgs)
+        MkvsynthError("%s expected %d argument%s, got %d", funcName, numArgs, (numArgs == 1 ? "" : "s"), a->nargs);
+    /* check types */
     int i;
     va_list ap;
     va_start(ap, numArgs);
-    ASTnode *traverse = args;
-    /* check for missing/uninitialized/mistyped arguments */
-    for (i = 0; i < numArgs; i++, traverse = traverse->next) {
-        if (traverse == NULL)
-            MkvsynthError("%s expected %d argument%s, got %d", funcName, numArgs, (numArgs == 1 ? "" : "s"), i);
-        /* check type */
-        int argType = va_arg(ap, int);
-        if (traverse->type != argType)
-            MkvsynthError("type mismatch: arg %d of %s expected %s, got %s", i+1, funcName, typeNames[argType], typeNames[traverse->type]);
+    for (i = 0; i < numArgs; i++) {
+        nodeType argType = va_arg(ap, nodeType);
+        if (a->args[i].value->type != argType)
+            MkvsynthError("type mismatch: arg %d of %s expected %s, got %s", i+1, funcName, typeNames[argType], typeNames[a->args[i].value->type]);
     }
     va_end(ap);
-    /* check for excess arguments */
-    if (traverse != NULL && traverse->type != typeOptArg) {
-        while ((traverse = traverse->next) != NULL) i++;
-        MkvsynthError("%s expected %d argument%s, got %d", funcName, numArgs, (numArgs == 1 ? "" : "s"), ++i);
-    }
 }
 
 /* copy a node and its children */
@@ -233,10 +257,10 @@ ASTnode* ex(Env *e, ASTnode *p) {
         /* blocks */
         case IF:      ifelse(e, p, ex(e, child[0]), child[1], child[2]); break;
         /* functions */
-        case FNCT:    p = fnctCall(e, p, identify(e, child[0]), reduceArgs(e, child[1])); break;
+        case FNCT:    p = fnctCall(e, p, identify(e, child[0]), argify(e, child[1])); break;
         case CHAIN:   chain(ex(e, child[0]), child[1]); p = ex(e, child[1]); break;
         case DEFAULT: setDefault(e, child[0], ex(e, child[1])); break;
-        case RETURN:  p = ex(e, child[0]); if (p != NULL) e->returnValue = p; longjmp(e->returnContext, 1); break;
+        case RETURN:  p = ex(e, child[0]); if (p != NULL) e->returnValue = p;longjmp(e->returnContext, 1); break;
         /* plugin imports */
         case IMPORT:  import(child[0]); break;
         /* assignment */
@@ -258,16 +282,23 @@ ASTnode* ex(Env *e, ASTnode *p) {
 }
 
 /* handle function calls */
-ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, ASTnode *args) {
+ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, argList *a) {
     if (fnNode->type == typeId)
         MkvsynthError("reference to undefined function \"%s\"", fnNode->var.name);
     if (fnNode->type != typeFn)
         MkvsynthError("expected function, got %s", typeNames[fnNode->type]);
 
+    /* check argument order */
+    int i;
+    for (i = 0; i < a->nargs - 1; i++) {
+        if (a->args[i].type == typeOptArg && a->args[i+1].type == typeArg)
+            MkvsynthError("optional arguments must follow mandatory arguments in function \"%s\"", fnNode->fn.name);
+    }
+    
     if (fnNode->fn.type == fnCore)
-        p = (*(fnNode->fn.core.fnPtr))(p, args);
+        p = (*(fnNode->fn.core.fnPtr))(p, a);
     else
-        p = userDefFnCall(e, fnNode, args);
+        p = userDefFnCall(e, fnNode, a);
 
     return p;
 }
@@ -284,9 +315,33 @@ void funcDefine(Env *e, ASTnode *name, ASTnode *params, ASTnode *body) {
     p->fn.name = name->id;
     p->fn.user.body = body;
 
-    /* split parameters into mandatory and optional */
-    if (splitMandOpt(params, &p->fn.user.params, &p->fn.user.opts))
-        MkvsynthError("optional parameters must follow mandatory parameters in function %s", p->fn.name);
+    /* create parameter list */
+    p->fn.user.params = malloc(sizeof(argList));
+    argList *fnParams = p->fn.user.params; /* for convenience */
+    int i;
+    if (params) {
+        /* count number of parameters */
+        fnParams->nargs = 1;
+        ASTnode *traverse = params;
+        while ((traverse = traverse->next))
+            fnParams->nargs++;
+        /* allocate space for parameters */
+        fnParams->args = malloc(fnParams->nargs * sizeof(varNode));
+        /* copy parameters */
+        for (i = 0, traverse = params; traverse; traverse = traverse->next, i++) {
+            fnParams->args[i].type = traverse->type;
+            fnParams->args[i].name = traverse->var.name;
+            fnParams->args[i].value = newNode();
+            fnParams->args[i].value->type = traverse->var.type;
+        }
+    }
+
+    /* check argument ordering */
+    for (i = 0; i < fnParams->nargs - 1; i++) {
+        printf("%s\n", typeNames[fnParams->args[i].value->type]);
+        if (fnParams->args[i].type == typeOptParam && fnParams->args[i+1].type == typeParam)
+            MkvsynthError("optional parameters must follow mandatory parameters in function %s", p->fn.name);
+    }
 
     /* add to local function table */
     p->next = e->fnTable;
@@ -294,17 +349,19 @@ void funcDefine(Env *e, ASTnode *name, ASTnode *params, ASTnode *body) {
 }
 
 /* get optional arguments in a function call */
-void* getOptArg(ASTnode *args, char *name, int type) {
-    ASTnode *traverse = args;
-    for (traverse = args; traverse != NULL; traverse = traverse->next) {
-        if (traverse->type == typeOptArg && !(strncmp(traverse->var.name, name, strlen(name)))) {
-            if (type != traverse->var.value->type)
-                MkvsynthError("type mismatch: optional argument \"%s\" expected %s, got %s", name, typeNames[type], typeNames[traverse->var.value->type]);
+void* getOptArg(argList *a, char *name, int type) {
+    int i;
+    for (i = 0; i < a->nargs; i++) {
+        if (a->args[i].type == typeArg)
+            continue;
+        if (!(strcmp(a->args[i].name, name))) {
+            if (a->args[i].value->type != type)
+                MkvsynthError("type mismatch: optional argument \"%s\" expected %s, got %s", name, typeNames[type], typeNames[a->args[i].value->type]);
             switch (type) {
-                case typeNum:  return &traverse->var.value->num;
-                case typeBool: return &traverse->var.value->bool;
-                case typeStr:  return traverse->var.value->str;
-                case typeClip: return traverse->var.value->clipIn;
+                case typeNum:  return &a->args[i].value->num;
+                case typeBool: return &a->args[i].value->bool;
+                case typeStr:  return a->args[i].value->str;
+                case typeClip: return a->args[i].value->clipIn;
             }
         }
     }
@@ -371,71 +428,20 @@ void MkvsynthError(char *error, ...) {
     exit(1);
 }
 
-/* evaluate function arguments */
-ASTnode* reduceArgs(Env *e, ASTnode *p) {
-    if (!p)
-        return NULL;
-
-    /* recurse to next argument */
-    ASTnode *next = reduceArgs(e, p->next);
-    /* reduce argument */
-    p = ex(e, p);
-    /* reduce optional argument */
-    if (p->type == typeOptArg)
-        p->var.value = ex(e, p->var.value);
-    /* link nodes back together */
-    p->next = next;
-    return p;
-}
-
 /* process a default statement */
 ASTnode* setDefault(Env *e, ASTnode *paramNode, ASTnode *valueNode) {
     /* identify parameter */
     paramNode = getVar(e, paramNode->id);
-    /* check that paramNode is an unset optional parameter */
-    if (paramNode->var.opt == 1 && paramNode->var.value == NULL)
-        assign(e, paramNode, valueNode);
-    return paramNode;
-}
+    if (paramNode == NULL)
+        MkvsynthError("could not set default of undefined parameter %s", paramNode->id);
+    if (paramNode->type != typeOptArg)
+        MkvsynthError("could not set default of mandatory parameter %s", paramNode->id);
+    if (paramNode->var.value != NULL)
+        MkvsynthError("value of %s already set", paramNode->id); /* TODO: make this a warning */
 
-/* split a list of nodes into mandatory and optional lists */
-/* return 0 on success, 1 if list is improperly ordered */
-int splitMandOpt(ASTnode *list, ASTnode **mand, ASTnode **opts) {
-    /* no nodes */
-    if (list == NULL) {
-        *mand = *opts = NULL;
-        return 0;
-    }
-    /* one node */
-    if (list->next == NULL) {
-        *mand = list->var.opt == 1 ? NULL : list;
-        *opts = list->var.opt == 1 ? list : NULL;
-        return 0;
-    }
-    /* more than one node */
-    /* check ordering */
-    ASTnode *traverse = list;
-    char check = 0;
-    while (traverse) {
-        if (traverse->var.opt == 1)
-            check = 1;
-        else if (check == 1)
-            return 1;
-        traverse = traverse->next;
-    }
-    /* no mandatory arguments */
-    if (list->var.opt == 1) {
-        *mand = NULL;
-        *opts = list;
-        return 0;
-    }
-    *mand = list;
-    traverse = list;
-    while (traverse->next && traverse->next->var.opt != 1)
-        traverse = traverse->next;
-    *opts = traverse->next;
-    traverse->next = NULL;
-    return 0;
+    assign(e, paramNode, valueNode);
+    paramNode->type = typeVar;
+    return paramNode;
 }
 
 /* process a ternary expression */
@@ -459,76 +465,50 @@ ASTnode* unaryOp(ASTnode* p, ASTnode* c1, int op) {
 }
 
 /* process a user-defined function call */
-ASTnode* userDefFnCall(Env *e, ASTnode *fnNode, ASTnode *args) {
+ASTnode* userDefFnCall(Env *e, ASTnode *fnNode, argList *a) {
     /* create new environment */
     Env *local = (Env *) malloc(sizeof(Env));
     local->parent = e;
     local->returnValue = newNode();
     local->returnValue->type = typeFn; /* default return value */
-    /* record function arguments in local variable table */
-    ASTnode *pTraverse = fnNode->fn.user.params;
-    while (pTraverse) {
-        putVar(local, pTraverse->var.name);
-        pTraverse = pTraverse->next;
-    }
-    pTraverse = fnNode->fn.user.opts;
-    while (pTraverse) {
-        putVar(local, pTraverse->var.name)->var.opt = 1;
-        pTraverse = pTraverse->next;
-    }
-
-    /* split arguments into mandatory and optional */
-    ASTnode *mandargs, *optargs;
-    if (splitMandOpt(args, &mandargs, &optargs))
-        MkvsynthError("optional arguments must follow mandatory arguments in function %s", fnNode->fn.name);
+    
+    /* for convenience */
+    argList *p = fnNode->fn.user.params;
 
     /* check argument number */
-    int i = 0, j = 0;
-    pTraverse = fnNode->fn.user.params;
-    ASTnode *aTraverse = mandargs;
-    while (pTraverse && ++i)
-        pTraverse = pTraverse->next;
-    while (aTraverse && ++j)
-        aTraverse = aTraverse ->next;
-    if (i != j)
-        MkvsynthError("%s expected %d mandatory argument%s, got %d", fnNode->fn.name, i, (i == 1) ? "" : "s", j);
+    int nMandArgs = 0, nMandParams = 0;
+    while (a->args && a->args[nMandArgs].type == typeArg) nMandArgs++;
+    while (p->args && p->args[nMandParams].type == typeParam) nMandParams++;
+    if (nMandArgs != nMandParams)
+        MkvsynthError("%s expected %d mandatory argument%s, got %d", fnNode->fn.name, nMandParams, (nMandParams == 1) ? "" : "s", nMandArgs);
 
-    /* check for type mismatches */
-    pTraverse = fnNode->fn.user.params;
-    aTraverse = mandargs;
-    while (pTraverse && aTraverse) {
-        if (pTraverse->var.type != aTraverse->type)
+    /* check mandatory args for type mismatches */
+    int i;
+    for (i = 0; i < nMandParams; i++) {
+        if (a->args[i].value->type != p->args[i].value->type)
             MkvsynthError("type mismatch: arg %d of %s expected %s, got %s", 
-                i, fnNode->fn.name, typeNames[pTraverse->var.type], typeNames[aTraverse->type]);
-        pTraverse = pTraverse->next;
-        aTraverse = aTraverse->next;
-    }
-
-    /* all is well; record vars in local table and assign value */
-    pTraverse = fnNode->fn.user.params;
-    aTraverse = args;
-    while (pTraverse && aTraverse) {
-        assign(e, getVar(local, pTraverse->var.name), aTraverse);
-        pTraverse = pTraverse->next;
-        aTraverse = aTraverse->next;
+                i+1, fnNode->fn.name, typeNames[p->args[i].value->type], typeNames[a->args[i].value->type]);
+        /* all is well; create local variable and set value */
+        assign(e, putVar(local, p->args[i].name), a->args[i].value);
     }
 
     /* check optional arguments */
-    aTraverse = optargs;
-    while (aTraverse) {
-        /* check that parameter exists */
-        pTraverse = fnNode->fn.user.opts;
-        while (pTraverse && strcmp(pTraverse->var.name, aTraverse->var.name) != 0)
-            pTraverse = pTraverse->next;
-        if (pTraverse == NULL)
-            MkvsynthError("%s is not an optional parameter of function %s", aTraverse->var.name, fnNode->fn.name);
+    for (i = nMandArgs; i < a->nargs; i++) {
+        /* check that optional parameter exists */
+        int j = nMandParams;
+        for (j = nMandParams; j < p->nargs; j++) {
+            if (!strcmp(a->args[i].name, p->args[j].name))
+                break;
+        }
+        if (j == p->nargs)
+            MkvsynthError("%s is not an optional parameter of function %s", a->args[i].name, fnNode->fn.name);
         /* check that types match */
-        if (pTraverse->var.type != aTraverse->var.value->type)
-            MkvsynthError("type mismatch: opt arg %s of %s expected %s, got %s",
-                pTraverse->var.name, fnNode->fn.name, typeNames[pTraverse->var.type], typeNames[aTraverse->var.type]);
+        if (a->args[i].value->type != p->args[i].value->type)
+            MkvsynthError("type mismatch: optional argument \"%s\" of function \"%s\" expected %s, got %s",
+                p->args[i].name, fnNode->fn.name, typeNames[p->args[i].value->type], typeNames[a->args[i].value->type]);
         /* assign value */
-        assign(e, getVar(local, pTraverse->var.name), aTraverse->var.value);
-        aTraverse = aTraverse->next;
+        putVar(local, p->args[i].name)->type = typeOptParam;
+        assign(e, getVar(local, p->args[i].name), a->args[i].value);
     }
 
     /* execute a copy of the function body in the local environment */
