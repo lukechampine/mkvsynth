@@ -39,18 +39,18 @@ void *crop(void *filterParams) {
 	return NULL;
 }
 
-ASTnode *crop_AST(ASTnode *p, ASTnode *args) {
+ASTnode *crop_AST(ASTnode *p, argList *a) {
 	struct CropParams *params = malloc(sizeof(struct CropParams));
 
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("crop", args, 5, typeClip, typeNum, typeNum, typeNum, typeNum);
-	MkvsynthOutput *input = MANDCLIP();
-	params->left = (unsigned long long)MANDNUM();
-	params->top = (unsigned long long)MANDNUM();
-	params->right = (unsigned long long)MANDNUM();
-	params->bottom = (unsigned long long)MANDNUM();
+	checkArgs("crop", a, 5, typeClip, typeNum, typeNum, typeNum, typeNum);
+	MkvsynthOutput *input = MANDCLIP(0);
+	params->left = (unsigned long long)MANDNUM(1);
+	params->top = (unsigned long long)MANDNUM(2);
+	params->right = (unsigned long long)MANDNUM(3);
+	params->bottom = (unsigned long long)MANDNUM(4);
 
 	params->input = createInputBuffer(input);
 	params->output = createOutputBuffer();
@@ -67,38 +67,26 @@ ASTnode *crop_AST(ASTnode *p, ASTnode *args) {
 	////////////////////
 	// Error Checking //
 	////////////////////
-	if(isMetaDataValid(params->input->metaData) != 1) {
-		printf("Crop Error: invalid input!\n");
-		exit(0);
-	}
+	if(isMetaDataValid(params->input->metaData) != 1)
+		MkvsynthError("crop: invalid input!");
 
-	if(isMetaDataValid(params->output->metaData) != 1) {
-		printf("Crop Error: invalid ouput resolution!\n");
-		exit(0);
-	}
+	if(isMetaDataValid(params->output->metaData) != 1)
+		MkvsynthError("crop: invalid ouput resolution!");
 
 	MkvsynthMetaData temp = *params->output->metaData;
 	temp.width = params->left;
-	if(isMetaDataValid(&temp) != 1) {
-		printf("Crop Error: invalid crop value (left)\n");
-		exit(0);
-	}
+	if(isMetaDataValid(&temp) != 1)
+		MkvsynthError("crop: invalid crop value (left)");
 
 	temp.width = params->right;
-	if(isMetaDataValid(&temp) != 1) {
-		printf("Crop Error: invalid crop value (right)\n");
-		exit(0);
-	}
+	if(isMetaDataValid(&temp) != 1)
+		MkvsynthError("crop: invalid crop value (right)");
 
-	if((params->left + params->right) > input->metaData->width) {
-		printf("You cannot crop that many columns! Insufficient video width!\n");
-		exit(0);
-	}
+	if((params->left + params->right) > input->metaData->width)
+		MkvsynthError("crop: cannot crop that many columns! Insufficient video width!");
    
-	if((params->top + params->bottom) > input->metaData->height) {
-		printf("You cannot crop that many rows! Insufficient video height!\n");
-		exit(0);
-	}
+	if((params->top + params->bottom) > input->metaData->height)
+		MkvsynthError("crop: cannot crop that many rows! Insufficient video height!");
 
 	mkvsynthQueue((void *)params, crop);
 	RETURNCLIP(params->output);

@@ -32,30 +32,26 @@ void *convertColorspace(void *filterParams) {
 	return NULL;
 }
 
-ASTnode *convertColorspace_AST(ASTnode *p, ASTnode *args) {
+ASTnode *convertColorspace_AST(ASTnode *p, argList *a) {
 	struct ConvertColorspaceParams *params = malloc(sizeof(struct ConvertColorspaceParams));
 
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("convertColorspace", args, 2, typeClip, typeStr);
-	MkvsynthOutput *input = MANDCLIP();
-	char *colorspaceStr = MANDSTR();
+	checkArgs("convertColorspace", a, 2, typeClip, typeStr);
+	MkvsynthOutput *input = MANDCLIP(0);
+	char *colorspaceStr = MANDSTR(1);
 
-	if(strcmp(colorspaceStr, "rgb24") || strcmp(colorspaceStr, "MKVS_RGB24")) {
+	if(strcmp(colorspaceStr, "rgb24") || strcmp(colorspaceStr, "MKVS_RGB24"))
 		params->colorspace = MKVS_RGB24;
-	} else {
-		printf("convertColorspace Error: Currently the only valid output colorspace is rgb24!\n");
-		exit(0);
-	}
+	else
+		MkvsynthError("convertColorspace: Currently the only valid output colorspace is rgb24!");
 
 	params->input = createInputBuffer(input);
 	params->output = createOutputBuffer();
 
-	if(params->input->metaData->colorspace != MKVS_RGB48) {
-		printf("convertColorspace Error: Currently the only valid input colorspace is rgb48!\n");
-		exit(0);
-	}
+	if(params->input->metaData->colorspace != MKVS_RGB48)
+		MkvsynthError("convertColorspace: Currently the only valid input colorspace is rgb48!");
 
 	///////////////
 	// Meta Data //

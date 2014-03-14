@@ -39,21 +39,20 @@ void *x264Encode(void *filterParams) {
 	return NULL;
 }
 
-void x264Encode_AST(ASTnode *p, ASTnode *args) {
+ASTnode *x264Encode_AST(ASTnode *p, argList *a) {
 	struct x264EncodeParams *params = malloc(sizeof(struct x264EncodeParams));
 
-	checkArgs("writeRawFile", args, 2, typeClip, typeStr);
-	MkvsynthOutput *output = MANDCLIP();
-	params->filename = MANDSTR();
+	checkArgs("x264Encode", a, 2, typeClip, typeStr);
+	MkvsynthOutput *output = MANDCLIP(0);
+	params->filename = MANDSTR(1);
 	params->x264params = OPTSTR("params", "");
 	params->input = createInputBuffer(output);
 
-	if(isMetaDataValid(params->input->metaData) != 1) {
-		printf("x264Encode Error: invalid colorspace!\n");
-		exit(0);
-	}
+	if(isMetaDataValid(params->input->metaData) != 1)
+		MkvsynthError("x264Encode: invalid colorspace!");
 
 	mkvsynthQueue((void *)params, x264Encode);
+    RETURNNULL();
 }
 
 #endif

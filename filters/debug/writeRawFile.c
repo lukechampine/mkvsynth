@@ -30,12 +30,12 @@ void *writeRawFile(void *filterParams) {
 	return NULL;
 }
 
-void writeRawFile_AST(ASTnode *p, ASTnode *args) {
+ASTnode *writeRawFile_AST(ASTnode *p, argList *a) {
 	struct writeRawFileParams *params = malloc(sizeof(struct writeRawFileParams));
 
-	checkArgs("writeRawFile", args, 2, typeClip, typeStr);
-	MkvsynthOutput *output = MANDCLIP();
-	char *filename = MANDSTR();
+	checkArgs("writeRawFile", a, 2, typeClip, typeStr);
+	MkvsynthOutput *output = MANDCLIP(0);
+	char *filename = MANDSTR(1);
 
 	////////////////////
 	// Error Checking //
@@ -49,6 +49,7 @@ void writeRawFile_AST(ASTnode *p, ASTnode *args) {
 	params->input = createInputBuffer(output);
 
 	mkvsynthQueue((void *)params, writeRawFile);
+    RETURNNULL();
 }
 
 #endif

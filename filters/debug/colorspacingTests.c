@@ -36,14 +36,14 @@ void *colorspacingTests(void *filterParams) {
 	return NULL;
 }
 
-ASTnode *colorspacingTests_AST(ASTnode *p, ASTnode *args) {
+ASTnode *colorspacingTests_AST(ASTnode *p, argList *a) {
 	struct ColorspacingTestsParams *params = malloc(sizeof(struct ColorspacingTestsParams));
 
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("colorspacingTests", args, 1, typeClip);
-	MkvsynthOutput *input = MANDCLIP();
+	checkArgs("colorspacingTests", a, 1, typeClip);
+	MkvsynthOutput *input = MANDCLIP(0);
 
 	params->input = createInputBuffer(input);
 	params->output = createOutputBuffer();

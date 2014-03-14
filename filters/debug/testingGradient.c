@@ -26,8 +26,8 @@ void *testingGradient(void *filterParams) {
 	return NULL;
 }
 
-ASTnode *testingGradient_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("testingGradient", args, 0);
+ASTnode *testingGradient_AST(ASTnode *p, argList *a) {
+	checkArgs("testingGradient", a, 0);
 	long long numFrames = (long long)OPTNUM("frames", 1000);
 	long long width = (long long)OPTNUM("width", 200);
 	long long height = (long long)OPTNUM("height", 200);
@@ -35,10 +35,8 @@ ASTnode *testingGradient_AST(ASTnode *p, ASTnode *args) {
 	////////////////////
 	// Error Checking //
 	////////////////////
-	if(numFrames < 0 || width < 0 || height < 0) {
-		printf("Error: width, height, and frames must be numbers greater than 0\n");
-		exit(0);
-	}
+	if(numFrames < 0 || width < 0 || height < 0)
+		MkvsynthError("width, height, and frames must be numbers greater than 0");
 
 	MkvsynthOutput *output = createOutputBuffer();
 

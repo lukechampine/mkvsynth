@@ -33,16 +33,16 @@ void *removeRange(void *filterParams) {
 	return NULL;
 }
 
-ASTnode *removeRange_AST(ASTnode *p, ASTnode *args) {
+ASTnode *removeRange_AST(ASTnode *p, argList *a) {
 	struct RemoveRangeParams *params = malloc(sizeof(struct RemoveRangeParams));
 
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("removeRange", args, 3, typeClip, typeNum, typeNum);
-	MkvsynthOutput *input = MANDCLIP();
-	params->first = (unsigned long long)MANDNUM();
-	params->last = (unsigned long long)MANDNUM();
+	checkArgs("removeRange", a, 3, typeClip, typeNum, typeNum);
+	MkvsynthOutput *input = MANDCLIP(0);
+	params->first = (unsigned long long)MANDNUM(1);
+	params->last = (unsigned long long)MANDNUM(2);
 
 	params->input = createInputBuffer(input);
 	params->output = createOutputBuffer();
