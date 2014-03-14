@@ -50,7 +50,7 @@ ASTnode* log_AST(ASTnode *p, argList *a) {
 /* generalized print function; will print any number of args */
 ASTnode* print_AST(ASTnode *p, argList *a) {
     if (a->nargs == 0)
-        MkvsynthError("print expected at least one argument");
+        MkvsynthError("print: expected at least one argument");
     int i;
     for (i = 0; i < a->nargs; i++) {
 		switch (a->args[i].value->type) {
@@ -74,12 +74,12 @@ ASTnode* read_AST(ASTnode *p, argList *a) {
 ASTnode* show_AST(ASTnode *p, argList *a) {
     /* can't use checkArgs here */
 	if (a->nargs != 1)
-	    MkvsynthError("show expected 1 argument, got %d", a->nargs);
+	    MkvsynthError("show: expected 1 argument, got %d", a->nargs);
 	switch (a->args[0].value->type) {
 		case typeNum:  p->str = malloc(256); sprintf(p->str, "%.10g", MANDNUM(0)); break;
 		case typeBool: p->str = MANDBOOL(0) == TRUE ? "True" : "False"; break;
 		case typeStr:  p->str = MANDSTR(0); break;
-		default: MkvsynthError("show is not defined for %ss", typeNames[a->args[0].value->type]);
+        default: MkvsynthError("show: not defined for %ss", typeNames[a->args[0].value->type]);
 	}
 	p->type = typeStr;
 	return p;
@@ -109,7 +109,7 @@ static char* unesc(char* str) {
 				case '\\':str[i] = '\\'; break;
 				case '\'':str[i] = '\''; break;
 				case '\"':str[i] = '\"'; break;
-				default: MkvsynthError("unknown literal \"\\%c\"", str[i+1]);
+                default: MkvsynthError("print: unknown literal \"\\%c\"", str[i+1]);
 			}
 			for (j = i + 1; str[j] != '\0'; j++)
 				str[j] = str[j+1];

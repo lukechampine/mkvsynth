@@ -187,7 +187,7 @@ void chain(ASTnode *valueNode, ASTnode *fnNode) {
 void checkArgs(char *funcName, argList *a, int numArgs, ...) {
     /* check number of arguments */
     if (a->nargs != numArgs)
-        MkvsynthError("%s expected %d argument%s, got %d", funcName, numArgs, (numArgs == 1 ? "" : "s"), a->nargs);
+        MkvsynthError("%s: expected %d argument%s, got %d", funcName, numArgs, (numArgs == 1 ? "" : "s"), a->nargs);
     /* check types */
     int i;
     va_list ap;
@@ -195,7 +195,7 @@ void checkArgs(char *funcName, argList *a, int numArgs, ...) {
     for (i = 0; i < numArgs; i++) {
         nodeType argType = va_arg(ap, nodeType);
         if (a->args[i].value->type != argType)
-            MkvsynthError("type mismatch: arg %d of %s expected %s, got %s", i+1, funcName, typeNames[argType], typeNames[a->args[i].value->type]);
+            MkvsynthError("%s: arg %d expected %s, got %s", funcName, i+1, typeNames[argType], typeNames[a->args[i].value->type]);
     }
     va_end(ap);
 }
