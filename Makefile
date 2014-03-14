@@ -46,7 +46,7 @@ FILTERS_UTIL_OBJ =  filters/utils/bilinearResize.o                             \
 X264_OBJ = filters/coding/x264Encode.o
 
 # always rebuild these, since they change depending on -DDELBROT
-delbrot/lex.yy.o: .FORCE
+delbrot/lex.yy.o: delbrot/lex.yy.c .FORCE
 delbrot/internalfilters.o: .FORCE
 .FORCE:
 
