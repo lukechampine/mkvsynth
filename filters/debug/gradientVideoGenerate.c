@@ -27,7 +27,7 @@ void *gradientVideoGenerate(void *filterParams) {
 }
 
 ASTnode *gradientVideoGenerate_AST(ASTnode *p, argList *a) {
-	checkArgs("gradientVideoGenerate", a, 0);
+	checkArgs(a, 0);
 	long long numFrames = (long long)OPTNUM("frames", 1000);
 	long long width = (long long)OPTNUM("width", 200);
 	long long height = (long long)OPTNUM("height", 200);
@@ -36,7 +36,7 @@ ASTnode *gradientVideoGenerate_AST(ASTnode *p, argList *a) {
 	// Error Checking //
 	////////////////////
 	if(numFrames < 0 || width < 0 || height < 0)
-		MkvsynthError("Error: width, height, and frames must be numbers greater than 0");
+		MkvsynthError("width, height, and frames must be numbers greater than 0");
 
 	MkvsynthOutput *output = createOutputBuffer();
 

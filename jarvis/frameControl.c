@@ -126,10 +126,8 @@ void putFrame(MkvsynthOutput *params, uint8_t *payload) {
 void clearFrame(MkvsynthFrame *usedFrame) {
 
 #ifdef DEBUG
-	if(usedFrame->filtersRemaining != 0) {
-		printf("clearFrame ERROR: filtersRemaining should equal 0!\n");
-		exit(0);
-	}
+	if(usedFrame->filtersRemaining != 0)
+		MkvsynthError("clearFrame: filtersRemaining should equal 0!");
 #endif
 
 	pthread_mutex_destroy(&usedFrame->lock);

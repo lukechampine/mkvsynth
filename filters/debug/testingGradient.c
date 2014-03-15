@@ -27,7 +27,7 @@ void *testingGradient(void *filterParams) {
 }
 
 ASTnode *testingGradient_AST(ASTnode *p, argList *a) {
-	checkArgs("testingGradient", a, 0);
+	checkArgs(a, 0);
 	long long numFrames = (long long)OPTNUM("frames", 1000);
 	long long width = (long long)OPTNUM("width", 200);
 	long long height = (long long)OPTNUM("height", 200);

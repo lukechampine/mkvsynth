@@ -80,7 +80,7 @@ ASTnode *bilinearResize_AST(ASTnode *p, argList *a) {
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("bilinearResize", a, 3, typeClip, typeNum, typeNum);
+	checkArgs(a, 3, typeClip, typeNum, typeNum);
 	MkvsynthOutput *input = MANDCLIP(0);
 
 	params->input = createInputBuffer(input);
@@ -99,10 +99,10 @@ ASTnode *bilinearResize_AST(ASTnode *p, argList *a) {
 	// Error Checking //
 	////////////////////
 	if(isMetaDataValid(params->input->metaData) != 1)
-		MkvsynthError("bilinearResize: invalid input!");
+		MkvsynthError("invalid input!");
 
 	if(isMetaDataValid(params->output->metaData) != 1)
-		MkvsynthError("bilinearResize: invalid ouput!");
+		MkvsynthError("invalid ouput!");
 
 	mkvsynthQueue((void *)params, bilinearResize);
 	RETURNCLIP(params->output);

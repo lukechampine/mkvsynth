@@ -20,7 +20,7 @@ void *writeRawFile(void *filterParams) {
 	int frame = 1;
 	while(workingFrame->payload != NULL) {
 		fwrite(workingFrame->payload, 1, getBytes(params->input->metaData), params->file);
-		printf("output frame %i\n", frame);
+		MkvsynthMessage("output frame %i", frame);
 		frame++;
 		clearReadOnlyFrame(workingFrame);
 		workingFrame = getReadOnlyFrame(params->input);
@@ -33,7 +33,7 @@ void *writeRawFile(void *filterParams) {
 ASTnode *writeRawFile_AST(ASTnode *p, argList *a) {
 	struct writeRawFileParams *params = malloc(sizeof(struct writeRawFileParams));
 
-	checkArgs("writeRawFile", a, 2, typeClip, typeStr);
+	checkArgs(a, 2, typeClip, typeStr);
 	MkvsynthOutput *output = MANDCLIP(0);
 	char *filename = MANDSTR(1);
 
@@ -41,10 +41,8 @@ ASTnode *writeRawFile_AST(ASTnode *p, argList *a) {
 	// Error Checking //
 	////////////////////
 	params->file = fopen(filename, "w");
-	if(params->file == NULL) {
-		printf("Could not open the output file!\n");	
-		exit(0);
-	}
+	if(params->file == NULL)
+		MkvsynthError("Could not open the output file!")
 
 	params->input = createInputBuffer(output);
 

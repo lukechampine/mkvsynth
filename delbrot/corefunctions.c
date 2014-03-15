@@ -29,7 +29,7 @@ fnEntry coreFunctions[] = {
 /* function definitions */
 /* exit with error message if assertion fails */
 ASTnode* assert_AST(ASTnode *p, argList *a) {
-	checkArgs("assert", a, 2, typeBool, typeStr);
+	checkArgs(a, 2, typeBool, typeStr);
 	if (MANDBOOL(0) == FALSE)
 		MkvsynthError(MANDSTR(1));
 	RETURNNULL();
@@ -37,13 +37,13 @@ ASTnode* assert_AST(ASTnode *p, argList *a) {
 
 /* cosine */
 ASTnode* cos_AST(ASTnode *p, argList *a) {
-	checkArgs("cos", a, 1, typeNum);
+	checkArgs(a, 1, typeNum);
 	RETURNNUM(cos(MANDNUM(0)));
 }
 
 /* natural log */
 ASTnode* log_AST(ASTnode *p, argList *a) {
-	checkArgs("log", a, 1, typeNum);
+	checkArgs(a, 1, typeNum);
     RETURNNUM(log(MANDNUM(0)));
 }
 
@@ -57,7 +57,7 @@ ASTnode* print_AST(ASTnode *p, argList *a) {
 			case typeNum: printf("%.10g ", MANDNUM(i)); break;
 			case typeBool: printf("%s ", MANDBOOL(i) == TRUE ? "True" : "False"); break;
 			case typeStr: printf("%s ", unesc(MANDSTR(i))); break;
-            default: printf("[could not print type %s] ", typeNames[a->args[i].value->type]); break; /* TODO: change to warning */
+            default: MkvsynthWarning("could not print type %s", typeNames[a->args[i].value->type]); break;
 		}
 	}
 	printf("\n");
@@ -66,7 +66,7 @@ ASTnode* print_AST(ASTnode *p, argList *a) {
 
 /* convert string to number */
 ASTnode* read_AST(ASTnode *p, argList *a) {
-	checkArgs("read", a, 1, typeStr);
+	checkArgs(a, 1, typeStr);
 	RETURNNUM(atof(MANDSTR(0)));
 }
 
@@ -74,12 +74,12 @@ ASTnode* read_AST(ASTnode *p, argList *a) {
 ASTnode* show_AST(ASTnode *p, argList *a) {
     /* can't use checkArgs here */
 	if (a->nargs != 1)
-	    MkvsynthError("show: expected 1 argument, got %d", a->nargs);
+	    MkvsynthError("expected 1 argument, got %d", a->nargs);
 	switch (a->args[0].value->type) {
 		case typeNum:  p->str = malloc(256); sprintf(p->str, "%.10g", MANDNUM(0)); break;
 		case typeBool: p->str = MANDBOOL(0) == TRUE ? "True" : "False"; break;
 		case typeStr:  p->str = MANDSTR(0); break;
-        default: MkvsynthError("show: not defined for %ss", typeNames[a->args[0].value->type]);
+        default: MkvsynthError("not defined for %ss", typeNames[a->args[0].value->type]);
 	}
 	p->type = typeStr;
 	return p;
@@ -87,13 +87,13 @@ ASTnode* show_AST(ASTnode *p, argList *a) {
 
 /* sine */
 ASTnode* sin_AST(ASTnode *p, argList *a) {
-	checkArgs("sin", a, 1, typeNum);
+	checkArgs(a, 1, typeNum);
 	RETURNNUM(sin(MANDNUM(0)));
 }
 
 /* square root */
 ASTnode* sqrt_AST(ASTnode *p, argList *a) {
-	checkArgs("sqrt", a, 1, typeNum);
+	checkArgs(a, 1, typeNum);
 	RETURNNUM(sqrt(MANDNUM(0)));
 }
 
@@ -109,7 +109,7 @@ static char* unesc(char* str) {
 				case '\\':str[i] = '\\'; break;
 				case '\'':str[i] = '\''; break;
 				case '\"':str[i] = '\"'; break;
-                default: MkvsynthError("print: unknown literal \"\\%c\"", str[i+1]);
+                default: MkvsynthError("unknown literal \"\\%c\"", str[i+1]);
 			}
 			for (j = i + 1; str[j] != '\0'; j++)
 				str[j] = str[j+1];

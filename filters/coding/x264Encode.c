@@ -42,14 +42,14 @@ void *x264Encode(void *filterParams) {
 ASTnode *x264Encode_AST(ASTnode *p, argList *a) {
 	struct x264EncodeParams *params = malloc(sizeof(struct x264EncodeParams));
 
-	checkArgs("x264Encode", a, 2, typeClip, typeStr);
+	checkArgs(a, 2, typeClip, typeStr);
 	MkvsynthOutput *output = MANDCLIP(0);
 	params->filename = MANDSTR(1);
 	params->x264params = OPTSTR("params", "");
 	params->input = createInputBuffer(output);
 
 	if(isMetaDataValid(params->input->metaData) != 1)
-		MkvsynthError("x264Encode: invalid colorspace!");
+		MkvsynthError("invalid colorspace!");
 
 	mkvsynthQueue((void *)params, x264Encode);
     RETURNNULL();

@@ -45,7 +45,7 @@ ASTnode *crop_AST(ASTnode *p, argList *a) {
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("crop", a, 5, typeClip, typeNum, typeNum, typeNum, typeNum);
+	checkArgs(a, 5, typeClip, typeNum, typeNum, typeNum, typeNum);
 	MkvsynthOutput *input = MANDCLIP(0);
 	params->left = (unsigned long long)MANDNUM(1);
 	params->top = (unsigned long long)MANDNUM(2);
@@ -68,25 +68,25 @@ ASTnode *crop_AST(ASTnode *p, argList *a) {
 	// Error Checking //
 	////////////////////
 	if(isMetaDataValid(params->input->metaData) != 1)
-		MkvsynthError("crop: invalid input!");
+		MkvsynthError("invalid input!");
 
 	if(isMetaDataValid(params->output->metaData) != 1)
-		MkvsynthError("crop: invalid ouput resolution!");
+		MkvsynthError("invalid ouput resolution!");
 
 	MkvsynthMetaData temp = *params->output->metaData;
 	temp.width = params->left;
 	if(isMetaDataValid(&temp) != 1)
-		MkvsynthError("crop: invalid crop value (left)");
+		MkvsynthError("invalid crop value (left)");
 
 	temp.width = params->right;
 	if(isMetaDataValid(&temp) != 1)
-		MkvsynthError("crop: invalid crop value (right)");
+		MkvsynthError("invalid crop value (right)");
 
 	if((params->left + params->right) > input->metaData->width)
-		MkvsynthError("crop: cannot crop that many columns! Insufficient video width!");
+		MkvsynthError("cannot crop that many columns! Insufficient video width!");
    
 	if((params->top + params->bottom) > input->metaData->height)
-		MkvsynthError("crop: cannot crop that many rows! Insufficient video height!");
+		MkvsynthError("cannot crop that many rows! Insufficient video height!");
 
 	mkvsynthQueue((void *)params, crop);
 	RETURNCLIP(params->output);

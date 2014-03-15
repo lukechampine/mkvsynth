@@ -38,20 +38,20 @@ ASTnode *convertColorspace_AST(ASTnode *p, argList *a) {
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("convertColorspace", a, 2, typeClip, typeStr);
+	checkArgs(a, 2, typeClip, typeStr);
 	MkvsynthOutput *input = MANDCLIP(0);
 	char *colorspaceStr = MANDSTR(1);
 
 	if(strcmp(colorspaceStr, "rgb24") || strcmp(colorspaceStr, "MKVS_RGB24"))
 		params->colorspace = MKVS_RGB24;
 	else
-		MkvsynthError("convertColorspace: Currently the only valid output colorspace is rgb24!");
+		MkvsynthError("Currently the only valid output colorspace is rgb24!");
 
 	params->input = createInputBuffer(input);
 	params->output = createOutputBuffer();
 
 	if(params->input->metaData->colorspace != MKVS_RGB48)
-		MkvsynthError("convertColorspace: Currently the only valid input colorspace is rgb48!");
+		MkvsynthError("Currently the only valid input colorspace is rgb48!");
 
 	///////////////
 	// Meta Data //

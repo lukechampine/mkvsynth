@@ -39,7 +39,7 @@ ASTnode *removeRange_AST(ASTnode *p, argList *a) {
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("removeRange", a, 3, typeClip, typeNum, typeNum);
+	checkArgs(a, 3, typeClip, typeNum, typeNum);
 	MkvsynthOutput *input = MANDCLIP(0);
 	params->first = (unsigned long long)MANDNUM(1);
 	params->last = (unsigned long long)MANDNUM(2);

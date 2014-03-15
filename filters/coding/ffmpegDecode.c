@@ -49,9 +49,8 @@ void *ffmpegDecode(void *filterParams) {
 
 			if(params->frameFinished) {
 				currentFrame++;
-				if(currentFrame % 500 == 0) {
-					printf("Finished Frame %i\n", currentFrame);
-				}
+				if(currentFrame % 500 == 0)
+					MkvsynthMessage("Finished Frame %i", currentFrame);
 				sws_scale (
 					params->resizeContext,
 					(uint8_t const * const *)params->frame->data,
@@ -93,7 +92,7 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, argList *a) {
 	// Parse Input Arguments //
 	///////////////////////////
 	struct ffmpegDecode *params = malloc(sizeof(struct ffmpegDecode));
-	checkArgs("ffmpegDecode", a, 1, typeStr);
+	checkArgs(a, 1, typeStr);
 	char *filename = MANDSTR(0);
 	params->output = createOutputBuffer();
 
@@ -115,10 +114,10 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, argList *a) {
 	int avOpen = avformat_open_input(&params->formatContext, filename, NULL, NULL);
 
 	if(avOpen != 0)
-		MkvsynthError("ffmpegDecode: Input file could not be opened.");
+		MkvsynthError("Input file could not be opened.");
 	
 	if(avformat_find_stream_info(params->formatContext, NULL) < 0)
-		MkvsynthError("ffmpegDecode: Input file does not seem to be a video.");
+		MkvsynthError("Input file does not seem to be a video.");
 
 	av_dump_format(params->formatContext, 0, filename, 0);
 	
@@ -131,18 +130,18 @@ ASTnode* ffmpegDecode_AST(ASTnode *p, argList *a) {
 	}
 	
 	if(params->videoStream == -1)
-		MkvsynthError("ffmpegDecode: Input file does not seem to have a video stream.");
+		MkvsynthError("Input file does not seem to have a video stream.");
 
 	params->codecContext = params->formatContext->streams[params->videoStream]->codec;
 
 	params->codec = avcodec_find_decoder(params->codecContext->codec_id);
 	if(params->codec == NULL)
-		MkvsynthError("ffmpegDecode: Unrecognized video codec.");
+		MkvsynthError("Unrecognized video codec.");
 
 	int openCodec = avcodec_open2(params->codecContext, params->codec, &params->dictionary);
 
 	if(openCodec < 0)
-		MkvsynthError("ffmpegDecode: Failed to open codec.");
+		MkvsynthError("Failed to open codec.");
 
 	params->frame = avcodec_alloc_frame();
 	params->rgbFrame = avcodec_alloc_frame();

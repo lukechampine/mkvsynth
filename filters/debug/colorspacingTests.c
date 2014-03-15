@@ -42,13 +42,13 @@ ASTnode *colorspacingTests_AST(ASTnode *p, argList *a) {
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("colorspacingTests", a, 1, typeClip);
+	checkArgs(a, 1, typeClip);
 	MkvsynthOutput *input = MANDCLIP(0);
 
 	params->input = createInputBuffer(input);
 	params->output = createOutputBuffer();
 
-	printf("COLORSPACE: %i\n", input->metaData->colorspace);
+	MkvsynthMessage("COLORSPACE: %i", input->metaData->colorspace);
 
 	///////////////
 	// Meta Data //
