@@ -118,6 +118,8 @@ struct Plugin {
 /* function declarations */
 /* error handling */
 void MkvsynthError(char *, ...);
+void MkvsynthMessage(char *, ...);
+void MkvsynthWarning(char *, ...);
 /* AST creation */
 void freeNodes();
 ASTnode* append(ASTnode *, ASTnode *);
@@ -138,7 +140,7 @@ ASTnode* putFn(Env *, fnEntry);
 ASTnode* putVar(Env *, char const *);
 /* AST evaluation */
 ASTnode* ex(Env *, ASTnode *);
-void checkArgs(char *, argList *, int, ...);
+void checkArgs(argList *, int, ...);
 void* getOptArg(argList *, char *, int);
 
 /* global variables */

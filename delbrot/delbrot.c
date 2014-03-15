@@ -13,7 +13,7 @@ static ASTnode* assign(Env *, ASTnode *, ASTnode *);
 static ASTnode* assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
 static ASTnode* binaryOp(ASTnode *, ASTnode *, int, ASTnode *);
 static void     chain(ASTnode *, ASTnode *);
-       void     checkArgs(char *, argList *, int, ...);
+       void     checkArgs(argList *, int, ...);
 static ASTnode* copy(ASTnode *);
 static ASTnode* dereference(ASTnode *);
        ASTnode* ex(Env *, ASTnode *p);
@@ -24,6 +24,8 @@ static ASTnode* identify(Env *, ASTnode *);
 static void     ifelse(Env *, ASTnode *, ASTnode *, ASTnode *, ASTnode *);
 static void     import(ASTnode *);
        void     MkvsynthError(char *error, ...);
+       void     MkvsynthMessage(char *error, ...);
+       void     MkvsynthWarning(char *error, ...);
 static ASTnode* setDefault(Env *, ASTnode *, ASTnode *);
 static ASTnode* ternary(Env *, ASTnode *, ASTnode *, ASTnode *);
 static ASTnode* unaryOp(ASTnode *, ASTnode *, int);
@@ -32,6 +34,7 @@ static ASTnode* userDefFnCall(Env *, ASTnode *, argList *);
 /* global variables */
 char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "function", "operation", "argument", "optional argument", "parameter", "optional parameter"};
 extern int linenumber;
+char *currentFunction = "";
 
 /* function definitions */
 /* transform a linked list of nodes into an argList */
@@ -184,10 +187,10 @@ void chain(ASTnode *valueNode, ASTnode *fnNode) {
 
 /* ensure that a function call is valid */
 /* TODO: check optional arguments */
-void checkArgs(char *funcName, argList *a, int numArgs, ...) {
+void checkArgs(argList *a, int numArgs, ...) {
     /* check number of arguments */
     if (a->nargs != numArgs)
-        MkvsynthError("%s: expected %d argument%s, got %d", funcName, numArgs, (numArgs == 1 ? "" : "s"), a->nargs);
+        MkvsynthError("expected %d argument%s, got %d", numArgs, (numArgs == 1 ? "" : "s"), a->nargs);
     /* check types */
     int i;
     va_list ap;
@@ -195,7 +198,7 @@ void checkArgs(char *funcName, argList *a, int numArgs, ...) {
     for (i = 0; i < numArgs; i++) {
         nodeType argType = va_arg(ap, nodeType);
         if (a->args[i].value->type != argType)
-            MkvsynthError("%s: arg %d expected %s, got %s", funcName, i+1, typeNames[argType], typeNames[a->args[i].value->type]);
+            MkvsynthError("arg %d expected %s, got %s", i+1, typeNames[argType], typeNames[a->args[i].value->type]);
     }
     va_end(ap);
 }
@@ -288,17 +291,23 @@ ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, argList *a) {
     if (fnNode->type != typeFn)
         MkvsynthError("expected function, got %s", typeNames[fnNode->type]);
 
+    /* set global variable */
+    currentFunction = fnNode->fn.name;
+
     /* check argument order */
     int i;
     for (i = 0; i < a->nargs - 1; i++) {
         if (a->args[i].type == typeOptArg && a->args[i+1].type == typeArg)
-            MkvsynthError("optional arguments must follow mandatory arguments in function \"%s\"", fnNode->fn.name);
+            MkvsynthError("optional arguments must follow mandatory arguments");
     }
     
     if (fnNode->fn.type == fnCore)
         p = (*(fnNode->fn.core.fnPtr))(p, a);
     else
         p = userDefFnCall(e, fnNode, a);
+
+    /* unset global variable */
+    currentFunction = "";
 
     return p;
 }
@@ -417,15 +426,35 @@ void import(ASTnode *pluginName) {
     pluginList = newPlugin;
 }
 
-/* display error message in red and exit */
+/* display error and current line number in red and exit */
 void MkvsynthError(char *error, ...) {
-    fprintf(stderr, "\x1B[31mdelbrot:%d error: ", linenumber);
+    fprintf(stderr, "\x1B[31mdelbrot:%d error: %s%s", linenumber, currentFunction, currentFunction[0] ? ": " : "");
     va_list arglist;
     va_start(arglist, error);
     vfprintf(stderr, error, arglist);
     va_end(arglist);
     fprintf(stderr, "\x1B[0m\n");
     exit(1);
+}
+
+/* display message in blue */
+void MkvsynthMessage(char *message, ...) {
+    fprintf(stderr, "\x1B[36m");
+    va_list arglist;
+    va_start(arglist, message);
+    vfprintf(stdout, message, arglist);
+    va_end(arglist);
+    fprintf(stdout, "\x1B[0m\n");
+}
+
+/* display warning and current line number in yellow */
+void MkvsynthWarning(char *warning, ...) {
+    fprintf(stderr, "\x1B[33mdelbrot:%d warning: %s%s", linenumber, currentFunction, currentFunction[0] ? ": " : "");
+    va_list arglist;
+    va_start(arglist, warning);
+    vfprintf(stderr, warning, arglist);
+    va_end(arglist);
+    fprintf(stderr, "\x1B[0m\n");
 }
 
 /* process a default statement */
