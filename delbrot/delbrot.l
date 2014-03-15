@@ -8,6 +8,7 @@ D    [0-9]
     #include "y.tab.h"
     int resWord(char *);
     int linenumber = 1;
+    ASTnode* go_AST(ASTnode *, argList *);
 %}
     /* don't keep scanning after EOF */
 %option noyywrap

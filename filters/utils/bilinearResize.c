@@ -74,14 +74,14 @@ void *bilinearResize(void *filterParams) {
 	return NULL;
 }
 
-ASTnode *bilinearResize_AST(ASTnode *p, ASTnode *args) {
+ASTnode *bilinearResize_AST(ASTnode *p, argList *a) {
 	struct BilinearResizeParams *params = malloc(sizeof(struct BilinearResizeParams));
 
 	///////////////////////
 	// Parameter Parsing //
 	///////////////////////
-	checkArgs("bilinearResize", args, 3, typeClip, typeNum, typeNum);
-	MkvsynthOutput *input = MANDCLIP();
+	checkArgs("bilinearResize", a, 3, typeClip, typeNum, typeNum);
+	MkvsynthOutput *input = MANDCLIP(0);
 
 	params->input = createInputBuffer(input);
 	params->output = createOutputBuffer();
@@ -90,23 +90,19 @@ ASTnode *bilinearResize_AST(ASTnode *p, ASTnode *args) {
 	// Meta Data //
 	///////////////
 	params->output->metaData->colorspace = input->metaData->colorspace;
-	params->output->metaData->width = (unsigned long long)MANDNUM();
-	params->output->metaData->height = (unsigned long long)MANDNUM();
+	params->output->metaData->width = (unsigned long long)MANDNUM(1);
+	params->output->metaData->height = (unsigned long long)MANDNUM(2);
 	params->output->metaData->fpsNumerator = input->metaData->fpsNumerator;
 	params->output->metaData->fpsDenominator = input->metaData->fpsDenominator;
 
 	////////////////////
 	// Error Checking //
 	////////////////////
-	if(isMetaDataValid(params->input->metaData) != 1) {
-		printf("Crop Error: invalid input!\n");
-		exit(0);
-	}
+	if(isMetaDataValid(params->input->metaData) != 1)
+		MkvsynthError("bilinearResize: invalid input!");
 
-	if(isMetaDataValid(params->output->metaData) != 1) {
-		printf("Crop Error: invalid ouput!\n");
-		exit(0);
-	}
+	if(isMetaDataValid(params->output->metaData) != 1)
+		MkvsynthError("bilinearResize: invalid ouput!");
 
 	mkvsynthQueue((void *)params, bilinearResize);
 	RETURNCLIP(params->output);

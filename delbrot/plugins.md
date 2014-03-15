@@ -8,25 +8,25 @@ The first crucial step is to include the delbrot.h header file. This file contai
 ```c
 #include "../delbrot/delbrot.h"
 #include "../delbrot/y.tab.h"
-ASTnode* factorial(ASTnode *p, ASTnode *args) {
+ASTnode* factorial(ASTnode *p, argList *a) {
     /* check that mandatory arguments are valid */
-    checkArgs("factorial", args, 1, typeNum);
+    checkArgs("factorial", a, 1, typeNum);
     ...
 ```
 Most plugin functions should call `checkArgs()` before doing anything else. `checkArgs()` ensures that the proper number and type of arguments were supplied. In this case, our function only takes one argument of type number.
 
-Now we can extract the function arguments from `args`:
+Now we can extract the function arguments from `a`:
 
 ```c
     ...
     /* get mandatory arguments */
-    int n = (int) MANDNUM();
+    int n = (int) MANDNUM(0);
     /* get optional arguments, if we had any */
     /* bool_t factFlag = OPTBOOL("flag", TRUE); */
     ...
 ```
 
-Mandatory arguments are accessed using `MANDNUM()`, `MANDSTR()`, etc., and optional arguments are accessed using `OPTNUM(argName, defaultValue)`. **Important: mandatory arguments must be accessed in order.** This is because the `MAND*()` macros all advance `args` by one step. Of course, these macros are just conveniences; you are free to traverse and manipulate `args` as you see fit.
+Mandatory arguments are accessed using `MANDNUM(n)`, `MANDSTR(n)`, etc., and optional arguments are accessed using `OPTNUM(argName, defaultValue)`. Don't try to access more arguments than you asked for in `checkArgs()`, or you'll get an ugly out-of-bounds error.
  
 Next, we'll define the actual function logic. In this case, it's pretty straightforward:
 

@@ -68,8 +68,9 @@ void mkvsynthJoin() {
 /******************************************************************************
 * This is what the interpreter calls once all the filters have been queued. *
 *****************************************************************************/
-ASTnode *go_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("go", args, 0);
+ASTnode *go_AST(ASTnode *p, argList *a) {
+	checkArgs("go", a, 0);
+    /* TODO: change these to messages */
 	if (head != 0) {
 		printf("Initiating Multithreaded Filters\n");
 		mkvsynthSpawn();

@@ -262,9 +262,8 @@ ASTnode *mkIdNode(char *ident) {
 
 /* create a parameter node in the AST */
 ASTnode *mkParamNode(char opt, int type, ASTnode *p) {
-    p->type = typeVar;
+    p->type = opt ? typeOptParam : typeParam;
     p->var.name = p->id;
-    p->var.opt = opt;
     switch(type) {
         case NUM:    p->var.type = typeNum; break;
         case BOOL:   p->var.type = typeBool; break;
@@ -278,7 +277,6 @@ ASTnode *mkParamNode(char opt, int type, ASTnode *p) {
 ASTnode *mkOptArgNode(ASTnode *p, ASTnode *value) {
     p->type = typeOptArg;
     p->var.name = p->id;
-    p->var.opt = 1;
     p->var.type = value->type;
     p->var.value = newNode();
     memcpy(p->var.value, value, sizeof(ASTnode));
@@ -342,7 +340,7 @@ ASTnode *getFn(Env const *e, char const *fnName) {
 ASTnode *getPluginFn(ASTnode *pluginName, ASTnode *fnName) {
     /* look up plugin */
     Plugin *pTraverse;
-    ASTnode * (*pluginFn) (ASTnode *, ASTnode *);
+    ASTnode * (*pluginFn) (ASTnode *, argList *);
     for (pTraverse = pluginList; pTraverse != NULL; pTraverse = pTraverse->next) {
         if (strcmp(pTraverse->name, pluginName->id) == 0) {
             /* look up symbol */

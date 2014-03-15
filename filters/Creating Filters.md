@@ -17,62 +17,60 @@ Filters are split up into 2 pieces: the startup piece and the multi-threaded pie
 The startup piece must be in the form
 
 ```c
-ASTnode *filterName_AST(ASTnode *p, ASTnode *args) {
+ASTnode *filterName_AST(ASTnode *p, argList *a) {
 	// Do stuff
 }
 ```
 
 The first part of the startup piece is writing the arguments for the interpreter. The first function you call is checkArgs(), which verifies that the filter was called the the correct parameters. [Luke should explain this since he wrote it]. The syntax for checkArgs is:
 
-`checkArgs("filterName", args, numberOfRequiredArguments, {... the types of the arguments});'
+```c
+checkArgs("filterName", a, numberOfRequiredArguments, {... the types of the arguments});
+```
 
 For darken, we would have 2 required arguments, an input clip and a number. That means so far, we have:
 
 ```c
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
 }
 ```
 
-To turn the linked list 'args' into variables we can use, we call delbrot macros. [this is one of the things that may change how it works. Maybe not]. For darken, it would look like:
+To access the function's arguments, we call delbrot macros. For darken, it would look like:
 
 ```c
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 }
 ```
 
 If you'll notice, all input videos are going to be of type MkvsynthInput. MkvsynthInput is different than MkvsynthOuptut. typeVal returns a double, so we have to typecast it to a short, because for darken we want a short.
 
-The next part of writing a filter is error checking. Darken is only going to support a single color space, so it's important to check that the input video is the right colorspace.
+The next part of writing a filter is error checking. Darken is only going to support a single color space, so it's important to check that the input video is the right colorspace. `MkvsynthError()` is used for error messages, and will cause the program to terminate. It is good practice to preface your errors with the name of your function.
 
 ```c
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 }
 ```
 
 The next part is creating an output video and filling out the metaData. createMkvsynthOutput(MkvsynthInput *input) will automatically copy the metaData from the input to the output. If you are writing a filter that changes the metaData (for example, crop will change the height and width of the video), then you must make sure to update the metaData in the output. nieveDarken does not change any meta data, so this section is short.
 
 ```c
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 	
 	MkvsynthOutput *output = createMkvsynthOutput(input);
 }
@@ -85,15 +83,13 @@ void *nieveDarken(void *filterParams) {
 	// Do stuff
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 	
 	MkvsynthOutput *output = createMkvsynthOutput(input);
 }
@@ -114,15 +110,13 @@ void *nieveDarken(void *filterParams) {
 	struct NieveDarkenParams *params = (struct NieveDarkenParams *)filterParams;
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 	
 	MkvsynthOutput *output = createMkvsynthOutput(input);
 }
@@ -143,15 +137,13 @@ void *nieveDarken(void *filterParams) {
 	struct NieveDarkenParams *params = (struct NieveDarkenParams *)filterParams;
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 	
 	MkvsynthOutput *output = createMkvsynthOutput(input);
 	
@@ -175,15 +167,13 @@ void *nieveDarken(void *filterParams) {
 	struct NieveDarkenParams *params = (struct NieveDarkenParams *)filterParams;
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 	
 	MkvsynthOutput *output = createMkvsynthOutput(input);
 	
@@ -221,15 +211,13 @@ void *nieveDarken(void *filterParams) {
 	}
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 	
 	MkvsynthOutput *output = createMkvsynthOutput(input);
 	
@@ -283,15 +271,13 @@ void *nieveDarken(void *filterParams) {
 	}
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 	
 	MkvsynthOutput *output = createMkvsynthOutput(input);
 	
@@ -335,15 +321,13 @@ void *nieveDarken(void *filterParams) {
 	}
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 	
 	MkvsynthOutput *output = createMkvsynthOutput(input);
 	
@@ -389,15 +373,13 @@ void *nieveDarken(void *filterParams) {
 	putFrame(params->output, NULL);
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 	
 	MkvsynthOutput *output = createMkvsynthOutput(input);
 	
@@ -449,15 +431,13 @@ void *nieveDarken(void *filterParams) {
 	free(params);
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, ASTnode *args) {
-	checkArgs("nieveDarken", args, 2, typeClip, typeVal);
-	MkvsynthInput *input = MANDCLIP();
-	unsigned short strength = (unsigned short)MANDVAL();
+ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+	checkArgs("nieveDarken", a, 2, typeClip, typeVal);
+	MkvsynthInput *input = MANDCLIP(0);
+	unsigned short strength = (unsigned short)MANDVAL(1);
 	
-	if(input->metaData->colorspace != RGB48) {
-		printf("nieveDarken error: input video must be rgb48!");
-		exit(0);
-	}
+	if(input->metaData->colorspace != RGB48)
+		MkvsynthError("nieveDarken: input video must be rgb48!");
 	
 	MkvsynthOutput *output = createMkvsynthOutput(input);
 	
@@ -475,8 +455,12 @@ Then you use the delbrot tool `loadplugin` to get your filter recognized by mkvs
 
 ##Conventions##
 
-Mkvsynth has decided (at least for alpha) to support primarily a single colorspace: rgb48. A single colorspace was chosen because it was determined to be too diffucult to create a generic way to write filters in many colorspaces. Most video editing tools seem to have implementations on a per-colorspace basis, which is not something that mkvsynth wanted. I would like to note that while rgb48 is what is encouraged, there is still a 'colospace' field in the meta-data and a void*, enabling writers of filters to use any colorspace that they choose. But as a whole, mkvsynth encourages all filters to accept rgb48 as input and have the ability to output rgb48.
+Mkvsynth has decided (at least for alpha) to support primarily a single colorspace: rgb48. A single colorspace was chosen because it was determined to be too diffucult to create a generic way to write filters in many colorspaces. Most video editing tools seem to have implementations on a per-colorspace basis, which is not something that mkvsynth wanted. I would like to note that while rgb48 is what is encouraged, there is still a 'colorspace' field in the meta-data and a void*, enabling writers of filters to use any colorspace that they choose. But as a whole, mkvsynth encourages all filters to accept rgb48 as input and have the ability to output rgb48.
 
 rgb was chosen because it represents all potential theoretical colors that can be produced by a screen. rgb48 was chosen because 8 bits does not provide enough granularity for many computations. 8 bit may be as good as most screens can replicate, but filters can produce much more accurate rgb24 pictures if they compute using a higher bit depth. I would have preferred to use something like RGB36, but there is no C datatype that is 12 bits. Thus, the 'short' is used to represent data. This was to avoid bit-twiddling, which can be a computationally intense process.
 
-When having arguments, it is convention for the clip arguments to come first.
+For video filters, it is convention for the clip arguments to come first. This allows you to use the chain operator (`->`). In an expression like:
+```
+clip -> nieveDarken x
+```
+`clip` becomes the first argument of `nieveDarken`, and `x` becomes the second argument.

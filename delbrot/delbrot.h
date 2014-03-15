@@ -9,29 +9,30 @@
 #define YYSTYPE ASTnode* /* all tokens are ASTnode */
 #define bool_t int       /* boolean type alias */
 /* useful abstractions for writing plugins */
-#define MANDNUM()  args->num;     args = args->next
-#define MANDBOOL() args->bool;    args = args->next
-#define MANDSTR()  args->str;     args = args->next
-#define MANDCLIP() args->clipOut; args = args->next
-#define OPTNUM(name, default)  getOptArg(args, name, typeNum)  ?      *((double *) getOptArg(args, name, typeNum))  : default
-#define OPTBOOL(name, default) getOptArg(args, name, typeBool) ?        *((bool_t) getOptArg(args, name, typeBool)) : default
-#define OPTSTR(name, default)  getOptArg(args, name, typeStr)  ?          (char *) getOptArg(args, name, typeStr)   : default
-#define OPTCLIP(name, default) getOptArg(args, name, typeClip) ? (MkvsynthInput *) getOptArg(args, name, typeClip)  : default
+#define MANDNUM(n)  a->args[n].value->num
+#define MANDBOOL(n) a->args[n].value->bool
+#define MANDSTR(n)  a->args[n].value->str
+#define MANDCLIP(n) a->args[n].value->clipOut
+#define OPTNUM(name, default)  getOptArg(a, name, typeNum)  ?      *((double *) getOptArg(a, name, typeNum))  : default
+#define OPTBOOL(name, default) getOptArg(a, name, typeBool) ?        *((bool_t) getOptArg(a, name, typeBool)) : default
+#define OPTSTR(name, default)  getOptArg(a, name, typeStr)  ?          (char *) getOptArg(a, name, typeStr)   : default
+#define OPTCLIP(name, default) getOptArg(a, name, typeClip) ? (MkvsynthInput *) getOptArg(a, name, typeClip)  : default
 #define RETURNNUM(_num)   p->type = typeNum;  p->num     = _num;  return p
 #define RETURNBOOL(_bool) p->type = typeBool; p->bool    = _bool; return p
 #define RETURNSTR(_str)   p->type = typeStr;  p->str     = _str;  return p
 #define RETURNCLIP(clip)  p->type = typeClip; p->clipOut = clip;  return p
-#define RETURNNULL()     p->type = typeFn; return p;
+#define RETURNNULL()      p->type = typeFn; return p
 
 /* enums */
 typedef enum { fnCore, fnUser } fnType; /* function types */
 typedef enum { typeNum, typeBool, typeStr, typeClip,
-    typeId, typeVar, typeOptArg, typeFn, typeOp
+    typeId, typeVar, typeFn, typeOp, typeArg, typeOptArg, typeParam, typeOptParam
 } nodeType; /* internal node types */
 
-/* structs */
+/* forward definitions */
 typedef struct ASTnode ASTnode;
 typedef struct Env Env;
+typedef struct argList argList;
 
 /* an environment */
 struct Env {
@@ -44,13 +45,12 @@ struct Env {
 
 /* a core function */
 typedef struct {
-    ASTnode * (*fnPtr) (ASTnode *, ASTnode *);
+    ASTnode * (*fnPtr) (ASTnode *, argList *);
 } coreFn;
 
 /* a user-defined function */
 typedef struct {
-    ASTnode *params;
-    ASTnode *opts;
+    argList *params;
     ASTnode *body;
 } userFn;
 
@@ -67,16 +67,21 @@ typedef struct {
 /* used for defining core functions */
 typedef struct {
     char *name;
-    ASTnode * (*fnPtr) (ASTnode *, ASTnode *);
+    ASTnode * (*fnPtr) (ASTnode *, argList *);
 } fnEntry;
 
 /* a variable node (also used for function arguments) */
 typedef struct {
-    char opt;
-    nodeType type;
+    nodeType type; /* either variable, (opt)arg, or (opt)param */
     char *name;
     ASTnode *value;
 } varNode;
+
+/* an argument list */
+struct argList {
+    int nargs;     /* number of arguments */
+    varNode *args; /* arguments */
+};
 
 /* an operator node */
 typedef struct {
@@ -133,8 +138,8 @@ ASTnode* putFn(Env *, fnEntry);
 ASTnode* putVar(Env *, char const *);
 /* AST evaluation */
 ASTnode* ex(Env *, ASTnode *);
-void checkArgs(char *, ASTnode *, int, ...);
-void* getOptArg(ASTnode *, char *, int);
+void checkArgs(char *, argList *, int, ...);
+void* getOptArg(argList *, char *, int);
 
 /* global variables */
 Env *global; /* the global execution environment */
