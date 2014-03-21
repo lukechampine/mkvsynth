@@ -3,17 +3,17 @@ Plugins are collections of functions that are written in C and loaded at runtime
 
 As an example, let's walk through the creation of a plugin, "fact", that implements just a single function, `factorial`. First, we'll navigate to `mkvsynth/plugins/`, which contains `plugins.c` and `makeplugin`. We'll create a new file here called `fact.c` and start coding.
 
-The first crucial step is to include the delbrot.h header file. This file contains the definition of `ASTnode` and all its associated functions/macros. y.tab.h should also be included if your function deals with booleans, because it contains the TRUE and FALSE macros. The function arguments must look exactly like they do below, or the plugin macros will break:
+The first crucial step is to include the `delbrot.h` header file. This file contains the definition of `ASTnode` and all its associated functions/macros. `y.tab.h` should also be included if your function deals with booleans, because it contains the `TRUE` and `FALSE` macros. The function signature must look exactly like they do below, or the plugin macros will break:
 
 ```c
 #include "../delbrot/delbrot.h"
 #include "../delbrot/y.tab.h"
-ASTnode* factorial(ASTnode *p, argList *a) {
+Value* factorial(argList *a) {
     /* check that mandatory arguments are valid */
-    checkArgs("factorial", a, 1, typeNum);
+    checkArgs(a, 1, typeNum);
     ...
 ```
-Most plugin functions should call `checkArgs()` before doing anything else. `checkArgs()` ensures that the proper number and type of arguments were supplied. In this case, our function only takes one argument of type number.
+Most plugin functions should call `checkArgs()` before doing anything else. `checkArgs()` ensures that the proper number and type of arguments were supplied. In this case, our function only takes one argument, a number.
 
 Now we can extract the function arguments from `a`:
 
@@ -26,14 +26,14 @@ Now we can extract the function arguments from `a`:
     ...
 ```
 
-Mandatory arguments are accessed using `MANDNUM(n)`, `MANDSTR(n)`, etc., and optional arguments are accessed using `OPTNUM(argName, defaultValue)`. Don't try to access more arguments than you asked for in `checkArgs()`, or you'll get an ugly out-of-bounds error.
+Mandatory arguments are accessed using `MANDNUM(n)`, `MANDSTR(n)`, etc., and optional arguments are accessed using `OPTNUM(argName, defaultValue)`. Don't try to access more arguments than you asked for in `checkArgs()`, or you'll get an ugly out-of-bounds error. Keep in mind that these are just macros; you can access the elements of `a` directly if you wish.
  
 Next, we'll define the actual function logic. In this case, it's pretty straightforward:
 
 ```c
     ...
     double i = 1.0;
-    for (n; n > 0; n--)
+    for (; n > 0; n--)
         i *= n;
     ...
 ```
@@ -46,7 +46,7 @@ And finally, we'll define the function's return value:
 }
 ```
 
-The `RETURN*(arg)` macros place their argument in `p`, give it the proper type, and call `return p`. Again, this can be written by hand if you so choose. We're done!
+The `RETURN*(arg)` macros place allocate a `Value *v`, give it the proper type and supplied value, and call `return v`. Again, this can be written by hand if you so choose. We're done!
 
 ## compiling and loading plugins ##
 
