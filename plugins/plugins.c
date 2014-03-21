@@ -1,7 +1,15 @@
 #include <stdarg.h>
 #include "../delbrot/delbrot.h"
 
-static char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "optional argument", "function", "operation"};
+char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "operation"};
+
+/* allocate a value */
+Value* newValue() {
+    Value *v;
+    if ((v = malloc(sizeof(Value))) == NULL)
+        MkvsynthError("out of memory");
+    return v;
+}
 
 /* display error and in red and exit */
 void MkvsynthError(char *error, ...) {
@@ -38,14 +46,14 @@ void MkvsynthWarning(char *warning, ...) {
 /* TODO: check optional arguments */
 void checkArgs(argList *a, int numArgs, ...) {
     /* check number of arguments */
-    if (a->nargs != numArgs)
+    if ((a ? a->nargs : 0) != numArgs)
         MkvsynthError("expected %d argument%s, got %d", numArgs, (numArgs == 1 ? "" : "s"), a->nargs);
     /* check types */
     int i;
     va_list ap;
     va_start(ap, numArgs);
     for (i = 0; i < numArgs; i++) {
-        nodeType argType = va_arg(ap, nodeType);
+        valueType argType = va_arg(ap, valueType);
         if (a->args[i].value->type != argType)
             MkvsynthError("arg %d expected %s, got %s", i+1, typeNames[argType], typeNames[a->args[i].value->type]);
     }
