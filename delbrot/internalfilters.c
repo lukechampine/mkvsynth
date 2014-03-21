@@ -1,30 +1,30 @@
 #include "delbrot.h"
 
-ASTnode* bilinearResize_AST(ASTnode *, argList *);
-ASTnode* colorspacingTests_AST(ASTnode *, argList *);
-ASTnode* convertColorspace_AST(ASTnode *, argList *);
-ASTnode* crop_AST(ASTnode *, argList *);
-ASTnode* ffmpegDecode_AST(ASTnode *, argList *);
-ASTnode* go_AST(ASTnode *, argList *);
-ASTnode* gradientVideoGenerate_AST(ASTnode *, argList *);
-ASTnode* removeRange_AST(ASTnode *, argList *);
-ASTnode* testingGradient_AST(ASTnode *, argList *);
-ASTnode* writeRawFile_AST(ASTnode *, argList *);
-ASTnode* x264Encode_AST(ASTnode *, argList *);
+Value* bilinearResize_AST(argList *);
+Value* colorspacingTests_AST(argList *);
+Value* convertColorspace_AST(argList *);
+Value* crop_AST(argList *);
+Value* ffmpegDecode_AST(argList *);
+Value* go_AST(argList *);
+Value* gradientVideoGenerate_AST(argList *);
+Value* removeRange_AST(argList *);
+Value* testingGradient_AST(argList *);
+Value* writeRawFile_AST(argList *);
+Value* x264Encode_AST(argList *);
 
-fnEntry internalFilters[] = {
+Fn internalFilters[] = {
 #ifndef DELBROT
-	{ "bilinearResize",        bilinearResize_AST        },
-	{ "colorspacingTests",     colorspacingTests_AST     },
-	{ "convertColorspace",     convertColorspace_AST     },
-	{ "crop",                  crop_AST                  },
-	{ "ffmpegDecode",          ffmpegDecode_AST          },
-	{ "go",                    go_AST                    },
-	{ "gradientVideoGenerate", gradientVideoGenerate_AST },
-	{ "removeRange",           removeRange_AST           },
-	{ "testingGradient",       testingGradient_AST       },
-	{ "writeRawFile",          writeRawFile_AST          },
-	{ "x264Encode",            x264Encode_AST            },
-	{ 0,                       0                         },
+	{ fnCore, "bilinearResize",        bilinearResize_AST,        NULL, NULL, NULL },
+	{ fnCore, "colorspacingTests",     colorspacingTests_AST,     NULL, NULL, NULL },
+	{ fnCore, "convertColorspace",     convertColorspace_AST,     NULL, NULL, NULL },
+	{ fnCore, "crop",                  crop_AST,                  NULL, NULL, NULL },
+	{ fnCore, "ffmpegDecode",          ffmpegDecode_AST,          NULL, NULL, NULL },
+	{ fnCore, "go",                    go_AST,                    NULL, NULL, NULL },
+	{ fnCore, "gradientVideoGenerate", gradientVideoGenerate_AST, NULL, NULL, NULL },
+	{ fnCore, "removeRange",           removeRange_AST,           NULL, NULL, NULL },
+	{ fnCore, "testingGradient",       testingGradient_AST,       NULL, NULL, NULL },
+	{ fnCore, "writeRawFile",          writeRawFile_AST,          NULL, NULL, NULL },
+	{ fnCore, "x264Encode",            x264Encode_AST,            NULL, NULL, NULL },
+	{ 0,      0,                       0,                         0,    0,    0    },
 #endif
 };
