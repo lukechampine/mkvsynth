@@ -17,11 +17,11 @@
 #define OPTBOOL(name, default) getOptArg(a, name, typeBool) ?      *((bool_t *) getOptArg(a, name, typeBool)) : default
 #define OPTSTR(name, default)  getOptArg(a, name, typeStr)  ?          (char *) getOptArg(a, name, typeStr)   : default
 #define OPTCLIP(name, default) getOptArg(a, name, typeClip) ? (MkvsynthInput *) getOptArg(a, name, typeClip)  : default
-#define RETURNNUM(_num)   p->type = typeNum;  p->num     = _num;  return p
-#define RETURNBOOL(_bool) p->type = typeBool; p->bool    = _bool; return p
-#define RETURNSTR(_str)   p->type = typeStr;  p->str     = _str;  return p
-#define RETURNCLIP(clip)  p->type = typeClip; p->clipOut = clip;  return p
-#define RETURNNULL()      p->type = typeFn; return p
+#define RETURNNUM(_num)   { Value *v = newValue(); v->type = typeNum;  v->num     = _num;  return v; }
+#define RETURNBOOL(_bool) { Value *v = newValue(); v->type = typeBool; v->bool    = _bool; return v; }
+#define RETURNSTR(_str)   { Value *v = newValue(); v->type = typeStr;  v->str     = _str;  return v; }
+#define RETURNCLIP(_clip) { Value *v = newValue(); v->type = typeClip; v->clipOut = _clip; return v; }
+#define RETURNNULL()      { Value *v = newValue(); v->type = typeOp;                       return v; }
 
 /* enums */
 typedef enum { fnCore, fnUser } fnType; /* Fn types */
