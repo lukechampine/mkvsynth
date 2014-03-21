@@ -6,7 +6,7 @@
 #include "../jarvis/jarvis.h"
 
 /* macros */
-#define YYSTYPE ASTnode* /* all tokens are ASTnode */
+#define YYSTYPE ASTnode* /* all tokens are ASTnodes */
 #define bool_t int       /* boolean type alias */
 /* useful abstractions for writing plugins */
 #define MANDNUM(n)  a->args[n].value->num
@@ -14,7 +14,7 @@
 #define MANDSTR(n)  a->args[n].value->str
 #define MANDCLIP(n) a->args[n].value->clipOut
 #define OPTNUM(name, default)  getOptArg(a, name, typeNum)  ?      *((double *) getOptArg(a, name, typeNum))  : default
-#define OPTBOOL(name, default) getOptArg(a, name, typeBool) ?        *((bool_t) getOptArg(a, name, typeBool)) : default
+#define OPTBOOL(name, default) getOptArg(a, name, typeBool) ?      *((bool_t *) getOptArg(a, name, typeBool)) : default
 #define OPTSTR(name, default)  getOptArg(a, name, typeStr)  ?          (char *) getOptArg(a, name, typeStr)   : default
 #define OPTCLIP(name, default) getOptArg(a, name, typeClip) ? (MkvsynthInput *) getOptArg(a, name, typeClip)  : default
 #define RETURNNUM(_num)   p->type = typeNum;  p->num     = _num;  return p
@@ -24,96 +24,81 @@
 #define RETURNNULL()      p->type = typeFn; return p
 
 /* enums */
-typedef enum { fnCore, fnUser } fnType; /* function types */
-typedef enum { typeNum, typeBool, typeStr, typeClip,
-    typeId, typeVar, typeFn, typeOp, typeArg, typeOptArg, typeParam, typeOptParam
-} nodeType; /* internal node types */
+typedef enum { fnCore, fnUser } fnType; /* Fn types */
+typedef enum { typeVar, typeArg, typeOptArg, typeParam, typeOptParam } varType; /* Var types */
+typedef enum { typeNum, typeBool, typeStr, typeClip, typeId, typeOp } valueType; /* Value types */
 
 /* forward definitions */
-typedef struct ASTnode ASTnode;
 typedef struct Env Env;
-typedef struct argList argList;
+typedef struct ASTnode ASTnode;
+typedef struct Value Value;
+typedef struct Var Var;
+typedef struct Fn Fn;
 
 /* an environment */
 struct Env {
-    ASTnode *varTable;      /* the local variable table */
-    ASTnode *fnTable;       /* the local function table */
-    jmp_buf returnContext;  /* where to jump to when returning */
-    ASTnode *returnValue;   /* the return value */
-    Env *parent;            /* the calling environment */
+    Var *varTable;         /* the local variable table */
+    Fn *fnTable;           /* the local function table */
+    jmp_buf returnContext; /* where to jump to when returning */
+    Value *returnValue;    /* the return value */
+    Env *parent;           /* the calling environment */
 };
-
-/* a core function */
-typedef struct {
-    ASTnode * (*fnPtr) (ASTnode *, argList *);
-} coreFn;
-
-/* a user-defined function */
-typedef struct {
-    argList *params;
-    ASTnode *body;
-} userFn;
-
-/* a function node */
-typedef struct {
-    fnType type;
-    char *name;
-    union {
-        coreFn core;
-        userFn user;
-    };
-} fnNode;
-
-/* used for defining core functions */
-typedef struct {
-    char *name;
-    ASTnode * (*fnPtr) (ASTnode *, argList *);
-} fnEntry;
-
-/* a variable node (also used for function arguments) */
-typedef struct {
-    nodeType type; /* either variable, (opt)arg, or (opt)param */
-    char *name;
-    ASTnode *value;
-} varNode;
-
-/* an argument list */
-struct argList {
-    int nargs;     /* number of arguments */
-    varNode *args; /* arguments */
-};
-
-/* an operator node */
-typedef struct {
-    int oper;        /* operator symbol */
-    int nops;        /* number of operands */
-    ASTnode **ops;   /* operands */
-} opNode;
 
 /* a node in the AST */
 struct ASTnode {
-    nodeType type;
+    int op;          /* operator -- 0 if leaf node */
+    Value *value;    /* payload -- NULL unless leaf node */
+    int nops;        /* no. of child nodes -- 0 if leaf node */
+    ASTnode **child; /* child nodes -- NULL if leaf node */
+};
+
+/* payload of an ASTnode */
+struct Value {
+    valueType type;
     union {
-        double  num;
+        double num;
         bool_t bool;
-        char    *id;
-        char   *str;
+        char *str;
         MkvsynthInput *clipIn;
         MkvsynthOutput *clipOut;
-        fnNode   fn;
-        varNode var;
-        opNode   op;
+        char *id;
+        Var *arg;
     };
-    ASTnode *next;
+};
+
+/* a variable (also used for function arguments) */
+struct Var {
+    varType type; /* either variable, (opt)arg, or (opt)param */
+    valueType valType;
+    char *name;
+    Value *value;
+    Var *next; /* for variable tables */
+};
+
+/* an argument list */
+typedef struct {
+    int nargs; /* number of arguments */
+    Var *args; /* arguments */
+} argList;
+
+/* a function */
+struct Fn {
+    fnType type; /* either core or user */
+    char *name;
+    /* if core */
+    Value * (*fnPtr) (argList *);
+    /* if user */
+    argList *params;
+    ASTnode *body;
+    Fn *next; /* for function tables */
 };
 
 /* a loaded plugin */
-typedef struct Plugin Plugin;
-struct Plugin {
+typedef struct Plugin {
     char *name;
     void *handle;
-    Plugin *next;
-};
+    struct Plugin *next;
+} Plugin;
 
 /* function declarations */
 /* error handling */
@@ -121,32 +106,29 @@ void MkvsynthError(char *, ...);
 void MkvsynthMessage(char *, ...);
 void MkvsynthWarning(char *, ...);
 /* AST creation */
-void freeNodes();
 ASTnode* append(ASTnode *, ASTnode *);
-ASTnode* initList(ASTnode *);
-ASTnode* mkBoolNode(int);
-ASTnode* mkIdNode(char *);
-ASTnode* mkNumNode(double);
-ASTnode* mkOpNode(int, int, ...);
-ASTnode* mkOptArgNode(ASTnode *, ASTnode *);
-ASTnode* mkParamNode(char, int, ASTnode *);
-ASTnode* mkStrNode(char *);
+ASTnode* makeNode(int, int, ...);
+ASTnode* makeLeaf(valueType, ...);
+ASTnode* makeArg(ASTnode *, ASTnode *);
+ASTnode* makeParam(char, ASTnode *, ASTnode *);
 ASTnode* newNode();
-/* variable/function access prototypes */
-ASTnode* getFn(Env const *, char const *);
-ASTnode* getPluginFn(ASTnode *, ASTnode *);
-ASTnode* getVar(Env const *, char const *);
-ASTnode* putFn(Env *, fnEntry);
-ASTnode* putVar(Env *, char const *);
+Value* newValue();
+/* variable/function access */
+ASTnode* addPluginFn(ASTnode *, ASTnode *);
+Fn* getFn(Env const *, char const *);
+Var* getVar(Env const *, char const *);
+void putFn(Env *, Fn *);
+void putVar(Env *, char const *, varType type);
+Value* setVar(Env const *, char const *, Value const *);
 /* AST evaluation */
-ASTnode* ex(Env *, ASTnode *);
+Value* ex(Env *, ASTnode *);
 void checkArgs(argList *, int, ...);
-void* getOptArg(argList *, char *, int);
+void* getOptArg(argList *, char *, valueType);
 
 /* global variables */
 Env *global; /* the global execution environment */
 Plugin *pluginList; /* loaded plugins */
-extern fnEntry coreFunctions[];
-extern fnEntry internalFilters[];
+extern Fn coreFunctions[];
+extern Fn internalFilters[];
 extern char *typeNames[];
 #endif
