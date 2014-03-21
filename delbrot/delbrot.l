@@ -115,7 +115,7 @@ D    [0-9]
     /* execute queued filters */
 <<EOF>>             {
                         #ifndef DELBROT
-                        ex(global, makeNode(CHECK, 1, makeLeaf(typeId, "go")));
+                        ex(global, makeLeaf(typeId, "go"));
                         #endif
                         yyterminate();
                     }

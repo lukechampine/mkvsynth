@@ -19,7 +19,7 @@
 %token ASSIGN BINOP
 %token ADDEQ SUBEQ MULEQ DIVEQ POWEQ MODEQ CHNEQ CHAIN CNCAT
 %token IF ELSE TERN
-%token FNCT FNDEF RETURN DEFAULT OTHER IMPORT CHECK
+%token FNCT FNDEF RETURN DEFAULT OTHER IMPORT
 %token LOR LAND EQ NE GT LT GE LE NEG
 
 %nonassoc IFX  /* avoid shift/reduce conflicts */
@@ -56,7 +56,7 @@ return_stmt
 
 expression_stmt
     : ';'                                                     { $$ = makeNode(';', 2, NULL, NULL);     }
-    | expr ';'                                                { $$ = makeNode(CHECK, 1, $1);           }
+    | expr ';'                                                { $$ = $1;                               }
     ;
 
 selection_stmt
@@ -75,8 +75,8 @@ param_list
     ;
 
 param
-    : type primary_expr                                       { $$ = makeParam(0, $1, $2);             }
-    | ':' type primary_expr                                   { $$ = makeParam(1, $2, $3);             }
+    : type primary_expr                                       { $$ = makeParam(typeParam, $1, $2);     }
+    | ':' type primary_expr                                   { $$ = makeParam(typeOptParam, $2, $3);  }
     ;
 
 type
@@ -262,11 +262,11 @@ ASTnode* makeLeaf(valueType type, ...) {
 }
 
 /* create a parameter */
-ASTnode* makeParam(char opt, ASTnode *typeNode, ASTnode *nameNode) {
+ASTnode* makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
     ASTnode *p = newNode();
     p->value = newValue();
     Var *v = calloc(1, sizeof(Var));
-    v->type = opt ? typeOptParam : typeParam;
+    v->type = type;
     v->name = nameNode->value->id;
     switch (typeNode->op) {
         case NUM:    v->valType = typeNum;  break;

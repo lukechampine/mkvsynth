@@ -15,7 +15,6 @@ static Value*   binaryOp(Value *, int, Value *);
 static void     chain(ASTnode *, ASTnode *);
        void     checkArgs(argList *, int, ...);
 static ASTnode* copy(ASTnode *);
-static Value*   eval(Env *, ASTnode *);
        Value*   ex(Env *, ASTnode *);
 static Value*   fnctCall(Env *, Value *, argList *);
 static void     funcDefine(Env *, Value *, ASTnode *, ASTnode *);
@@ -31,7 +30,7 @@ static Value*   unaryOp(Value *, int);
 static Value*   userDefFnCall(Env *, Fn *, argList *);
 
 /* global variables */
-char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "operation"};
+char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "void"};
 extern int linenumber;
 char *currentFunction = "";
 
@@ -58,17 +57,19 @@ argList* argify(Env *e, Var *p) {
 
     /* evaluate arguments */
     for (i = 0; i < a->nargs; i++)
-        a->args[i].value = eval(e, (ASTnode*)a->args[i].value);
+        a->args[i].value = ex(e, (ASTnode*)a->args[i].value);
 
     return a;
 }
 
 /* create or modify a variable */
 Value* assign(Env *e, Value *name, Value *val) {
+    if (!name)
+        MkvsynthError("invalid assignment: can't assign to operation", name);
     if (name->type != typeId)
-        MkvsynthError("can't assign to a constant value (got %s)", typeNames[name->type]);
+        MkvsynthError("invalid assignment: can't assign to constant type %s", typeNames[name->type]);
     if (val->type > typeClip)
-        MkvsynthError("can't assign type %s to variable", typeNames[val->type]);
+        MkvsynthError("invalid assignment: can't assign type %s to variable", typeNames[val->type]);
     /* new variable */
     if (getVar(e, name->id) == NULL)
         putVar(e, name->id, typeVar);
@@ -80,7 +81,7 @@ Value* assign(Env *e, Value *name, Value *val) {
 Value* assignOp(Env *e, ASTnode *varNode, ASTnode *opNode, ASTnode *valNode) {
     /* special cases */
     if (opNode->op == '=')
-        return assign(e, ex(e, varNode), eval(e, valNode));
+        return assign(e, varNode->value, ex(e, valNode));
 
     ASTnode *RHS;
     if (opNode->op == CHNEQ)
@@ -224,9 +225,8 @@ ASTnode* copy(ASTnode *p) {
     return dup;
 }
 
-/* evaluate an ASTnode, producing a constant */
-Value* eval(Env *e, ASTnode *p) {
-    Value *val = ex(e, p);
+/* dereference an identifier */
+Value* dereference(Env *e, Value *val) {
     if (val == NULL)
         MkvsynthError("unexpected NULL value");
     if (val->type != typeId)
@@ -241,7 +241,7 @@ Value* eval(Env *e, ASTnode *p) {
     return NULL;
 }
 
-/* execute an ASTnode, producing a value */
+/* execute an ASTnode, producing a constant value */
 Value* ex(Env *e, ASTnode *p) {
     if (!p)
         return NULL;
@@ -249,28 +249,27 @@ Value* ex(Env *e, ASTnode *p) {
     Value *v = NULL;
     switch (p->op) {
         /* leaf node */
-        case 0:       v = p->value; break;
+        case 0:       v = dereference(e, p->value); break;
         /* declarations */
-        case FNDEF:   funcDefine(e, ex(e, p->child[0]), p->child[1], p->child[2]); break;
+        case FNDEF:   funcDefine(e, p->child[0]->value, p->child[1], p->child[2]); break;
         /* blocks */
-        case IF:      ifelse(e, p, eval(e, p->child[0])); break;
+        case IF:      ifelse(e, p, ex(e, p->child[0])); break;
         /* functions */
-        case CHECK:   v = eval(e, p->child[0]); break; 
-        case FNCT:    v = fnctCall(e, ex(e, p->child[0]), argify(e, p->child[1]->value->arg)); break;
+        case FNCT:    v = fnctCall(e, p->child[0]->value, argify(e, p->child[1]->value->arg)); break;
         case CHAIN:   chain(makeArg(NULL, p->child[0]), p->child[1]); v = ex(e, p->child[1]); break;
-        case DEFAULT: setDefault(e, ex(e, p->child[0]), eval(e, p->child[1])); break;
-        case RETURN:  if (p->child[0]) e->returnValue = eval(e, p->child[0]); longjmp(e->returnContext, 1); break;
+        case DEFAULT: setDefault(e, p->child[0]->value, ex(e, p->child[1])); break;
+        case RETURN:  e->returnValue = ex(e, p->child[0]); longjmp(e->returnContext, 1); break;
         /* plugin imports */
-        case IMPORT:  import(ex(e, p->child[0])); break;
+        case IMPORT:  import(p->child[0]->value); break;
         /* assignment */
         case ASSIGN:  v = assignOp(e, p->child[0], p->child[1], p->child[2]); break;
         /* unary operators */
-        case NEG:     v = unaryOp(eval(e, p->child[0]), '-'); break;
-        case '!':     v = unaryOp(eval(e, p->child[0]), '!'); break;
+        case NEG:     v = unaryOp(ex(e, p->child[0]), '-'); break;
+        case '!':     v = unaryOp(ex(e, p->child[0]), '!'); break;
         /* binary operators */
-        case BINOP:   v = binaryOp(eval(e, p->child[0]), p->child[1]->op, eval(e, p->child[2])); break;
+        case BINOP:   v = binaryOp(ex(e, p->child[0]), p->child[1]->op, ex(e, p->child[2])); break;
         /* trinary operator */
-        case TERN:    v = ternary(e, eval(e, p->child[0]), eval(e, p->child[1]), eval(e, p->child[2])); break;
+        case TERN:    v = ternary(e, ex(e, p->child[0]), ex(e, p->child[1]), ex(e, p->child[2])); break;
         /* compound statements */
         case ';':     ex(e, p->child[0]); v = ex(e, p->child[1]); break;
         /* should never wind up here */
@@ -288,8 +287,10 @@ Value* ex(Env *e, ASTnode *p) {
 
 /* handle function calls */
 Value* fnctCall(Env *e, Value *name, argList *a) {
+    if (!name)
+        MkvsynthError("expected function name, got operation", name);
     if (name->type != typeId)
-        MkvsynthError("expected function, got %s", typeNames[name->type]);
+        MkvsynthError("expected function name, got %s", typeNames[name->type]);
     Fn *f = getFn(e, name->id);
     if (f == NULL)
         MkvsynthError("reference to undefined function \"%s\"", name->id);
@@ -318,10 +319,12 @@ Value* fnctCall(Env *e, Value *name, argList *a) {
 
 /* process a function definition */
 void funcDefine(Env *e, Value *name, ASTnode *params, ASTnode *body) {
+    if (!name)
+        MkvsynthError("expected name of function, got operation", name);
     if (name->type != typeId)
-        MkvsynthError("expected identifier in function definition, got %s", typeNames[name->type]);
+        MkvsynthError("expected name of function, got %s", typeNames[name->type]);
     if (getVar(e, name->id) || getFn(e, name->id))
-        MkvsynthError("function name \"%s\" is already in use", name->id);
+        MkvsynthWarning("overwrote previous definition of %s", name->id);
 
     /* create new function table entry */
     Fn *f = calloc(1, sizeof(Fn));
@@ -389,8 +392,10 @@ void ifelse(Env *e, ASTnode *p, Value *cond) {
 
 /* import a plugin */
 void import(Value *pluginName) {
+    if (!pluginName)
+        MkvsynthError("expected name of plugin, got operation", pluginName);
     if (pluginName->type != typeId)
-        MkvsynthError("import expected identifier, got %s", typeNames[pluginName->type]);
+        MkvsynthError("expected name of plugin, got %s", typeNames[pluginName->type]);
     /* construct plugin path */
     char *home = getenv("HOME");
     char *pluginPath = malloc(strlen(pluginName->id) + strlen(home) + 24);
@@ -445,8 +450,10 @@ void MkvsynthWarning(char *warning, ...) {
 void setDefault(Env *e, Value *name, Value *val) {
     if (currentFunction[0] == 0)
         MkvsynthError("can't set defaults outside of function body");
+    if (!name)
+        MkvsynthError("expected optional parameter, got operation", name);
     if (name->type != typeId)
-        MkvsynthError("default expected identifier, got %s", typeNames[name->type]);
+        MkvsynthError("expected optional parameter, got %s", typeNames[name->type]);
 
     Var *v = getVar(e, name->id);
     if (v == NULL)

@@ -110,7 +110,7 @@ ASTnode* append(ASTnode *, ASTnode *);
 ASTnode* makeNode(int, int, ...);
 ASTnode* makeLeaf(valueType, ...);
 ASTnode* makeArg(ASTnode *, ASTnode *);
-ASTnode* makeParam(char, ASTnode *, ASTnode *);
+ASTnode* makeParam(varType, ASTnode *, ASTnode *);
 ASTnode* newNode();
 Value* newValue();
 /* variable/function access */
