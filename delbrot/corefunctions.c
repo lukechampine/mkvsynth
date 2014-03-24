@@ -46,24 +46,24 @@ Value* cos_AST(argList *a) {
 /* natural log */
 Value* log_AST(argList *a) {
 	checkArgs(a, 1, typeNum);
-    RETURNNUM(log(MANDNUM(0)));
+	RETURNNUM(log(MANDNUM(0)));
 }
 
 /* generalized print function; will print any number of args */
 Value* print_AST(argList *a) {
-    if (a->nargs == 0)
-        MkvsynthError("expected at least one argument");
-    int i;
-    for (i = 0; i < a->nargs; i++) {
+	if (a->nargs == 0)
+		MkvsynthError("expected at least one argument");
+	int i;
+	for (i = 0; i < a->nargs; i++) {
 		switch (a->args[i].value->type) {
 			case typeNum: printf("%.10g ", MANDNUM(i)); break;
 			case typeBool: printf("%s ", MANDBOOL(i) == TRUE ? "True" : "False"); break;
 			case typeStr: printf("%s ", unesc(MANDSTR(i))); break;
-            default: MkvsynthWarning("could not print type %s", typeNames[a->args[i].value->type]); break;
+			default: MkvsynthWarning("could not print type %s", typeNames[a->args[i].value->type]);
 		}
 	}
 	printf("\n");
-    RETURNNULL();
+	RETURNNULL();
 }
 
 /* convert string to number */
@@ -74,15 +74,15 @@ Value* read_AST(argList *a) {
 
 /* return string representation of any type */
 Value* show_AST(argList *a) {
-    /* can't use checkArgs here */
+	/* can't use checkArgs here */
 	if (a->nargs != 1)
-	    MkvsynthError("expected 1 argument, got %d", a->nargs);
+		MkvsynthError("expected 1 argument, got %d", a->nargs);
 	Value *v = newValue();
 	switch (a->args[0].value->type) {
 		case typeNum:  v->str = malloc(256); sprintf(v->str, "%.10g", MANDNUM(0)); break;
 		case typeBool: v->str = MANDBOOL(0) == TRUE ? "True" : "False"; break;
 		case typeStr:  v->str = MANDSTR(0); break;
-        default: MkvsynthError("not defined for %ss", typeNames[a->args[0].value->type]);
+		default: MkvsynthError("not defined for %ss", typeNames[a->args[0].value->type]);
 	}
 	v->type = typeStr;
 	return v;
@@ -112,7 +112,7 @@ static char* unesc(char* str) {
 				case '\\':str[i] = '\\'; break;
 				case '\'':str[i] = '\''; break;
 				case '\"':str[i] = '\"'; break;
-                default: MkvsynthError("unknown literal \"\\%c\"", str[i+1]);
+				default: MkvsynthError("unknown literal \"\\%c\"", str[i+1]);
 			}
 			for (j = i + 1; str[j] != '\0'; j++)
 				str[j] = str[j+1];
