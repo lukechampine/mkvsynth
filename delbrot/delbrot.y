@@ -5,11 +5,10 @@
     #include <stdlib.h>
     #include <string.h>
     #include "delbrot.h"
-    /* prototypes to please -Wall */
+    /* declarations */
     void yyerror(char *error, ...);
     int yylex();
-    /* script file */
-    extern FILE *yyin;
+    FILE *yyin;
     /* debug */
     #define YYDEBUG 1
 %}
@@ -405,7 +404,7 @@ int main(int argc, char **argv) {
 
     /* read script file, if provided */
     if (argc == 2) {
-        yyin = fopen(argv[1], "r+");
+        yyin = fopen(argv[1], "r");
         if (!yyin) {
             MkvsynthError("could not open file \"%s\" for reading", argv[1]);
             exit(1);

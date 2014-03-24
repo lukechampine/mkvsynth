@@ -8,6 +8,12 @@ D    [0-9]
     #include "y.tab.h"
     int resWord(char *);
     int linenumber = 1;
+    extern FILE *yyin;
+    /* for handling imported scripts */
+    #define MAX_IMPORT_DEPTH 32
+    YY_BUFFER_STATE import_stack[MAX_IMPORT_DEPTH];
+    char *import_names[MAX_IMPORT_DEPTH];
+    int numImports = 0;
 %}
     /* don't keep scanning after EOF */
 %option noyywrap
@@ -112,18 +118,29 @@ D    [0-9]
 [ \t]+                  ;
     /* used for error messages */
 \n                      linenumber++;
-    /* execute queued filters */
+    /* if we are inside an imported script, pop the import stack */
+    /* otherwise, execute queued filters and exit */
 <<EOF>>             {
-                        #ifndef DELBROT
-                        ex(global, makeLeaf(typeId, "go"));
-                        #endif
-                        yyterminate();
+                        if (numImports == 0) {
+                            #ifndef DELBROT
+                            ex(global, makeLeaf(typeId, "go"));
+                            #endif
+                            yyterminate();
+                        }
+                        else {
+                            fclose(YY_CURRENT_BUFFER->yy_input_file);
+                            yy_delete_buffer(YY_CURRENT_BUFFER);
+                            free(import_names[numImports]);
+                            numImports--;
+                            yy_switch_to_buffer(import_stack[numImports]);
+                        }
                     }
     /* anything else is an error */
 .                       MkvsynthError("unknown character %s", yytext);
 
 %%
 
+/* check identifier against a list of reserved words */
 int resWord(char *str) {
     if (!strcmp(str, "default"))
         return DEFAULT;
@@ -138,8 +155,25 @@ int resWord(char *str) {
     else if (!strcmp(str, "otherwise"))
         return OTHER;
     else if (!strcmp(str, "return"))
-        return RETURN;   
-    /* not a reserved word */
+        return RETURN;
     else
         return 0;
+}
+
+/* push current buffer onto stack and begin scanning f */
+void switchToBuffer(char *filename, FILE *fd) {
+    if (numImports == MAX_IMPORT_DEPTH)
+        MkvsynthError("imports nested too deeply");
+    /* check for circular references */
+    int i;
+    for (i = 1; i < numImports; i++) {
+        if (!strcmp(filename, import_names[i]))
+            MkvsynthError("circular reference detected: %s imports itself");
+    }
+    yyin = fd;
+    YY_BUFFER_STATE scriptBuffer = yy_create_buffer(yyin, YY_BUF_SIZE);
+    import_stack[numImports] = YY_CURRENT_BUFFER;
+    numImports++;
+    import_names[numImports] = strdup(filename);
+    yy_switch_to_buffer(scriptBuffer);
 }
