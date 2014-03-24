@@ -30,6 +30,8 @@ Fn coreFunctions[] = {
 /* exit with error message if assertion fails */
 Value* assert_AST(argList *a) {
 	checkArgs(a, 2, typeBool, typeStr);
+	extern char* currentFunction;
+	currentFunction = "assertion failed";
 	if (MANDBOOL(0) == FALSE)
 		MkvsynthError(MANDSTR(1));
 	RETURNNULL();
