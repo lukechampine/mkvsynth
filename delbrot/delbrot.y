@@ -64,7 +64,7 @@ selection_stmt
     ;
 
 import_stmt
-    : IMPORT primary_expr ';'                                 { $$ = makeNode(IMPORT, 1, $2);          }
+    : IMPORT expr ';'                                         { $$ = makeNode(IMPORT, 1, $2);          }
     ;
 
 param_list
@@ -98,7 +98,7 @@ expr
 
 assignment_expr
     : ternary_expr
-    | primary_expr assignment_operator assignment_expr        { $$ = makeNode(ASSIGN, 3, $1, $2, $3);  }
+    | ternary_expr assignment_operator assignment_expr        { $$ = makeNode(ASSIGN, 3, $1, $2, $3);  }
     ;
 
 assignment_operator
