@@ -33,7 +33,7 @@ void *removeRange(void *filterParams) {
 	return NULL;
 }
 
-ASTnode *removeRange_AST(ASTnode *p, argList *a) {
+Value *removeRange_AST(argList *a) {
 	struct RemoveRangeParams *params = malloc(sizeof(struct RemoveRangeParams));
 
 	///////////////////////

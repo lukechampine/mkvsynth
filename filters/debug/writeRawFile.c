@@ -30,7 +30,7 @@ void *writeRawFile(void *filterParams) {
 	return NULL;
 }
 
-ASTnode *writeRawFile_AST(ASTnode *p, argList *a) {
+Value *writeRawFile_AST(argList *a) {
 	struct writeRawFileParams *params = malloc(sizeof(struct writeRawFileParams));
 
 	checkArgs(a, 2, typeClip, typeStr);
@@ -42,7 +42,7 @@ ASTnode *writeRawFile_AST(ASTnode *p, argList *a) {
 	////////////////////
 	params->file = fopen(filename, "w");
 	if(params->file == NULL)
-		MkvsynthError("Could not open the output file!")
+		MkvsynthError("Could not open the output file!");
 
 	params->input = createInputBuffer(output);
 

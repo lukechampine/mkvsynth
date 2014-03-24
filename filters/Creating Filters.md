@@ -17,7 +17,7 @@ Filters are split up into 2 pieces: the startup piece and the multi-threaded pie
 The startup piece must be in the form
 
 ```c
-ASTnode *filterName_AST(ASTnode *p, argList *a) {
+Value *filterName_AST(argList *a) {
 	// Do stuff
 }
 ```
@@ -31,7 +31,7 @@ checkArgs(a, numberOfRequiredArguments, {... the types of the arguments});
 For darken, we would have 2 required arguments, an input clip and a number. That means so far, we have:
 
 ```c
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 }
 ```
@@ -39,7 +39,7 @@ ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
 To access the function's arguments, we call delbrot macros. For darken, it would look like:
 
 ```c
-ASTnode *nieveDarken_AST(ASTnode *p, argList *) {
+Value *nieveDarken_AST(argList *) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -51,7 +51,7 @@ If you'll notice, all input videos are going to be of type MkvsynthInput. Mkvsyn
 The next part of writing a filter is error checking. Darken is only going to support a single color space, so it's important to check that the input video is the right colorspace. `MkvsynthError()` is used for error messages, and will cause the program to terminate. It is good practice to preface your errors with the name of your function.
 
 ```c
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -64,7 +64,7 @@ ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
 The next part is creating an output video and filling out the metaData. createMkvsynthOutput(MkvsynthInput *input) will automatically copy the metaData from the input to the output. If you are writing a filter that changes the metaData (for example, crop will change the height and width of the video), then you must make sure to update the metaData in the output. nieveDarken does not change any meta data, so this section is short.
 
 ```c
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -83,7 +83,7 @@ void *nieveDarken(void *filterParams) {
 	// Do stuff
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -110,7 +110,7 @@ void *nieveDarken(void *filterParams) {
 	struct NieveDarkenParams *params = (struct NieveDarkenParams *)filterParams;
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -137,7 +137,7 @@ void *nieveDarken(void *filterParams) {
 	struct NieveDarkenParams *params = (struct NieveDarkenParams *)filterParams;
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -167,7 +167,7 @@ void *nieveDarken(void *filterParams) {
 	struct NieveDarkenParams *params = (struct NieveDarkenParams *)filterParams;
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -211,7 +211,7 @@ void *nieveDarken(void *filterParams) {
 	}
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -271,7 +271,7 @@ void *nieveDarken(void *filterParams) {
 	}
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -321,7 +321,7 @@ void *nieveDarken(void *filterParams) {
 	}
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -373,7 +373,7 @@ void *nieveDarken(void *filterParams) {
 	putFrame(params->output, NULL);
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);
@@ -431,7 +431,7 @@ void *nieveDarken(void *filterParams) {
 	free(params);
 }
 
-ASTnode *nieveDarken_AST(ASTnode *p, argList *a) {
+Value *nieveDarken_AST(argList *a) {
 	checkArgs(a, 2, typeClip, typeVal);
 	MkvsynthInput *input = MANDCLIP(0);
 	unsigned short strength = (unsigned short)MANDVAL(1);

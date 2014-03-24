@@ -86,7 +86,7 @@ void *ffmpegDecode(void *filterParams) {
 	return NULL;
 }
 
-ASTnode* ffmpegDecode_AST(ASTnode *p, argList *a) {
+Value* ffmpegDecode_AST(argList *a) {
 
 	///////////////////////////
 	// Parse Input Arguments //

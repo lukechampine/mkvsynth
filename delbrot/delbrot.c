@@ -8,110 +8,107 @@
 #include "y.tab.h"
 
 /* function declarations */
-static argList* argify(Env *, ASTnode *);
-static ASTnode* assign(Env *, ASTnode *, ASTnode *);
-static ASTnode* assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
-static ASTnode* binaryOp(ASTnode *, ASTnode *, int, ASTnode *);
+static argList* argify(Env *, Var *);
+static Value*   assign(Env *, Value *, Value *);
+static Value*   assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
+static Value*   binaryOp(Value *, int, Value *);
 static void     chain(ASTnode *, ASTnode *);
        void     checkArgs(argList *, int, ...);
 static ASTnode* copy(ASTnode *);
-static ASTnode* dereference(ASTnode *);
-       ASTnode* ex(Env *, ASTnode *p);
-static ASTnode* fnctCall(Env *, ASTnode *, ASTnode *, argList *);
-static void     funcDefine(Env *, ASTnode *, ASTnode *, ASTnode *);
-       void*    getOptArg(argList *, char *, int);
-static ASTnode* identify(Env *, ASTnode *);
-static void     ifelse(Env *, ASTnode *, ASTnode *, ASTnode *, ASTnode *);
-static void     import(ASTnode *);
+       Value*   ex(Env *, ASTnode *);
+static Value*   fnctCall(Env *, Value *, argList *);
+static void     funcDefine(Env *, Value *, ASTnode *, ASTnode *);
+       void*    getOptArg(argList *, char *, valueType);
+static void     ifelse(Env *, ASTnode *, Value *);
+static void     import(Value *);
        void     MkvsynthError(char *error, ...);
        void     MkvsynthMessage(char *error, ...);
        void     MkvsynthWarning(char *error, ...);
-static ASTnode* setDefault(Env *, ASTnode *, ASTnode *);
-static ASTnode* ternary(Env *, ASTnode *, ASTnode *, ASTnode *);
-static ASTnode* unaryOp(ASTnode *, ASTnode *, int);
-static ASTnode* userDefFnCall(Env *, ASTnode *, argList *);
+static void     setDefault(Env *, Value *, Value *);
+static Value*   ternary(Env *, Value *, Value *, Value *);
+static Value*   unaryOp(Value *, int);
+static Value*   userDefFnCall(Env *, Fn *, argList *);
 
 /* global variables */
-char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "variable", "function", "operation", "argument", "optional argument", "parameter", "optional parameter"};
+char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "void"};
 extern int linenumber;
 char *currentFunction = "";
 
 /* function definitions */
 /* transform a linked list of nodes into an argList */
-argList* argify(Env *e, ASTnode *p) {
-    argList *a = malloc(sizeof(argList));
+argList* argify(Env *e, Var *p) {
+    argList *a = calloc(1, sizeof(argList));
     if (!p)
         return a;
 
     /* count # of arguments */
     a->nargs = 1;
-    ASTnode *traverse = p;
-    while ((traverse = traverse->next)) a->nargs++;
+    Var *traverse = p;
+    while ((traverse = traverse->next))
+        a->nargs++;
+
     /* allocate space */
-    a->args = malloc(a->nargs * sizeof(varNode));
+    a->args = calloc(a->nargs, sizeof(Var));
 
     /* place arguments in args array */
     int i;
-    for (i = 0, traverse = p; traverse; traverse = traverse->next, i++) {
-        if (traverse->type == typeOptArg)
-            a->args[i] = traverse->var;
-        else {
-            a->args[i].type = typeArg;
-            a->args[i].name = NULL;
-            a->args[i].value = traverse;
-        }
-    }
+    for (i = 0, traverse = p; traverse; traverse = traverse->next, i++)
+        a->args[i] = *traverse;
+
     /* evaluate arguments */
     for (i = 0; i < a->nargs; i++)
-        a->args[i].value = ex(e, a->args[i].value);
+        a->args[i].value = ex(e, (ASTnode*)a->args[i].value);
 
     return a;
 }
 
 /* create or modify a variable */
-ASTnode* assign(Env *e, ASTnode *varNode, ASTnode *valueNode) {
-    if (varNode->type != typeVar && varNode->type != typeId)
-        MkvsynthError("can't assign to a constant value (got %s)", typeNames[ex(e, varNode)->type]);
-    if (valueNode->type > typeClip)
-        MkvsynthError("can't assign type %s to variable", typeNames[valueNode->type]);
+Value* assign(Env *e, Value *name, Value *val) {
+    if (!name)
+        MkvsynthError("invalid assignment: can't assign to operation", name);
+    if (name->type != typeId)
+        MkvsynthError("invalid assignment: can't assign to constant type %s", typeNames[name->type]);
+    if (val->type > typeClip)
+        MkvsynthError("invalid assignment: can't assign type %s to variable", typeNames[val->type]);
     /* new variable */
-    if (varNode->type == typeId)
-        varNode = putVar(e, varNode->id);
-    /* copy new value */
-    return memcpy(varNode->var.value, valueNode, sizeof(ASTnode));
+    if (getVar(e, name->id) == NULL)
+        putVar(e, name->id, typeVar);
+    return setVar(e, name->id, val);
 }
 
+
 /* handle assignment operators */
-ASTnode* assignOp(Env *e, ASTnode *varNode, ASTnode *op, ASTnode *valueNode) {
+Value* assignOp(Env *e, ASTnode *varNode, ASTnode *opNode, ASTnode *valNode) {
     /* special cases */
-    if (op->num == '=')
-        return assign(e, varNode, valueNode);
+    if (opNode->op == '=')
+        return assign(e, varNode->value, ex(e, valNode));
 
     ASTnode *RHS;
-    if (op->num == CHNEQ)
-        RHS = mkOpNode(CHAIN, 2, varNode, valueNode);
+    if (opNode->op == CHNEQ)
+        RHS = makeNode(CHAIN, 2, varNode, valNode);
     else
-        RHS = mkOpNode(BINOP, 3, varNode, op, valueNode);
+        RHS = makeNode(BINOP, 3, varNode, opNode, valNode);
 
     /* unfold syntactic sugar and reprocess */
-    return ex(e, mkOpNode(ASSIGN, 3, varNode, mkNumNode('='), RHS));
+    return ex(e, makeNode(ASSIGN, 3, varNode, makeNode('=', 0), RHS));
 }
 
 /* handle arithmetic / boolean operators */
-ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
+Value* binaryOp(Value* c1, int op, Value* c2) {
+    Value *v = newValue();
     /* arithmetic operator */
     if (op < 100) {
         if (c1->type != typeNum) MkvsynthError("type mismatch: LHS of %c expected number, got %s", op, typeNames[c1->type]);
         if (c2->type != typeNum) MkvsynthError("type mismatch: RHS of %c expected number, got %s", op, typeNames[c2->type]);
         switch(op) {
-            case '+': p->num = c1->num + c2->num; break;
-            case '-': p->num = c1->num - c2->num; break;
-            case '*': p->num = c1->num * c2->num; break;
-            case '/': p->num = c1->num / c2->num; break;
-            case '^': p->num = pow(c1->num, c2->num); break;
-            case '%': p->num = (double) ((int) c1->num % (int) c2->num); break;
+            case '+': v->num = c1->num + c2->num; break;
+            case '-': v->num = c1->num - c2->num; break;
+            case '*': v->num = c1->num * c2->num; break;
+            case '/': v->num = c1->num / c2->num; break;
+            case '^': v->num = pow(c1->num, c2->num); break;
+            case '%': v->num = (double) ((int) c1->num % (int) c2->num); break;
         }
-        p->type = typeNum;
+        v->type = typeNum;
     }
     /* concatenation operator */
     else if (op == CNCAT) {
@@ -121,8 +118,8 @@ ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
             char *newString = malloc(strlen(c1->str) + strlen(c2->str) + 1);
             strcpy(newString, c1->str);
             strcat(newString, c2->str);
-            p->str = newString;
-            p->type = typeStr;
+            v->str = newString;
+            v->type = typeStr;
         }
         else if (c1->type == typeClip) {
             MkvsynthError("clip concatenation is not supported (yet)");
@@ -140,63 +137,64 @@ ASTnode* binaryOp(ASTnode* p, ASTnode* c1, int op, ASTnode* c2) {
         opStrs[GE] = ">="; opStrs[LE] = "<="; opStrs[LOR] = "||"; opStrs[LAND] = "&&";
         if (c1->type == typeNum) {
             switch(op) {
-                case EQ: p->bool = c1->num == c2->num ? TRUE : FALSE; break;
-                case NE: p->bool = c1->num != c2->num ? TRUE : FALSE; break;
-                case GT: p->bool = c1->num  > c2->num ? TRUE : FALSE; break;
-                case LT: p->bool = c1->num  < c2->num ? TRUE : FALSE; break;
-                case GE: p->bool = c1->num >= c2->num ? TRUE : FALSE; break;
-                case LE: p->bool = c1->num <= c2->num ? TRUE : FALSE; break;
+                case EQ: v->bool = c1->num == c2->num ? TRUE : FALSE; break;
+                case NE: v->bool = c1->num != c2->num ? TRUE : FALSE; break;
+                case GT: v->bool = c1->num  > c2->num ? TRUE : FALSE; break;
+                case LT: v->bool = c1->num  < c2->num ? TRUE : FALSE; break;
+                case GE: v->bool = c1->num >= c2->num ? TRUE : FALSE; break;
+                case LE: v->bool = c1->num <= c2->num ? TRUE : FALSE; break;
                 default: MkvsynthError("type mismatch: operator %s is not defined for numbers", opStrs[op]);
             }
         }
         else if (c1->type == typeBool) {
             switch(op) {
-                case EQ:   p->bool = (c1->bool == TRUE) == (c2->bool == TRUE) ? TRUE : FALSE; break;
-                case NE:   p->bool = (c1->bool == TRUE) != (c2->bool == TRUE) ? TRUE : FALSE; break;
-                case LOR:  p->bool = (c1->bool == TRUE) || (c2->bool == TRUE) ? TRUE : FALSE; break;
-                case LAND: p->bool = (c1->bool == TRUE) && (c2->bool == TRUE) ? TRUE : FALSE; break;
+                case EQ:   v->bool = (c1->bool == TRUE) == (c2->bool == TRUE) ? TRUE : FALSE; break;
+                case NE:   v->bool = (c1->bool == TRUE) != (c2->bool == TRUE) ? TRUE : FALSE; break;
+                case LOR:  v->bool = (c1->bool == TRUE) || (c2->bool == TRUE) ? TRUE : FALSE; break;
+                case LAND: v->bool = (c1->bool == TRUE) && (c2->bool == TRUE) ? TRUE : FALSE; break;
                 default: MkvsynthError("type mismatch: operator %s is not defined for booleans", opStrs[op]);
             }
         }
         else if (c1->type == typeStr) {
             switch(op) {
-                case EQ: p->bool = strcmp(c1->str, c2->str) == 0 ? TRUE : FALSE; break;
-                case NE: p->bool = strcmp(c1->str, c2->str) != 0 ? TRUE : FALSE; break;
+                case EQ: v->bool = strcmp(c1->str, c2->str) == 0 ? TRUE : FALSE; break;
+                case NE: v->bool = strcmp(c1->str, c2->str) != 0 ? TRUE : FALSE; break;
                 default: MkvsynthError("type mismatch: operator %s is not defined for strings", opStrs[op]);
             }
         }
         else {
             MkvsynthError("comparison operators are not supported for %ss (yet)", typeNames[c1->type]);
         }
-        p->type = typeBool;
+        v->type = typeBool;
     }
-    return p;
+    return v;
 }
 
 /* append LHS to argument list of RHS */
-void chain(ASTnode *valueNode, ASTnode *fnNode) {
-    if (fnNode->type == typeOp && fnNode->op.oper == CHAIN)
-        chain(valueNode, fnNode->op.ops[0]);
-    else if (fnNode->type == typeOp && fnNode->op.oper == FNCT)
-        valueNode->next = fnNode->op.ops[1], fnNode->op.ops[1] = valueNode;
-    else if (fnNode->type == typeId || fnNode->type == typeFn)
-        memcpy(fnNode, mkOpNode(FNCT, 2, copy(fnNode), valueNode), sizeof(ASTnode));
+void chain(ASTnode *val, ASTnode *fnNode) {
+    if (fnNode->op == CHAIN)
+        chain(val, fnNode->child[0]);
+    else if (fnNode->op == FNCT)
+        fnNode->child[1] = append(val, fnNode->child[1]);
+    else if (fnNode->value != NULL && fnNode->value->type == typeId)
+        memcpy(fnNode, makeNode(FNCT, 2, copy(fnNode), val), sizeof(ASTnode));
     else
-        MkvsynthError("expected function name, got %s", typeNames[fnNode->type]);
+        MkvsynthError("expected function name, got %s", typeNames[fnNode->value->type]);
 }
 
 /* ensure that a function call is valid */
-/* TODO: check optional arguments */
 void checkArgs(argList *a, int numArgs, ...) {
     /* check number of arguments */
-    if (a->nargs != numArgs)
-        MkvsynthError("expected %d argument%s, got %d", numArgs, (numArgs == 1 ? "" : "s"), a->nargs);
+    int i = 0;
+    while (i < a->nargs && a->args[i].type == typeArg)
+        i++;
+    if (i != numArgs)
+        MkvsynthError("expected %d argument%s, got %d", numArgs, (numArgs == 1 ? "" : "s"), i);
     /* check types */
-    int i;
     va_list ap;
     va_start(ap, numArgs);
     for (i = 0; i < numArgs; i++) {
-        nodeType argType = va_arg(ap, nodeType);
+        valueType argType = va_arg(ap, valueType);
         if (a->args[i].value->type != argType)
             MkvsynthError("arg %d expected %s, got %s", i+1, typeNames[argType], typeNames[a->args[i].value->type]);
     }
@@ -211,88 +209,94 @@ ASTnode* copy(ASTnode *p) {
     ASTnode *dup = newNode();
     memcpy(dup, p, sizeof(ASTnode));
 
+    /* copy payload */
+    if (dup->value != NULL)
+        memcpy(dup->value, p->value, sizeof(Value));
+
     /* recurse to children, if any */
-    if (dup->type == typeOp) {
-        if ((dup->op.ops = malloc(dup->op.nops * sizeof(ASTnode *))) == NULL)
+    if (dup->nops > 0) {
+        if ((dup->child = calloc(dup->nops, sizeof(ASTnode *))) == NULL)
             MkvsynthError("out of memory");
         int i;
-        for (i = 0; i < dup->op.nops; i++)
-            dup->op.ops[i] = copy(p->op.ops[i]);
+        for (i = 0; i < dup->nops; i++)
+            dup->child[i] = copy(p->child[i]);
     }
 
-    /* recurse to linked node */
-    dup->next = copy(dup->next);
-    
     return dup;
 }
 
-/* dereference a variable */
-ASTnode* dereference(ASTnode *p) {
-    if (p->type == typeId)
-        MkvsynthError("reference to undefined variable or function \"%s\"", p->id);
-    if (p->type != typeVar)
-        return p;
-    return p->var.value;
+/* dereference an identifier */
+Value* dereference(Env *e, Value *val) {
+    if (val == NULL)
+        MkvsynthError("unexpected NULL value");
+    if (val->type != typeId)
+        return val;
+    Var *v; Fn *f;
+    if ((v = getVar(e, val->id)) != NULL)
+        return v->value;
+    if ((f = getFn(e, val->id)) != NULL) {
+        return fnctCall(e, val, argify(e, NULL));
+    }
+    MkvsynthError("reference to undefined variable or function \"%s\"", val->id);
+    return NULL;
 }
 
-/* execute a section of the AST */
-ASTnode* ex(Env *e, ASTnode *p) {
+/* execute an ASTnode, producing a constant value */
+Value* ex(Env *e, ASTnode *p) {
     if (!p)
         return NULL;
 
-    /* resolve identifiers */
-    p = dereference(identify(e, p));
-
-    /* catch functions with no arguments */
-    if (p->type == typeFn)
-        p = mkOpNode(FNCT, 2, p, NULL);
-
-    /* only nodes with children can be reduced */
-    if (p->type != typeOp)
-        return p;
-
-    /* for convenience */
-    ASTnode **child = p->op.ops;
-
-    switch(p->op.oper) {
+    Value *v = NULL;
+    switch (p->op) {
+        /* leaf node */
+        case 0:       v = dereference(e, p->value); break;
         /* declarations */
-        case FNDEF:   funcDefine(e, child[0], child[1], child[2]); break;
+        case FNDEF:   funcDefine(e, p->child[0]->value, p->child[1], p->child[2]); break;
         /* blocks */
-        case IF:      ifelse(e, p, ex(e, child[0]), child[1], child[2]); break;
+        case IF:      ifelse(e, p, ex(e, p->child[0])); break;
         /* functions */
-        case FNCT:    p = fnctCall(e, p, identify(e, child[0]), argify(e, child[1])); break;
-        case CHAIN:   chain(ex(e, child[0]), child[1]); p = ex(e, child[1]); break;
-        case DEFAULT: setDefault(e, child[0], ex(e, child[1])); break;
-        case RETURN:  p = ex(e, child[0]); if (p != NULL) e->returnValue = p;longjmp(e->returnContext, 1); break;
+        case FNCT:    v = fnctCall(e, p->child[0]->value, argify(e, p->child[1]->value->arg)); break;
+        case CHAIN:   chain(makeArg(NULL, p->child[0]), p->child[1]); v = ex(e, p->child[1]); break;
+        case DEFAULT: setDefault(e, p->child[0]->value, ex(e, p->child[1])); break;
+        case RETURN:  e->returnValue = ex(e, p->child[0]); longjmp(e->returnContext, 1); break;
         /* plugin imports */
-        case IMPORT:  import(child[0]); break;
+        case IMPORT:  import(p->child[0]->value); break;
         /* assignment */
-        case ASSIGN:  p = assignOp(e, identify(e, child[0]), child[1], ex(e, child[2])); break;
+        case ASSIGN:  v = assignOp(e, p->child[0], p->child[1], p->child[2]); break;
         /* unary operators */
-        case NEG:     p = unaryOp(p, ex(e, child[0]), NEG); break;
-        case '!':     p = unaryOp(p, ex(e, child[0]), '!'); break;
+        case NEG:     v = unaryOp(ex(e, p->child[0]), '-'); break;
+        case '!':     v = unaryOp(ex(e, p->child[0]), '!'); break;
         /* binary operators */
-        case BINOP:   p = binaryOp(p, ex(e, child[0]), child[1]->num, ex(e, child[2])); break;
+        case BINOP:   v = binaryOp(ex(e, p->child[0]), p->child[1]->op, ex(e, p->child[2])); break;
         /* trinary operator */
-        case TERN:    p = ternary(e, ex(e, child[0]), child[1], child[2]); break;
+        case TERN:    v = ternary(e, ex(e, p->child[0]), ex(e, p->child[1]), ex(e, p->child[2])); break;
         /* compound statements */
-        case ';':     ex(e, child[0]); p = ex(e, child[1]); break;
+        case ';':     ex(e, p->child[0]); v = ex(e, p->child[1]); break;
         /* should never wind up here */
-        default: MkvsynthError("unknown operator %d", p->op.oper);
+        default:      MkvsynthError("unknown operator %d", p->op);
     }
 
-    return p;
+    /* default return value */
+    if (v == NULL) {
+        v = newValue();
+        v->type = typeOp;
+    }
+
+    return v;
 }
 
 /* handle function calls */
-ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, argList *a) {
-    if (fnNode->type == typeId)
-        MkvsynthError("reference to undefined function \"%s\"", fnNode->var.name);
-    if (fnNode->type != typeFn)
-        MkvsynthError("expected function, got %s", typeNames[fnNode->type]);
+Value* fnctCall(Env *e, Value *name, argList *a) {
+    if (!name)
+        MkvsynthError("expected function name, got operation", name);
+    if (name->type != typeId)
+        MkvsynthError("expected function name, got %s", typeNames[name->type]);
+    Fn *f = getFn(e, name->id);
+    if (f == NULL)
+        MkvsynthError("reference to undefined function \"%s\"", name->id);
 
     /* set global variable */
-    currentFunction = fnNode->fn.name;
+    currentFunction = f->name;
 
     /* check argument order */
     int i;
@@ -301,64 +305,62 @@ ASTnode* fnctCall(Env *e, ASTnode *p, ASTnode *fnNode, argList *a) {
             MkvsynthError("optional arguments must follow mandatory arguments");
     }
     
-    if (fnNode->fn.type == fnCore)
-        p = (*(fnNode->fn.core.fnPtr))(p, a);
+    Value *res;
+    if (f->type == fnCore)
+        res = (*(f->fnPtr))(a);
     else
-        p = userDefFnCall(e, fnNode, a);
+        res = userDefFnCall(e, f, a);
 
     /* unset global variable */
     currentFunction = "";
 
-    return p;
+    return res;
 }
 
 /* process a function definition */
-void funcDefine(Env *e, ASTnode *name, ASTnode *params, ASTnode *body) {
+void funcDefine(Env *e, Value *name, ASTnode *params, ASTnode *body) {
+    if (!name)
+        MkvsynthError("expected name of function, got operation", name);
     if (name->type != typeId)
-        MkvsynthError("function name \"%s\" is already in use", name->var.name);
+        MkvsynthError("expected name of function, got %s", typeNames[name->type]);
+    if (getVar(e, name->id) || getFn(e, name->id))
+        MkvsynthWarning("overwrote previous definition of %s", name->id);
 
     /* create new function table entry */
-    ASTnode *p = newNode();
-    p->type = typeFn;
-    p->fn.type = fnUser;
-    p->fn.name = name->id;
-    p->fn.user.body = body;
+    Fn *f = calloc(1, sizeof(Fn));
+    f->type = fnUser;
+    f->name = name->id;
+    f->body = copy(body);
 
     /* create parameter list */
-    p->fn.user.params = malloc(sizeof(argList));
-    argList *fnParams = p->fn.user.params; /* for convenience */
+    /* TODO: can this be replaced with argify? */
+    f->params = calloc(1, sizeof(argList));
     int i;
     if (params) {
         /* count number of parameters */
-        fnParams->nargs = 1;
-        ASTnode *traverse = params;
+        f->params->nargs = 1;
+        Var *traverse = params->value->arg;
         while ((traverse = traverse->next))
-            fnParams->nargs++;
+            f->params->nargs++;
         /* allocate space for parameters */
-        fnParams->args = malloc(fnParams->nargs * sizeof(varNode));
+        f->params->args = calloc(f->params->nargs, sizeof(Var));
         /* copy parameters */
-        for (i = 0, traverse = params; traverse; traverse = traverse->next, i++) {
-            fnParams->args[i].type = traverse->type;
-            fnParams->args[i].name = traverse->var.name;
-            fnParams->args[i].value = newNode();
-            fnParams->args[i].value->type = traverse->var.type;
-        }
+        for (i = 0, traverse = params->value->arg; traverse; traverse = traverse->next, i++)
+            memcpy(&f->params->args[i], traverse, sizeof(Var));
     }
 
     /* check argument ordering */
-    for (i = 0; i < fnParams->nargs - 1; i++) {
-        printf("%s\n", typeNames[fnParams->args[i].value->type]);
-        if (fnParams->args[i].type == typeOptParam && fnParams->args[i+1].type == typeParam)
-            MkvsynthError("optional parameters must follow mandatory parameters in function %s", p->fn.name);
+    for (i = 0; i < f->params->nargs - 1; i++) {
+        if (f->params->args[i].type == typeOptParam && f->params->args[i+1].type == typeParam)
+            MkvsynthError("optional parameters must follow mandatory parameters in function %s", f->name);
     }
 
     /* add to local function table */
-    p->next = e->fnTable;
-    e->fnTable = p;
+    putFn(e, f);
 }
 
 /* get optional arguments in a function call */
-void* getOptArg(argList *a, char *name, int type) {
+void* getOptArg(argList *a, char *name, valueType type) {
     int i;
     for (i = 0; i < a->nargs; i++) {
         if (a->args[i].type == typeArg)
@@ -371,42 +373,29 @@ void* getOptArg(argList *a, char *name, int type) {
                 case typeBool: return &a->args[i].value->bool;
                 case typeStr:  return a->args[i].value->str;
                 case typeClip: return a->args[i].value->clipIn;
+                default:       MkvsynthError("invalid argument type");
             }
         }
     }
     return NULL;
 }
 
-/* resolve an identifier */
-ASTnode* identify(Env *e, ASTnode *p) {
-    if (p->type != typeId)
-        return p;
-
-    ASTnode *i;
-    /* function */
-    if ((i = getFn(e, p->id)) != NULL)
-        p = copy(i);
-    /* existing variable */
-    else if ((i = getVar(e, p->id)) != NULL)
-        p = copy(i);
-
-    return p;
-}
-
 /* process an if/else statement */
-void ifelse(Env *e, ASTnode *p, ASTnode *cond, ASTnode *ifNode, ASTnode *elseNode) {
+void ifelse(Env *e, ASTnode *p, Value *cond) {
     if (cond->type != typeBool)
         MkvsynthError("if expected boolean, got %s", typeNames[cond->type]);
     if (cond->bool == TRUE)
-        ex(e, ifNode);
-    else if (p->op.nops == 3)
-        ex(e, elseNode);
+        ex(e, p->child[1]);
+    else if (p->nops == 3)
+        ex(e, p->child[2]);
 }
 
 /* import a plugin */
-void import(ASTnode *pluginName) {
+void import(Value *pluginName) {
+    if (!pluginName)
+        MkvsynthError("expected name of plugin, got operation", pluginName);
     if (pluginName->type != typeId)
-        MkvsynthError("invalid plugin name");
+        MkvsynthError("expected name of plugin, got %s", typeNames[pluginName->type]);
     /* construct plugin path */
     char *home = getenv("HOME");
     char *pluginPath = malloc(strlen(pluginName->id) + strlen(home) + 24);
@@ -417,7 +406,7 @@ void import(ASTnode *pluginName) {
     /* load plugin */
     void *handle = dlopen(pluginPath, RTLD_NOW);
     if (!handle)
-        MkvsynthError("could not load plugin %s: %s", pluginName->id, dlerror());
+        MkvsynthError("could not load plugin %s: %s not found", pluginName->id, pluginPath);
     /* create and append new plugin entry */
     Plugin *newPlugin = malloc(sizeof(Plugin));
     newPlugin->name = pluginName->id;
@@ -458,92 +447,110 @@ void MkvsynthWarning(char *warning, ...) {
 }
 
 /* process a default statement */
-ASTnode* setDefault(Env *e, ASTnode *paramNode, ASTnode *valueNode) {
-    /* identify parameter */
-    paramNode = getVar(e, paramNode->id);
-    if (paramNode == NULL)
-        MkvsynthError("could not set default of undefined parameter %s", paramNode->id);
-    if (paramNode->type != typeOptArg)
-        MkvsynthError("could not set default of mandatory parameter %s", paramNode->id);
-    if (paramNode->var.value != NULL)
-        MkvsynthError("value of %s already set", paramNode->id); /* TODO: make this a warning */
+void setDefault(Env *e, Value *name, Value *val) {
+    if (currentFunction[0] == 0)
+        MkvsynthError("can't set defaults outside of function body");
+    if (!name)
+        MkvsynthError("expected optional parameter, got operation", name);
+    if (name->type != typeId)
+        MkvsynthError("expected optional parameter, got %s", typeNames[name->type]);
 
-    assign(e, paramNode, valueNode);
-    paramNode->type = typeVar;
-    return paramNode;
+    Var *v = getVar(e, name->id);
+    if (v == NULL)
+        MkvsynthError("could not set default of undefined parameter %s", name->id);
+    if (v->type != typeOptParam)
+        MkvsynthError("could not set default of mandatory parameter %s", name->id);
+
+    if (v->value == NULL)
+        v->value = val;
 }
 
 /* process a ternary expression */
-ASTnode* ternary(Env *e, ASTnode *cond, ASTnode *ifNode, ASTnode *elseNode) {
+Value* ternary(Env *e, Value *cond, Value *ifVal, Value *elseVal) {
     if (cond->type != typeBool)
         MkvsynthError("arg 1 of ?| expected boolean, got %s", typeNames[cond->type]);
     if (cond->bool == TRUE)
-        return ex(e, ifNode);
+        return ifVal;
     else
-        return ex(e, elseNode);
+        return elseVal;
 }
 
 /* handle negation operators */
-ASTnode* unaryOp(ASTnode* p, ASTnode* c1, int op) {
-    if (c1->type != typeNum) MkvsynthError("arg 1 of %c expected number, got %s", op, typeNames[c1->type]);
-    switch (op) {
-        case NEG: p->type = typeNum; p->num = -c1->num; break;
-        case '!': p->type = typeBool; p->bool = c1->bool ? FALSE : TRUE; break;
+Value* unaryOp(Value* val, int op) {
+    Value *v = newValue();
+    v->type = typeNum;
+    if (op == '-') {
+        if (val->type != typeNum)
+            MkvsynthError("%c expected number, got %s", op, typeNames[val->type]);
+        v->num = -val->num;
     }
-    return p;
+    else if (op == '!') {
+        if (val->type != typeBool)
+            MkvsynthError("%c expected boolean, got %s", op, typeNames[val->type]);
+        v->bool = val->bool == TRUE ? FALSE : TRUE;
+    }
+    return v;
 }
 
 /* process a user-defined function call */
-ASTnode* userDefFnCall(Env *e, ASTnode *fnNode, argList *a) {
+Value* userDefFnCall(Env *e, Fn *f, argList *a) {
     /* create new environment */
-    Env *local = (Env *) malloc(sizeof(Env));
+    Env *local = (Env *) calloc(1, sizeof(Env));
     local->parent = e;
-    local->returnValue = newNode();
-    local->returnValue->type = typeFn; /* default return value */
     
     /* for convenience */
-    argList *p = fnNode->fn.user.params;
+    Var *args = a->args;
+    Var *params = f->params->args;
+
+    /* add function parameters to local variable table */
+    int i;
+    for (i = 0; i < f->params->nargs; i++)
+        putVar(local, params[i].name, params[i].type);
 
     /* check argument number */
     int nMandArgs = 0, nMandParams = 0;
-    while (a->args && a->args[nMandArgs].type == typeArg) nMandArgs++;
-    while (p->args && p->args[nMandParams].type == typeParam) nMandParams++;
+    while (nMandArgs < a->nargs && args[nMandArgs].type == typeArg)
+        nMandArgs++;
+    while (nMandParams < f->params->nargs && params[nMandParams].type == typeParam)
+        nMandParams++;
     if (nMandArgs != nMandParams)
-        MkvsynthError("%s expected %d mandatory argument%s, got %d", fnNode->fn.name, nMandParams, (nMandParams == 1) ? "" : "s", nMandArgs);
-
+        MkvsynthError("%s expected %d mandatory argument%s, got %d", f->name, nMandParams, (nMandParams == 1) ? "" : "s", nMandArgs);
     /* check mandatory args for type mismatches */
-    int i;
     for (i = 0; i < nMandParams; i++) {
-        if (a->args[i].value->type != p->args[i].value->type)
+        if (args[i].value->type != params[i].valType)
             MkvsynthError("type mismatch: arg %d of %s expected %s, got %s", 
-                i+1, fnNode->fn.name, typeNames[p->args[i].value->type], typeNames[a->args[i].value->type]);
-        /* all is well; create local variable and set value */
-        assign(e, putVar(local, p->args[i].name), a->args[i].value);
+                i+1, f->name, typeNames[params[i].valType], typeNames[args[i].value->type]);
+        /* all is well; set value of local var */
+        setVar(local, params[i].name, args[i].value);
     }
 
     /* check optional arguments */
     for (i = nMandArgs; i < a->nargs; i++) {
         /* check that optional parameter exists */
         int j = nMandParams;
-        for (j = nMandParams; j < p->nargs; j++) {
-            if (!strcmp(a->args[i].name, p->args[j].name))
+        for (j = nMandParams; j < f->params->nargs; j++) {
+            if (!strcmp(args[i].name, params[j].name))
                 break;
         }
-        if (j == p->nargs)
-            MkvsynthError("%s is not an optional parameter of function %s", a->args[i].name, fnNode->fn.name);
+        if (j == f->params->nargs)
+            MkvsynthError("%s is not an optional parameter of function %s", args[i].name, f->name);
         /* check that types match */
-        if (a->args[i].value->type != p->args[i].value->type)
+        if (args[i].value->type != params[i].valType)
             MkvsynthError("type mismatch: optional argument \"%s\" of function \"%s\" expected %s, got %s",
-                p->args[i].name, fnNode->fn.name, typeNames[p->args[i].value->type], typeNames[a->args[i].value->type]);
+                params[i].name, f->name, typeNames[params[i].valType], typeNames[args[i].value->type]);
         /* assign value */
-        putVar(local, p->args[i].name)->type = typeOptParam;
-        assign(e, getVar(local, p->args[i].name), a->args[i].value);
+        setVar(local, params[i].name, args[i].value);
     }
 
     /* execute a copy of the function body in the local environment */
     if (setjmp(local->returnContext) == 0)
-        ex(local, copy(fnNode->fn.user.body));
+        ex(local, copy(f->body));
 
-    /* return */
-    return local->returnValue;
+    /* default return value */
+    Value *v = newValue();
+    v->type = typeOp;
+    if (!local->returnValue)
+        return v;
+    else
+        return memcpy(v, local->returnValue, sizeof(Value));
 }

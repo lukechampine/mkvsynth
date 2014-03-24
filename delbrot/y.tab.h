@@ -45,37 +45,36 @@
      FALSE = 263,
      CONSTANT = 264,
      IDENTIFIER = 265,
-     OPTARG = 266,
-     ASSIGN = 267,
-     BINOP = 268,
-     ADDEQ = 269,
-     SUBEQ = 270,
-     MULEQ = 271,
-     DIVEQ = 272,
-     POWEQ = 273,
-     MODEQ = 274,
-     CHNEQ = 275,
-     CHAIN = 276,
-     CNCAT = 277,
-     IF = 278,
-     ELSE = 279,
-     TERN = 280,
-     FNCT = 281,
-     FNDEF = 282,
-     RETURN = 283,
-     DEFAULT = 284,
-     OTHER = 285,
-     IMPORT = 286,
-     LOR = 287,
-     LAND = 288,
-     EQ = 289,
-     NE = 290,
-     GT = 291,
-     LT = 292,
-     GE = 293,
-     LE = 294,
-     IFX = 295,
-     NEG = 296
+     ASSIGN = 266,
+     BINOP = 267,
+     ADDEQ = 268,
+     SUBEQ = 269,
+     MULEQ = 270,
+     DIVEQ = 271,
+     POWEQ = 272,
+     MODEQ = 273,
+     CHNEQ = 274,
+     CHAIN = 275,
+     CNCAT = 276,
+     IF = 277,
+     ELSE = 278,
+     TERN = 279,
+     FNCT = 280,
+     FNDEF = 281,
+     RETURN = 282,
+     DEFAULT = 283,
+     OTHER = 284,
+     IMPORT = 285,
+     LOR = 286,
+     LAND = 287,
+     EQ = 288,
+     NE = 289,
+     GT = 290,
+     LT = 291,
+     GE = 292,
+     LE = 293,
+     NEG = 294,
+     IFX = 295
    };
 #endif
 /* Tokens.  */
@@ -87,37 +86,36 @@
 #define FALSE 263
 #define CONSTANT 264
 #define IDENTIFIER 265
-#define OPTARG 266
-#define ASSIGN 267
-#define BINOP 268
-#define ADDEQ 269
-#define SUBEQ 270
-#define MULEQ 271
-#define DIVEQ 272
-#define POWEQ 273
-#define MODEQ 274
-#define CHNEQ 275
-#define CHAIN 276
-#define CNCAT 277
-#define IF 278
-#define ELSE 279
-#define TERN 280
-#define FNCT 281
-#define FNDEF 282
-#define RETURN 283
-#define DEFAULT 284
-#define OTHER 285
-#define IMPORT 286
-#define LOR 287
-#define LAND 288
-#define EQ 289
-#define NE 290
-#define GT 291
-#define LT 292
-#define GE 293
-#define LE 294
+#define ASSIGN 266
+#define BINOP 267
+#define ADDEQ 268
+#define SUBEQ 269
+#define MULEQ 270
+#define DIVEQ 271
+#define POWEQ 272
+#define MODEQ 273
+#define CHNEQ 274
+#define CHAIN 275
+#define CNCAT 276
+#define IF 277
+#define ELSE 278
+#define TERN 279
+#define FNCT 280
+#define FNDEF 281
+#define RETURN 282
+#define DEFAULT 283
+#define OTHER 284
+#define IMPORT 285
+#define LOR 286
+#define LAND 287
+#define EQ 288
+#define NE 289
+#define GT 290
+#define LT 291
+#define GE 292
+#define LE 293
+#define NEG 294
 #define IFX 295
-#define NEG 296
 
 
 
