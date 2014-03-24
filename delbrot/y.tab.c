@@ -66,7 +66,7 @@
 /* Copy the first part of user declarations.  */
 
 /* Line 268 of yacc.c  */
-#line 1 "delbrot.y"
+#line 1 "delbrot/delbrot.y"
 
     #include <dlfcn.h>
     #include <stdarg.h>
@@ -74,17 +74,16 @@
     #include <stdlib.h>
     #include <string.h>
     #include "delbrot.h"
-    /* prototypes to please -Wall */
+    /* declarations */
     void yyerror(char *error, ...);
     int yylex();
-    /* script file */
-    extern FILE *yyin;
+    FILE *yyin;
     /* debug */
     #define YYDEBUG 1
 
 
 /* Line 268 of yacc.c  */
-#line 88 "y.tab.c"
+#line 87 "delbrot/y.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -206,7 +205,7 @@ typedef int YYSTYPE;
 
 
 /* Line 343 of yacc.c  */
-#line 210 "y.tab.c"
+#line 209 "delbrot/y.tab.c"
 
 #ifdef short
 # undef short
@@ -527,15 +526,15 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    30,    30,    32,    36,    37,    38,    39,    40,    41,
-      45,    49,    53,    54,    58,    59,    63,    64,    68,    72,
-      73,    74,    78,    79,    83,    83,    83,    83,    87,    88,
-      92,    93,    97,   101,   102,   106,   106,   106,   106,   106,
-     106,   106,   106,   110,   111,   115,   116,   120,   121,   125,
-     126,   130,   131,   135,   135,   139,   140,   144,   144,   144,
-     144,   148,   149,   153,   153,   157,   158,   162,   162,   162,
-     166,   167,   171,   172,   175,   176,   180,   181,   185,   186,
-     190,   191,   195,   196,   200,   201,   202,   206,   207,   208
+       0,    29,    29,    31,    35,    36,    37,    38,    39,    40,
+      44,    48,    52,    53,    57,    58,    62,    63,    67,    71,
+      72,    73,    77,    78,    82,    82,    82,    82,    86,    87,
+      91,    92,    96,   100,   101,   105,   105,   105,   105,   105,
+     105,   105,   105,   109,   110,   114,   115,   119,   120,   124,
+     125,   129,   130,   134,   134,   138,   139,   143,   143,   143,
+     143,   147,   148,   152,   152,   156,   157,   161,   161,   161,
+     165,   166,   170,   171,   174,   175,   179,   180,   184,   185,
+     189,   190,   194,   195,   199,   200,   201,   205,   206,   207
 };
 #endif
 
@@ -1585,266 +1584,266 @@ yyreduce:
         case 3:
 
 /* Line 1806 of yacc.c  */
-#line 32 "delbrot.y"
+#line 31 "delbrot/delbrot.y"
     { ex(global, (yyvsp[(2) - (2)]));                        }
     break;
 
   case 10:
 
 /* Line 1806 of yacc.c  */
-#line 45 "delbrot.y"
+#line 44 "delbrot/delbrot.y"
     { (yyval) = makeNode(FNDEF, 3, (yyvsp[(2) - (8)]), (yyvsp[(4) - (8)]), (yyvsp[(7) - (8)]));   }
     break;
 
   case 11:
 
 /* Line 1806 of yacc.c  */
-#line 49 "delbrot.y"
+#line 48 "delbrot/delbrot.y"
     { (yyval) = makeNode(DEFAULT, 2, (yyvsp[(2) - (5)]), (yyvsp[(4) - (5)]));     }
     break;
 
   case 12:
 
 /* Line 1806 of yacc.c  */
-#line 53 "delbrot.y"
+#line 52 "delbrot/delbrot.y"
     { (yyval) = makeNode(RETURN, 1, (yyvsp[(2) - (3)]));          }
     break;
 
   case 13:
 
 /* Line 1806 of yacc.c  */
-#line 54 "delbrot.y"
+#line 53 "delbrot/delbrot.y"
     { (yyval) = makeNode(RETURN, 1, NULL);        }
     break;
 
   case 14:
 
 /* Line 1806 of yacc.c  */
-#line 58 "delbrot.y"
+#line 57 "delbrot/delbrot.y"
     { (yyval) = makeNode(';', 2, NULL, NULL);     }
     break;
 
   case 15:
 
 /* Line 1806 of yacc.c  */
-#line 59 "delbrot.y"
+#line 58 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(1) - (2)]);                               }
     break;
 
   case 16:
 
 /* Line 1806 of yacc.c  */
-#line 63 "delbrot.y"
+#line 62 "delbrot/delbrot.y"
     { (yyval) = makeNode(IF, 2, (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));          }
     break;
 
   case 17:
 
 /* Line 1806 of yacc.c  */
-#line 64 "delbrot.y"
+#line 63 "delbrot/delbrot.y"
     { (yyval) = makeNode(IF, 3, (yyvsp[(3) - (7)]), (yyvsp[(5) - (7)]), (yyvsp[(7) - (7)]));      }
     break;
 
   case 18:
 
 /* Line 1806 of yacc.c  */
-#line 68 "delbrot.y"
+#line 67 "delbrot/delbrot.y"
     { (yyval) = makeNode(IMPORT, 1, (yyvsp[(2) - (3)]));          }
     break;
 
   case 19:
 
 /* Line 1806 of yacc.c  */
-#line 72 "delbrot.y"
+#line 71 "delbrot/delbrot.y"
     { (yyval) = NULL;                             }
     break;
 
   case 20:
 
 /* Line 1806 of yacc.c  */
-#line 73 "delbrot.y"
+#line 72 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(1) - (1)]);                               }
     break;
 
   case 21:
 
 /* Line 1806 of yacc.c  */
-#line 74 "delbrot.y"
+#line 73 "delbrot/delbrot.y"
     { (yyval) = append((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));                   }
     break;
 
   case 22:
 
 /* Line 1806 of yacc.c  */
-#line 78 "delbrot.y"
+#line 77 "delbrot/delbrot.y"
     { (yyval) = makeParam(typeParam, (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));     }
     break;
 
   case 23:
 
 /* Line 1806 of yacc.c  */
-#line 79 "delbrot.y"
+#line 78 "delbrot/delbrot.y"
     { (yyval) = makeParam(typeOptParam, (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));  }
     break;
 
   case 29:
 
 /* Line 1806 of yacc.c  */
-#line 88 "delbrot.y"
+#line 87 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(2) - (3)]);                               }
     break;
 
   case 31:
 
 /* Line 1806 of yacc.c  */
-#line 93 "delbrot.y"
+#line 92 "delbrot/delbrot.y"
     { (yyval) = makeNode(';', 2, (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));         }
     break;
 
   case 34:
 
 /* Line 1806 of yacc.c  */
-#line 102 "delbrot.y"
+#line 101 "delbrot/delbrot.y"
     { (yyval) = makeNode(ASSIGN, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));  }
     break;
 
   case 44:
 
 /* Line 1806 of yacc.c  */
-#line 111 "delbrot.y"
+#line 110 "delbrot/delbrot.y"
     { (yyval) = makeNode(TERN, 3, (yyvsp[(1) - (5)]), (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));    }
     break;
 
   case 46:
 
 /* Line 1806 of yacc.c  */
-#line 116 "delbrot.y"
+#line 115 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(3) - (3)]);                               }
     break;
 
   case 48:
 
 /* Line 1806 of yacc.c  */
-#line 121 "delbrot.y"
+#line 120 "delbrot/delbrot.y"
     { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 50:
 
 /* Line 1806 of yacc.c  */
-#line 126 "delbrot.y"
+#line 125 "delbrot/delbrot.y"
     { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 52:
 
 /* Line 1806 of yacc.c  */
-#line 131 "delbrot.y"
+#line 130 "delbrot/delbrot.y"
     { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 56:
 
 /* Line 1806 of yacc.c  */
-#line 140 "delbrot.y"
+#line 139 "delbrot/delbrot.y"
     { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 62:
 
 /* Line 1806 of yacc.c  */
-#line 149 "delbrot.y"
+#line 148 "delbrot/delbrot.y"
     { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 66:
 
 /* Line 1806 of yacc.c  */
-#line 158 "delbrot.y"
+#line 157 "delbrot/delbrot.y"
     { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 71:
 
 /* Line 1806 of yacc.c  */
-#line 167 "delbrot.y"
+#line 166 "delbrot/delbrot.y"
     { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 73:
 
 /* Line 1806 of yacc.c  */
-#line 172 "delbrot.y"
+#line 171 "delbrot/delbrot.y"
     { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
     break;
 
   case 75:
 
 /* Line 1806 of yacc.c  */
-#line 176 "delbrot.y"
+#line 175 "delbrot/delbrot.y"
     { (yyval) = makeNode(CHAIN, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));       }
     break;
 
   case 77:
 
 /* Line 1806 of yacc.c  */
-#line 181 "delbrot.y"
+#line 180 "delbrot/delbrot.y"
     { (yyval) = makeNode(FNCT, 2, (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));        }
     break;
 
   case 79:
 
 /* Line 1806 of yacc.c  */
-#line 186 "delbrot.y"
+#line 185 "delbrot/delbrot.y"
     { (yyval) = addPluginFn((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));              }
     break;
 
   case 81:
 
 /* Line 1806 of yacc.c  */
-#line 191 "delbrot.y"
+#line 190 "delbrot/delbrot.y"
     { (yyval) = append((yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));                   }
     break;
 
   case 82:
 
 /* Line 1806 of yacc.c  */
-#line 195 "delbrot.y"
+#line 194 "delbrot/delbrot.y"
     { (yyval) = makeArg(NULL, (yyvsp[(1) - (1)]));                }
     break;
 
   case 83:
 
 /* Line 1806 of yacc.c  */
-#line 196 "delbrot.y"
+#line 195 "delbrot/delbrot.y"
     { (yyval) = makeArg((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));                  }
     break;
 
   case 85:
 
 /* Line 1806 of yacc.c  */
-#line 201 "delbrot.y"
+#line 200 "delbrot/delbrot.y"
     { (yyval) = makeNode(NEG, 1, (yyvsp[(2) - (2)]));             }
     break;
 
   case 86:
 
 /* Line 1806 of yacc.c  */
-#line 202 "delbrot.y"
+#line 201 "delbrot/delbrot.y"
     { (yyval) = makeNode('!', 1, (yyvsp[(2) - (2)]));             }
     break;
 
   case 89:
 
 /* Line 1806 of yacc.c  */
-#line 208 "delbrot.y"
+#line 207 "delbrot/delbrot.y"
     { (yyval) = (yyvsp[(2) - (3)]);                               }
     break;
 
 
 
 /* Line 1806 of yacc.c  */
-#line 1848 "y.tab.c"
+#line 1847 "delbrot/y.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2075,7 +2074,7 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 211 "delbrot.y"
+#line 210 "delbrot/delbrot.y"
  /* end of grammar */
 
 /* allocate a node */
@@ -2190,6 +2189,14 @@ Fn* getFn(Env const *e, char const *fnName) {
 
 /* add a plugin function to the global fnTable and return its identifier */
 ASTnode* addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
+    /* create identifier */
+    char *id = malloc(strlen(pluginName->value->id) + strlen(fnName->value->id) + 1);
+    strcat(id, pluginName->value->id);
+    strcat(id, ".");
+    strcat(id, fnName->value->id);
+    /* check if function is already in fnTable */
+    if (getFn(global, id) != NULL)
+        return makeLeaf(typeId, id);
     /* look up plugin */
     Plugin *traverse;
     Value * (*pluginFn) (argList *);
@@ -2200,11 +2207,6 @@ ASTnode* addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
             pluginFn = dlsym(traverse->handle, fnName->value->id);
             if (dlerror() != NULL)
                 MkvsynthError("function \"%s\" not found in plugin %s", fnName->value->id, pluginName->value->id);
-            /* create identifier */
-            char *id = malloc(strlen(pluginName->value->id) + strlen(fnName->value->id) + 1);
-            strcat(id, pluginName->value->id);
-            strcat(id, ".");
-            strcat(id, fnName->value->id);
             /* add function to fnTable */
             Fn *f = calloc(1, sizeof(Fn));
             f->type = fnCore;
@@ -2270,7 +2272,7 @@ int main(int argc, char **argv) {
 
     /* read script file, if provided */
     if (argc == 2) {
-        yyin = fopen(argv[1], "r+");
+        yyin = fopen(argv[1], "r");
         if (!yyin) {
             MkvsynthError("could not open file \"%s\" for reading", argv[1]);
             exit(1);
