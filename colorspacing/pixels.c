@@ -104,6 +104,26 @@ void putPixel (MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaDat
 			payload[offset+1]             = pixel->yuv444_24.u;
 			payload[offset+2]             = pixel->yuv444_24.v;
 			break;
+		case MKVS_HSV48:
+			deepPayload[offset]           = pixel->hsv48.h;
+			deepPayload[offset+1]         = pixel->hsv48.s;
+			deepPayload[offset+2]         = pixel->hsv48.v;
+			break;
+		case MKVS_HSV24:
+			payload[offset]               = pixel->hsv24.h;
+			payload[offset+1]             = pixel->hsv24.s;
+			payload[offset+2]             = pixel->hsv24.v;
+			break;
+		case MKVS_HSL48:
+			deepPayload[offset]           = pixel->hsl48.h;
+			deepPayload[offset+1]         = pixel->hsl48.s;
+			deepPayload[offset+2]         = pixel->hsl48.l;
+			break;
+		case MKVS_HSL24:
+			payload[offset]               = pixel->hsl24.h;
+			payload[offset+1]             = pixel->hsl24.s;
+			payload[offset+2]             = pixel->hsl24.l;
+			break;
 	}
 }
 
@@ -134,6 +154,26 @@ void addPixel (MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t color
 			destination->yuv444_24.u      += source->yuv444_24.u * strength;
 			destination->yuv444_24.v      += source->yuv444_24.v * strength;
 			break;
+		case MKVS_HSV48:
+			destination->hsv48.h         += source->hsv48.h * strength;
+			destination->hsv48.s         += source->hsv48.s * strength;
+			destination->hsv48.v         += source->hsv48.v * strength;
+			break;
+		case MKVS_HSV24:
+			destination->hsv24.h          += source->hsv24.h * strength;
+			destination->hsv24.s          += source->hsv24.s * strength;
+			destination->hsv24.v          += source->hsv24.v * strength;
+			break;
+		case MKVS_HSL48:
+			destination->hsl48.h         += source->hsl48.h * strength;
+			destination->hsl48.s         += source->hsl48.s * strength;
+			destination->hsl48.l         += source->hsl48.l * strength;
+			break;
+		case MKVS_HSL24:
+			destination->hsl24.h          += source->hsl24.h * strength;
+			destination->hsl24.s          += source->hsl24.s * strength;
+			destination->hsl24.l          += source->hsl24.l * strength;
+			break;
 	}
 }
 
@@ -141,6 +181,14 @@ void addPixel (MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t color
 uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 	uint16_t rgbRed = 0;
 	float result = 0;
+	float hdeg = 0; //value of hsv or hsl hue in degrees instead of out of 255
+	float hc = 0; //the next three variables are used in hsv to rgb conversions
+	float hx = 0;
+	float hm = 0;
+	float fsat = 0; //hsv saturation and hsv value represented as floats out of 1 instead of ints out of 255
+	float fval = 0;
+	float tempx = 0; //placeholder for calculating hx
+	int y = 0;
 	
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
@@ -167,7 +215,7 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			
 		case MKVS_YUV444_24:
 			//result = (float)pixel->yuv444_24.y + ((float)pixel->yuv444_24.v / .877); //this is the Y'UV conversion
-			result = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128); //this is the VCbCr conversion for full-range values
+			result = (float)pixel->yuv444_24.y + 1.4 * ((float)pixel->yuv444_24.v - 128); //this is the YCbCr conversion for full-range values
 			result *= 256;
 			result += .5; // for accurate rounding
 			
@@ -178,6 +226,68 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 				rgbRed = (int)result;
 			}
 			break;
+			
+		case MKVS_HSV24:
+			hdeg = (float)pixel->hsv24.h * 360.0 / 256.0;
+			fsat = (float)pixel->hsv24.s / 256.0;
+			fval = (float)pixel->hsv24.v / 256.0;
+			hc = fsat * fval;
+			hm = fval - hc;
+			tempx = hdeg / 60.0;
+			for(y = 0; tempx > 2.0; y++){
+				tempx -= 2.0;
+			}
+			tempx -= 1;
+			if(tempx < 0){
+				tempx *= -1.0;
+			}
+			hx = hc * tempx;
+			if((hdeg < 60) || (hdeg >= 300 && hdeg < 360)){
+				result = hc + hm;
+			}else if(hdeg >= 120 && hdeg < 240)
+			{
+				result = hm;
+			}else{
+				result = hx + hm;
+			}
+			result *= 65535;
+			rgbRed = (int)result;
+			break;
+		
+		case MKVS_HSV48:
+			hdeg = (float)pixel->hsv48.h * 360.0 / 65536.0;
+			fsat = (float)pixel->hsv48.s / 65536.0;
+			fval = (float)pixel->hsv48.v / 65536.0;
+			hc = fsat * fval;
+			hm = fval - hc;
+			tempx = hdeg / 60.0;
+			for(y = 0; tempx > 2.0; y++){
+				tempx -= 2.0;
+			}
+			tempx -= 1;
+			if(tempx < 0){
+				tempx *= -1.0;
+			}
+			hx = hc * tempx;
+			if((hdeg < 60) || (hdeg >= 300 && hdeg < 360)){
+				result = hc + hm;
+			}else if(hdeg >= 120 && hdeg < 240)
+			{
+				result = hm;
+			}else{
+				result = hx + hm;
+			}
+			result *= 65535;
+			rgbRed = (int)result;
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 	}
 
 	return rgbRed;
@@ -187,6 +297,14 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 	uint16_t rgbGreen = 0;
 	float result = 0;
+	float hdeg = 0; //value of hsv or hsl hue in degrees instead of out of 255
+	float hc = 0; //the next three variables are used in hsv to rgb conversions
+	float hx = 0;
+	float hm = 0;
+	float fsat = 0; //hsv saturation and hsv value represented as floats out of 1 instead of ints out of 255
+	float fval = 0;
+	float tempx = 0; //placeholder for calculating hx
+	int y = 0;
 	
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
@@ -224,6 +342,68 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 				rgbGreen = (int)result;
 			}
 			break;
+			
+		case MKVS_HSV24:
+			hdeg = (float)pixel->hsv24.h * 360.0 / 256.0;
+			fsat = (float)pixel->hsv24.s / 256.0;
+			fval = (float)pixel->hsv24.v / 256.0;
+			hc = fsat * fval;
+			hm = fval - hc;
+			tempx = hdeg / 60.0;
+			for(y = 0; tempx > 2.0; y++){
+				tempx -= 2.0;
+			}
+			tempx -= 1;
+			if(tempx < 0){
+				tempx *= -1.0;
+			}
+			hx = hc * tempx;
+			if(hdeg >= 60 && hdeg < 180){
+				result = hc + hm;
+			}else if(hdeg >= 240)
+			{
+				result = hm;
+			}else{
+				result = hx + hm;
+			}
+			result *= 65535;
+			rgbGreen = (int)result;
+			break;
+		
+		case MKVS_HSV48:
+			hdeg = (float)pixel->hsv48.h * 360.0 / 65536.0;
+			fsat = (float)pixel->hsv48.s / 65536.0;
+			fval = (float)pixel->hsv48.v / 65536.0;
+			hc = fsat * fval;
+			hm = fval - hc;
+			tempx = hdeg / 60.0;
+			for(y = 0; tempx > 2.0; y++){
+				tempx -= 2.0;
+			}
+			tempx -= 1;
+			if(tempx < 0){
+				tempx *= -1.0;
+			}
+			hx = hc * tempx;
+			if(hdeg >= 60 && hdeg < 180){
+				result = hc + hm;
+			}else if(hdeg >= 240)
+			{
+				result = hm;
+			}else{
+				result = hx + hm;
+			}
+			result *= 65535;
+			rgbGreen = (int)result;
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 	}
 	return rgbGreen;
 }
@@ -232,6 +412,14 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	uint16_t rgbBlue = 0;
 	float result = 0;
+	float hdeg = 0; //value of hsv or hsl hue in degrees instead of out of 255
+	float hc = 0; //the next three variables are used in hsv to rgb conversions
+	float hx = 0;
+	float hm = 0;
+	float fsat = 0; //hsv saturation and hsv value represented as floats out of 1 instead of ints out of 255
+	float fval = 0;
+	float tempx = 0; //placeholder for calculating hx
+	int y = 0;
 	
 	switch(metaData->colorspace) {
 		case MKVS_RGB48:
@@ -268,6 +456,68 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			}else {
 				rgbBlue = (int)result;
 			}
+			break;
+			
+		case MKVS_HSV24:
+			hdeg = (float)pixel->hsv24.h * 360.0 / 256.0;
+			fsat = (float)pixel->hsv24.s / 256.0;
+			fval = (float)pixel->hsv24.v / 256.0;
+			hc = fsat * fval;
+			hm = fval - hc;
+			tempx = hdeg / 60.0;
+			for(y = 0; tempx > 2.0; y++){
+				tempx -= 2.0;
+			}
+			tempx -= 1;
+			if(tempx < 0){
+				tempx *= -1.0;
+			}
+			hx = hc * tempx;
+			if(hdeg >= 180 && hdeg < 300){
+				result = hc + hm;
+			}else if(hdeg < 120)
+			{
+				result = hm;
+			}else{
+				result = hx + hm;
+			}
+			result *= 65535;
+			rgbBlue = (int)result;
+			break;
+		
+		case MKVS_HSV48:
+			hdeg = (float)pixel->hsv48.h * 360.0 / 65536.0;
+			fsat = (float)pixel->hsv48.s / 65536.0;
+			fval = (float)pixel->hsv48.v / 65536.0;
+			hc = fsat * fval;
+			hm = fval - hc;
+			tempx = hdeg / 60.0;
+			for(y = 0; tempx > 2.0; y++){
+				tempx -= 2.0;
+			}
+			tempx -= 1;
+			if(tempx < 0){
+				tempx *= -1.0;
+			}
+			hx = hc * tempx;
+			if(hdeg >= 180 && hdeg < 300){
+				result = hc + hm;
+			}else if(hdeg < 120)
+			{
+				result = hm;
+			}else{
+				result = hx + hm;
+			}
+			result *= 65535;
+			rgbBlue = (int)result;
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
 			break;
 	}
 	return rgbBlue;
@@ -338,6 +588,22 @@ void setRed(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
 			pixel->yuv444_24.v = (uint8_t)vval;
 			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		}
 }
 
@@ -406,6 +672,22 @@ void setGreen(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
 			pixel->yuv444_24.v = (uint8_t)vval;;
 			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		}
 }
 
@@ -473,6 +755,22 @@ void setBlue(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 			pixel->yuv444_24.u = (uint8_t)uval;
 			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
 			pixel->yuv444_24.v = (uint8_t)vval;;
+			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
 			break;
 		}
 }
@@ -545,6 +843,22 @@ void adjustRed(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaDat
 			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
 			pixel->yuv444_24.v = (uint8_t)vval;
 			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		}
 }
 
@@ -615,6 +929,22 @@ void adjustGreen(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaD
 			pixel->yuv444_24.u = (uint8_t)uval;
 			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
 			pixel->yuv444_24.v = (uint8_t)vval;
+			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
 			break;
 		}
 }
@@ -687,6 +1017,22 @@ void adjustBlue(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaDa
 			vval = 128 + .5 * redval - .419 * grnval - .081 * bluval;
 			pixel->yuv444_24.v = (uint8_t)vval;
 			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		}
 }
 
@@ -716,6 +1062,22 @@ uint16_t getLuma(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		case MKVS_YUV444_24:
 			yuvLuma = pixel->yuv444_24.y;
 			yuvLuma *= 256;
+			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
 			break;
 	}
 	return yuvLuma;
@@ -749,6 +1111,22 @@ uint16_t getCb(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			yuvCb = pixel->yuv444_24.u;
 			yuvCb *= 256;
 			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 	}
 	return yuvCb;
 }
@@ -780,6 +1158,22 @@ uint16_t getCr(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		case MKVS_YUV444_24:
 			yuvCr = pixel->yuv444_24.v;
 			yuvCr *= 256;
+			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
 			break;
 	}
 	return yuvCr;
@@ -852,6 +1246,22 @@ void setLuma(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			}
 			pixel->yuv444_24.y = (uint16_t) value;
 			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		}
 }
 
@@ -922,6 +1332,22 @@ void setCb(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 				value = 255;
 			}
 			pixel->yuv444_24.u = (uint16_t) value;
+			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
 			break;
 		}
 }
@@ -994,6 +1420,22 @@ void setCr(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 				value = 255;
 			}
 			pixel->yuv444_24.v = (uint16_t) value;
+			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
 			break;
 		}
 }
@@ -1069,6 +1511,22 @@ void adjustLuma(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaDa
 			}else{
 				pixel->yuv444_24.y += (uint8_t) intensity;
 			}
+			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
 			break;
 	}
 }
@@ -1146,6 +1604,22 @@ void adjustCb(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 				pixel->yuv444_24.u += (uint8_t) intensity;
 			}
 			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 	}
 }
 
@@ -1221,6 +1695,22 @@ void adjustCr(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 				pixel->yuv444_24.v += (uint8_t) intensity;
 			}
 			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 	}
 }
 
@@ -1231,45 +1721,38 @@ uint16_t getHue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	double bp = 0;
 	double gp = 0; //these variable represent the portion of the red, green, or blue value that is present in the color
 	double cmin, cmax, delta, dhue, fhue; //dhue represents the hue out of one, fhue is the float form of hue
-	int x, y;
+	int x;
 	switch(metaData->colorspace){
 		case MKVS_RGB24:
 		rp = (double)pixel->rgb24.r / 256.0;
 		gp = (double)pixel->rgb24.g / 256.0;
 		bp = (double)pixel->rgb24.b / 256.0;
 		x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
-		y = -1;
 		//This is a maximum and minimum function
 		if(rp < gp){
 			if(bp > gp){
-				y = 1;
 				cmin = rp;
 				x = 3;
 				cmax = bp;
 			}else if(bp < rp){
-				y = 3;
 				cmin = bp;
 				x = 2;
 				cmax = gp;
 			}else{
-				y = 1;
 				cmin = rp;
 				x = 2;
 				cmax = gp;
 			}
 		}else{
 			if(bp > rp){
-				y = 2;
 				cmin = gp;
 				x = 3;
 				cmax = bp;
 			}else if(bp < gp){
-				y = 3;
 				cmin = bp;
 				x = 1;
 				cmax = rp;
 			}else{
-				y = 2;
 				cmin = gp;
 				x = 1;
 				cmax = rp;
@@ -1289,86 +1772,87 @@ uint16_t getHue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		}else{
 			dhue = (rp - gp) /delta + 4;
 		}
-		fhue = dhue / 6.0 * 65536;
+		fhue = dhue / 6.0 * 65535.0;
 		hue = (int)fhue;
 		break;
 		
 		case MKVS_RGB48:
-		rp = (double)pixel->rgb48.r / 65536.0;
-		gp = (double)pixel->rgb48.g / 65536.0;
-		bp = (double)pixel->rgb48.b / 65536.0;
-		x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
-		y = -1;
-		//This is a maximum and minimum function
-		if(rp < gp){
-			if(bp > gp){
-				y = 1;
-				cmin = rp;
-				x = 3;
-				cmax = bp;
-			}else if(bp < rp){
-				y = 3;
-				cmin = bp;
-				x = 2;
-				cmax = gp;
+			rp = (double)pixel->rgb48.r / 65536.0;
+			gp = (double)pixel->rgb48.g / 65536.0;
+			bp = (double)pixel->rgb48.b / 65536.0;
+			x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
+			//This is a maximum and minimum function
+			if(rp < gp){
+				if(bp > gp){
+					cmin = rp;
+					x = 3;
+					cmax = bp;
+				}else if(bp < rp){
+					cmin = bp;
+					x = 2;
+					cmax = gp;
+				}else{
+					cmin = rp;
+					x = 2;
+					cmax = gp;
+				}
 			}else{
-				y = 1;
-				cmin = rp;
-				x = 2;
-				cmax = gp;
+				if(bp > rp){
+					cmin = gp;
+					x = 3;
+					cmax = bp;
+				}else if(bp < gp){
+					cmin = bp;
+					x = 1;
+					cmax = rp;
+				}else{
+					cmin = gp;
+					x = 1;
+					cmax = rp;
+				}
 			}
-		}else{
-			if(bp > rp){
-				y = 2;
-				cmin = gp;
-				x = 3;
-				cmax = bp;
-			}else if(bp < gp){
-				y = 3;
-				cmin = bp;
-				x = 1;
-				cmax = rp;
+			delta = cmax - cmin;
+			if(cmax == 0){
+				hue = 0;
+			}else if(x == 1){
+				dhue = (gp - bp) / delta;
+				if(dhue < 0){
+					dhue += 6;
+				}
+			}else if(x == 2){
+				dhue = (bp - rp) / delta + 2;
 			}else{
-				y = 2;
-				cmin = gp;
-				x = 1;
-				cmax = rp;
+				dhue = (rp - gp) /delta + 4;
 			}
-		}
-		delta = cmax - cmin;
-		if(cmax == 0){
-			hue = 0;
-		}else if(x == 1){
-			dhue = (gp - bp) / delta;
-			if(dhue < 0)
-			{
-				dhue += 6;
-			}
-		}else if(x == 2){
-			dhue = (bp - rp) / delta + 2;
-		}else{
-			dhue = (rp - gp) /delta + 4;
-		}
-		fhue = dhue / 6.0 * 65536;
-		hue = (int)fhue;
-		break;
+			fhue = dhue / 6.0 * 65535.0;
+			hue = (int)fhue;
+			break;
 		
 		case MKVS_YUV444_24:
-		yyerror("This colorspace interaction is not yet supported");
-		break;
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		
 		case MKVS_YUV444_48:
-		yyerror("This colorspace interaction is not yet supported");
-		break;
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		
 		case MKVS_HSV24:
-		hue = pixel->hsv24.h;
-		hue *= 256;
-		break;
+			hue = pixel->hsv24.h;
+			hue *= 256;
+			break;
 		
 		case MKVS_HSV48:
-		hue = pixel->hsv48.h;
-		break;
+			hue = pixel->hsv48.h;
+			break;
+		
+		case MKVS_HSL24:
+			hue = pixel->hsl24.h;
+			hue *= 256;
+			break;
+		
+		case MKVS_HSL48:
+			hue = pixel->hsl48.h;
+			break;
 		
 	}
 	return hue;
@@ -1378,31 +1862,140 @@ uint16_t getHue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 
 uint16_t getHSVSaturation(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	uint16_t hsvs = 0;
+	double rp = 0;
+	double bp = 0;
+	double gp = 0; //these variable represent the portion of the red, green, or blue value that is present in the color
+	double cmin, cmax, delta, ds, fs; //ds represents the saturation out of one, fs is the float form of saturation
+	int x, y;
 	switch(metaData->colorspace){
 		case MKVS_RGB24:
-		yyerror("This colorspace interaction is not yet supported");
-		break;
+			rp = (double)pixel->rgb24.r / 256.0;
+			gp = (double)pixel->rgb24.g / 256.0;
+			bp = (double)pixel->rgb24.b / 256.0;
+			x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
+			y = -1;
+			//This is a maximum and minimum function
+			if(rp < gp){
+				if(bp > gp){
+					y = 1;
+					cmin = rp;
+					x = 3;
+					cmax = bp;
+				}else if(bp < rp){
+					y = 3;
+					cmin = bp;
+					x = 2;
+				}else{
+					y = 1;
+					cmin = rp;
+					x = 2;
+					cmax = gp;
+				}
+			}else{
+				if(bp > rp){
+					y = 2;
+					cmin = gp;
+					x = 3;
+					cmax = bp;
+				}else if(bp < gp){
+					y = 3;
+					cmin = bp;
+					x = 1;
+					cmax = rp;
+				}else{
+					y = 2;
+					cmin = gp;
+					x = 1;
+					cmax = rp;
+				}
+			}
+			delta = cmax - cmin;
+			if(cmax == 0)
+			{
+				hsvs = 0;
+			}else{
+				ds = delta / cmax;
+				fs = ds * 65535.0;
+				hsvs = (int)fs;
+			}
+			break;
 		
 		case MKVS_RGB48:
-		yyerror("This colorspace interaction is not yet supported");
-		break;
+			rp = (double)pixel->rgb48.r / 65536.0;
+			gp = (double)pixel->rgb48.g / 65536.0;
+			bp = (double)pixel->rgb48.b / 65536.0;
+			x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
+			y = -1;
+			//This is a maximum and minimum function
+			if(rp < gp){
+				if(bp > gp){
+					y = 1;
+					cmin = rp;
+					x = 3;
+					cmax = bp;
+				}else if(bp < rp){
+					y = 3;
+					cmin = bp;
+					x = 2;
+				}else{
+					y = 1;
+					cmin = rp;
+					x = 2;
+					cmax = gp;
+				}
+			}else{
+				if(bp > rp){
+					y = 2;
+					cmin = gp;
+					x = 3;
+					cmax = bp;
+				}else if(bp < gp){
+					y = 3;
+					cmin = bp;
+					x = 1;
+					cmax = rp;
+				}else{
+					y = 2;
+					cmin = gp;
+					x = 1;
+					cmax = rp;
+				}
+			}
+			delta = cmax - cmin;
+			if(cmax == 0)
+			{
+				hsvs = 0;
+			}else{
+				ds = delta / cmax;
+				fs = ds * 65535.0;
+				hsvs = (int)fs;
+			}
+			break;
 		
 		case MKVS_YUV444_24:
-		yyerror("This colorspace interaction is not yet supported");
-		break;
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		
 		case MKVS_YUV444_48:
-		yyerror("This colorspace interaction is not yet supported");
-		break;
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		
 		case MKVS_HSV24:
-		hsvs = pixel->hsv24.s;
-		hsvs *= 256;
-		break;
+			hsvs = pixel->hsv24.s;
+			hsvs *= 256;
+			break;
 		
 		case MKVS_HSV48:
-		hsvs = pixel->hsv48.s;
-		break;
+			hsvs = pixel->hsv48.s;
+			break;
+		
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		
 	}
 	return hsvs;
@@ -1460,7 +2053,7 @@ uint16_t getValue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 				cmax = rp;
 			}
 		}
-		hsvv = cmax * 65536.0;
+		hsvv = cmax * 65535.0;
 		break;
 		
 		case MKVS_RGB48:
@@ -1505,28 +2098,122 @@ uint16_t getValue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 				cmax = rp;
 			}
 		}
-		hsvv = cmax * 65536.0;
+		hsvv = cmax * 65535.0;
 		break;
 		
 		case MKVS_YUV444_24:
-		yyerror("This colorspace interaction is not yet supported");
-		break;
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		
 		case MKVS_YUV444_48:
-		yyerror("This colorspace interaction is not yet supported");
-		break;
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		
 		case MKVS_HSV24:
-		hsvv = pixel->hsv24.v;
-		hsvv *= 256;
-		break;
+			hsvv = pixel->hsv24.v;
+			hsvv *= 256;
+			break;
 		
 		case MKVS_HSV48:
-		hsvv = pixel->hsv48.v;
-		break;
+			hsvv = pixel->hsv48.v;
+			break;
+			
+		case MKVS_HSL24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_HSL48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
 		
 	}
 	return hsvv;
 }
+
+
+
+uint16_t getHSLSaturation(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	uint16_t hsls = 0;
+	switch(metaData->colorspace){
+		case MKVS_RGB48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_RGB24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_YUV444_24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_YUV444_48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			hsls = pixel->hsl24.s;
+			hsls *= 256;
+			break;
+			
+		case MKVS_HSL48:
+			hsls = pixel->hsl24.s;
+			break;
+	}
+	return hsls;
+}
+
+
+
+uint16_t getLightness(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
+	uint16_t hsll = 0;
+	switch(metaData->colorspace){
+		case MKVS_RGB48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_RGB24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_YUV444_24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+		
+		case MKVS_YUV444_48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSV24:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSV48:
+			yyerror("This colorspace interaction is not yet supported");
+			break;
+			
+		case MKVS_HSL24:
+			hsll = pixel->hsl24.l;
+			hsll *= 256;
+			break;
+			
+		case MKVS_HSL48:
+			hsll = pixel->hsl24.l;
+			break;
+	}
+	return hsll;
+}
+
+
+
+
 
 
