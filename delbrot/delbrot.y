@@ -266,6 +266,7 @@ ASTnode* makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
 	p->value = newValue();
 	Var *v = calloc(1, sizeof(Var));
 	v->type = type;
+	v->value.type = typeNull;
 	v->name = nameNode->value->id;
 	switch (typeNode->op) {
 		case NUM:    v->valType = typeNum;  break;
@@ -285,7 +286,7 @@ ASTnode* makeArg(ASTnode *nameNode, ASTnode *valNode) {
 	Var *v = calloc(1, sizeof(Var));
 	v->type = nameNode ? typeOptArg : typeArg;
 	v->name = nameNode ? nameNode->value->id : NULL;
-	v->value = (Value*) valNode;
+	v->value.arg = (Var*) valNode;
 	p->value->arg = v;
 	return p;
 }
@@ -331,7 +332,7 @@ ASTnode* addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
 		return makeLeaf(typeId, id);
 	/* look up plugin */
 	Plugin *traverse;
-	Value * (*pluginFn) (argList *);
+	Value (*pluginFn) (argList *);
 	for (traverse = pluginList; traverse != NULL; traverse = traverse->next) {
 		if (strcmp(traverse->name, pluginName->value->id) == 0) {
 			/* look up symbol */
@@ -373,17 +374,17 @@ Var* getVar(Env const *e, char const *varName) {
 	return NULL;
 }
 
-Value* setVar(Env const *e, char const *varName, Value const *v) {
+Value setVar(Env const *e, char const *varName, Value const *v) {
 	Var *traverse;
 	for (traverse = e->varTable; traverse != NULL; traverse = traverse->next) {
 		if (strcmp(traverse->name, varName) == 0) {
 			traverse->valType = v->type;
-			traverse->value = newValue();
-			return memcpy(traverse->value, v, sizeof(Value));
+			traverse->value = *v;
+			return traverse->value;
 		}
 	}
 	MkvsynthError("could not set value of undefined variable %s", varName);
-	return NULL;
+	return *newValue();
 }
 
 /* alias for MkvsynthError */

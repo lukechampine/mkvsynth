@@ -68,7 +68,7 @@ void mkvsynthJoin() {
 /******************************************************************************
 * This is what the interpreter calls once all the filters have been queued. *
 *****************************************************************************/
-Value *go_AST(argList *a) {
+Value go_AST(argList *a) {
 	checkArgs(a, 0);
 	if (head != 0) {
 		MkvsynthMessage("Initiating Multithreaded Filters");

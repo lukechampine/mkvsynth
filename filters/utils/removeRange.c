@@ -33,7 +33,7 @@ void *removeRange(void *filterParams) {
 	return NULL;
 }
 
-Value *removeRange_AST(argList *a) {
+Value removeRange_AST(argList *a) {
 	struct RemoveRangeParams *params = malloc(sizeof(struct RemoveRangeParams));
 
 	///////////////////////

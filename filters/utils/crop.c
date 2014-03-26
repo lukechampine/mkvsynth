@@ -39,7 +39,7 @@ void *crop(void *filterParams) {
 	return NULL;
 }
 
-Value *crop_AST(argList *a) {
+Value crop_AST(argList *a) {
 	struct CropParams *params = malloc(sizeof(struct CropParams));
 
 	///////////////////////

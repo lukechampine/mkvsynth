@@ -1,16 +1,16 @@
 #include "delbrot.h"
 
-Value* bilinearResize_AST(argList *);
-Value* colorspacingTests_AST(argList *);
-Value* convertColorspace_AST(argList *);
-Value* crop_AST(argList *);
-Value* ffmpegDecode_AST(argList *);
-Value* go_AST(argList *);
-Value* gradientVideoGenerate_AST(argList *);
-Value* removeRange_AST(argList *);
-Value* testingGradient_AST(argList *);
-Value* writeRawFile_AST(argList *);
-Value* x264Encode_AST(argList *);
+Value bilinearResize_AST(argList *);
+Value colorspacingTests_AST(argList *);
+Value convertColorspace_AST(argList *);
+Value crop_AST(argList *);
+Value ffmpegDecode_AST(argList *);
+Value go_AST(argList *);
+Value gradientVideoGenerate_AST(argList *);
+Value removeRange_AST(argList *);
+Value testingGradient_AST(argList *);
+Value writeRawFile_AST(argList *);
+Value x264Encode_AST(argList *);
 
 Fn internalFilters[] = {
 #ifndef DELBROT

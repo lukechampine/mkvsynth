@@ -36,7 +36,7 @@ void *colorspacingTests(void *filterParams) {
 	return NULL;
 }
 
-Value *colorspacingTests_AST(argList *a) {
+Value colorspacingTests_AST(argList *a) {
 	struct ColorspacingTestsParams *params = malloc(sizeof(struct ColorspacingTestsParams));
 
 	///////////////////////

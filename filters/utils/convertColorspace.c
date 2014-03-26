@@ -32,7 +32,7 @@ void *convertColorspace(void *filterParams) {
 	return NULL;
 }
 
-Value *convertColorspace_AST(argList *a) {
+Value convertColorspace_AST(argList *a) {
 	struct ConvertColorspaceParams *params = malloc(sizeof(struct ConvertColorspaceParams));
 
 	///////////////////////
