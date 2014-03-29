@@ -554,5 +554,7 @@ Value userDefFnCall(Env *e, Fn *f, argList *a) {
 	if (setjmp(local->returnContext) == 0)
 		ex(local, f->body);
 
-	return local->returnValue;
+	Value ret = local->returnValue;
+	freeEnv(local);
+	return ret;
 }

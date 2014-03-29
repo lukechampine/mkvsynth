@@ -114,6 +114,12 @@ ASTnode makeArg(ASTnode *, ASTnode *);
 ASTnode makeParam(varType, ASTnode *, ASTnode *);
 ASTnode newNode();
 Value* newValue();
+/* AST destruction */
+void freeNode(ASTnode *);
+void freeFn(Fn *);
+void freeValue(Value *);
+void freeVar(Var *);
+void freeEnv(Env *);
 /* variable/function access */
 ASTnode addPluginFn(ASTnode *, ASTnode *);
 Fn* getFn(Env const *, char const *);
@@ -127,7 +133,7 @@ void checkArgs(argList *, int, ...);
 void* getOptArg(argList *, char *, valueType);
 
 /* global variables */
-Env *global; /* the global execution environment */
+Env global; /* the global execution environment */
 Plugin *pluginList; /* loaded plugins */
 extern Fn coreFunctions[];
 extern Fn internalFilters[];

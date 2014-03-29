@@ -28,7 +28,7 @@
 
 program
 	: /* empty program */
-	| program stmt                                            { ex(global, &$2);                         }
+	| program stmt                                            { ex(&global, &$2);                        }
 	;
 
 stmt
@@ -209,7 +209,7 @@ primary_expr
 
 %% /* end of grammar */
 
-/* allocate a node */
+/* initialize a node */
 ASTnode newNode() {
 	ASTnode p;
 	p.op = p.nops = 0;
@@ -224,6 +224,82 @@ Value* newValue() {
 	if ((v = calloc(1, sizeof(Value))) == NULL)
 		MkvsynthError("out of memory");
 	return v;
+}
+
+/* free an ASTnode and its children */
+void freeNode(ASTnode *p) {
+	if (!p)
+		return;
+	if (p->value) {
+		freeValue(p->value);
+		free(p->value);
+	}
+	if (p->nops > 0 && p->child) {
+		while (p->nops > 0)
+			freeNode(&p->child[--p->nops]);
+		free(p->child);
+	}
+}
+
+/* free a value */
+void freeValue(Value *v) {
+	if (!v)
+		return;
+	if (v->type == typeStr)
+		free(v->str);
+	if (v->type == typeId)
+		free(v->id);
+	if (v->type == typeNull) {
+		freeVar(v->arg);
+		free(v->arg);
+	}
+}
+
+/* free a linked list of variables */
+void freeVar(Var *v) {
+	if (!v)
+		return;
+	if (v->name)
+		free(v->name);
+	freeValue(&v->value);
+	freeNode(&v->fnArg);
+	if (v->next) {
+		freeVar(v->next);
+		free(v->next);
+	}
+}
+
+/* free a linked list of functions */
+void freeFn(Fn *f) {
+	if (!f)
+		return;
+	free(f->name);
+	if (f->type == fnCore) {
+		free(f->fnPtr);
+	}
+	else {
+		freeNode(f->body);
+		free(f->body);
+		/* free the argument list */
+		int i;
+		for (i = 0; i < f->params->nargs; i++)
+			freeVar(f->params->args);
+		free(f->params->args);
+		free(f->params);
+	}
+	if (f->next) {
+		freeFn(f->next);
+		free(f->next);
+	}
+}
+
+/* free an environment */
+void freeEnv(Env *e) {
+	freeVar(e->varTable);
+	free(e->varTable);
+	freeFn(e->fnTable);
+	free(e->fnTable);
+	free(e);
 }
 
 /* create a node in the AST */
@@ -264,7 +340,6 @@ ASTnode makeLeaf(valueType type, ...) {
 /* create a parameter */
 ASTnode makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
 	ASTnode p = newNode();
-	p.value = newValue();
 	Var *v = calloc(1, sizeof(Var));
 	v->type = type;
 	v->value.type = typeNull;
@@ -275,6 +350,7 @@ ASTnode makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
 		case STRING: v->valType = typeStr;  break;
 		case CLIP:   v->valType = typeClip; break;
 	}
+	p.value = newValue();
 	p.value->arg = v;
 	return p;
 }
@@ -284,6 +360,7 @@ ASTnode makeArg(ASTnode *nameNode, ASTnode *valNode) {
 	ASTnode p;
 	p.op = p.nops = 0;
 	p.value = newValue();
+	p.value->type = typeNull;
 	Var *v = calloc(1, sizeof(Var));
 	v->type = nameNode ? typeOptArg : typeArg;
 	v->name = nameNode ? nameNode->value->id : NULL;
@@ -329,7 +406,7 @@ ASTnode addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
 	strcat(id, ".");
 	strcat(id, fnName->value->id);
 	/* check if function is already in fnTable */
-	if (getFn(global, id) != NULL)
+	if (getFn(&global, id) != NULL)
 		return makeLeaf(typeId, id);
 	/* look up plugin */
 	Plugin *traverse;
@@ -346,7 +423,7 @@ ASTnode addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
 			f->type = fnCore;
 			f->name = id;
 			f->fnPtr = pluginFn;
-			putFn(global, f);
+			putFn(&global, f);
 			return makeLeaf(typeId, id);
 		}
 	}
@@ -413,18 +490,15 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	/* create global environment */
-	global = calloc(1, sizeof(Env));
-
-	if (setjmp(global->returnContext) != 0)
+	if (setjmp(global.returnContext) != 0)
 		return 0;
 
 	/* initialize function table */
 	int i;
 	for(i = 0; coreFunctions[i].name != 0; i++)
-		putFn(global, &coreFunctions[i]);
+		putFn(&global, &coreFunctions[i]);
 	for(i = 0; internalFilters[i].name != 0; i++)
-		putFn(global, &internalFilters[i]);
+		putFn(&global, &internalFilters[i]);
 
 	/* main parse loop */
 	return yyparse();
