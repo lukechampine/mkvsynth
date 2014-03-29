@@ -184,10 +184,8 @@ void chain(ASTnode *val, ASTnode *fnNode) {
 		chain(val, &fnNode->child[0]);
 	else if (fnNode->op == FNCT)
 		fnNode->child[1] = append(val, &fnNode->child[1]);
-	else if (fnNode->value != NULL && fnNode->value->type == typeId) {
-		ASTnode repl = makeNode(FNCT, 2, fnNode, val);
-		memcpy(fnNode, &repl, sizeof(ASTnode));
-	}
+	else if (fnNode->value != NULL && fnNode->value->type == typeId)
+		*fnNode = makeNode(FNCT, 2, fnNode, val);
 	else
 		MkvsynthError("expected function name, got %s", typeNames[fnNode->value->type]);
 }
@@ -334,8 +332,11 @@ void funcDefine(Env *e, Value *name, ASTnode *params, ASTnode *body) {
 		/* allocate space for parameters */
 		f->params->args = calloc(f->params->nargs, sizeof(Var));
 		/* copy parameters */
-		for (traverse = params->value->arg; traverse; traverse = traverse->next)
-			memcpy(&f->params->args[i++], traverse, sizeof(Var));
+		for (traverse = params->value->arg; traverse; traverse = traverse->next) {
+			f->params->args[i] = *traverse;
+			f->params->args[i].name = strdup(traverse->name);
+			i++;
+		}
 	}
 
 	/* check argument ordering */
