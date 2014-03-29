@@ -6,8 +6,8 @@
 #include "../jarvis/jarvis.h"
 
 /* macros */
-#define YYSTYPE ASTnode* /* all tokens are ASTnodes */
-#define bool_t int       /* boolean type alias */
+#define YYSTYPE ASTnode /* all tokens are ASTnodes */
+#define bool_t int      /* boolean type alias */
 /* useful abstractions for writing plugins */
 #define MANDNUM(n)  a->args[n].value.num
 #define MANDBOOL(n) a->args[n].value.bool
@@ -60,10 +60,10 @@ struct Env {
 
 /* a node in the AST */
 struct ASTnode {
-    int op;          /* operator -- 0 if leaf node */
-    Value *value;    /* payload -- NULL unless leaf node */
-    int nops;        /* no. of child nodes -- 0 if leaf node */
-    ASTnode **child; /* child nodes -- NULL if leaf node */
+    int op;         /* operator -- 0 if leaf node */
+    Value *value;   /* payload -- NULL unless leaf node */
+    int nops;       /* no. of child nodes -- 0 if leaf node */
+    ASTnode *child; /* child nodes -- NULL if leaf node */
 };
 
 /* a variable (also used for function arguments) */
@@ -72,6 +72,7 @@ struct Var {
     valueType valType;
     char *name;
     Value value;
+    ASTnode fnArg;
     Var *next; /* for variable tables */
 };
 
@@ -106,15 +107,15 @@ void MkvsynthError(char *, ...);
 void MkvsynthMessage(char *, ...);
 void MkvsynthWarning(char *, ...);
 /* AST creation */
-ASTnode* append(ASTnode *, ASTnode *);
-ASTnode* makeNode(int, int, ...);
-ASTnode* makeLeaf(valueType, ...);
-ASTnode* makeArg(ASTnode *, ASTnode *);
-ASTnode* makeParam(varType, ASTnode *, ASTnode *);
-ASTnode* newNode();
+ASTnode append(ASTnode *, ASTnode *);
+ASTnode makeNode(int, int, ...);
+ASTnode makeLeaf(valueType, ...);
+ASTnode makeArg(ASTnode *, ASTnode *);
+ASTnode makeParam(varType, ASTnode *, ASTnode *);
+ASTnode newNode();
 Value* newValue();
 /* variable/function access */
-ASTnode* addPluginFn(ASTnode *, ASTnode *);
+ASTnode addPluginFn(ASTnode *, ASTnode *);
 Fn* getFn(Env const *, char const *);
 Var* getVar(Env const *, char const *);
 void putFn(Env *, Fn *);

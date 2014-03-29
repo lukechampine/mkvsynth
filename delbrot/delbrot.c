@@ -14,7 +14,6 @@ static Value    assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
 static Value    binaryOp(Env *, ASTnode *, int, ASTnode *);
 static void     chain(ASTnode *, ASTnode *);
 	   void     checkArgs(argList *, int, ...);
-static ASTnode* copy(ASTnode *);
 	   Value    ex(Env *, ASTnode *);
 static Value    fnctCall(Env *, Value *, argList *);
 static void     funcDefine(Env *, Value *, ASTnode *, ASTnode *);
@@ -60,7 +59,7 @@ argList* argify(Env *e, Var *p) {
 
 	/* evaluate arguments */
 	for (i = 0; i < a->nargs; i++)
-		a->args[i].value = ex(e, (ASTnode*)a->args[i].value.arg);
+		a->args[i].value = ex(e, &a->args[i].fnArg);
 
 	return a;
 }
@@ -87,14 +86,17 @@ Value assignOp(Env *e, ASTnode *varNode, ASTnode *opNode, ASTnode *valNode) {
 	if (opNode->op == '=')
 		return assign(e, varNode->value, valNode);
 
-	ASTnode *RHS;
+	ASTnode RHS;
 	if (opNode->op == CHNEQ)
 		RHS = makeNode(CHAIN, 2, varNode, valNode);
 	else
 		RHS = makeNode(BINOP, 3, varNode, opNode, valNode);
 
+	ASTnode eq = makeNode('=', 0);
+	ASTnode a = makeNode(ASSIGN, 3, varNode, &eq, &RHS);
+
 	/* unfold syntactic sugar and reprocess */
-	return ex(e, makeNode(ASSIGN, 3, varNode, makeNode('=', 0), RHS));
+	return ex(e, &a);
 }
 
 /* handle arithmetic / boolean operators */
@@ -179,11 +181,13 @@ Value binaryOp(Env *e, ASTnode *lhsNode, int op, ASTnode *rhsNode) {
 /* append LHS to argument list of RHS */
 void chain(ASTnode *val, ASTnode *fnNode) {
 	if (fnNode->op == CHAIN)
-		chain(val, fnNode->child[0]);
+		chain(val, &fnNode->child[0]);
 	else if (fnNode->op == FNCT)
-		fnNode->child[1] = append(val, fnNode->child[1]);
-	else if (fnNode->value != NULL && fnNode->value->type == typeId)
-		memcpy(fnNode, makeNode(FNCT, 2, copy(fnNode), val), sizeof(ASTnode));
+		fnNode->child[1] = append(val, &fnNode->child[1]);
+	else if (fnNode->value != NULL && fnNode->value->type == typeId) {
+		ASTnode repl = makeNode(FNCT, 2, fnNode, val);
+		memcpy(fnNode, &repl, sizeof(ASTnode));
+	}
 	else
 		MkvsynthError("expected function name, got %s", typeNames[fnNode->value->type]);
 }
@@ -205,30 +209,6 @@ void checkArgs(argList *a, int numArgs, ...) {
 			MkvsynthError("arg %d expected %s, got %s", i+1, typeNames[argType], typeNames[a->args[i].value.type]);
 	}
 	va_end(ap);
-}
-
-/* copy a node and its children */
-ASTnode* copy(ASTnode *p) {
-	if (!p)
-		return NULL;
-
-	ASTnode *dup = newNode();
-	memcpy(dup, p, sizeof(ASTnode));
-
-	/* copy payload */
-	if (dup->value != NULL)
-		memcpy(dup->value, p->value, sizeof(Value));
-
-	/* recurse to children, if any */
-	if (dup->nops > 0) {
-		if ((dup->child = calloc(dup->nops, sizeof(ASTnode *))) == NULL)
-			MkvsynthError("out of memory");
-		int i;
-		for (i = 0; i < dup->nops; i++)
-			dup->child[i] = copy(p->child[i]);
-	}
-
-	return dup;
 }
 
 /* dereference an identifier */
@@ -256,31 +236,32 @@ Value ex(Env *e, ASTnode *p) {
 	if (!p)
 		return v;
 
+	ASTnode arg;
 	switch (p->op) {
 		/* leaf node */
 		case 0:       v = dereference(e, p->value); break;
 		/* declarations */
-		case FNDEF:   funcDefine(e, p->child[0]->value, p->child[1], p->child[2]); break;
+		case FNDEF:   funcDefine(e, p->child[0].value, &p->child[1], &p->child[2]); break;
 		/* blocks */
 		case IF:      ifelse(e, p); break;
 		/* functions */
-		case FNCT:    v = fnctCall(e, p->child[0]->value, argify(e, p->child[1]->value->arg)); break;
-		case CHAIN:   chain(makeArg(NULL, p->child[0]), p->child[1]); v = ex(e, p->child[1]); break;
-		case DEFAULT: setDefault(e, p->child[0]->value, p->child[1]); break;
-		case RETURN:  e->returnValue = ex(e, p->child[0]); longjmp(e->returnContext, 1); break;
+		case FNCT:    v = fnctCall(e, p->child[0].value, argify(e, p->child[1].value->arg)); break;
+		case CHAIN:   arg = makeArg(NULL, &p->child[0]); chain(&arg, &p->child[1]); v = ex(e, &p->child[1]); break;
+		case DEFAULT: setDefault(e, p->child[0].value, &p->child[1]); break;
+		case RETURN:  e->returnValue = ex(e, &p->child[0]); longjmp(e->returnContext, 1); break;
 		/* plugin imports */
-		case IMPORT:  import(p->child[0]->value); break;
+		case IMPORT:  import(p->child[0].value); break;
 		/* assignment */
-		case ASSIGN:  v = assignOp(e, p->child[0], p->child[1], p->child[2]); break;
+		case ASSIGN:  v = assignOp(e, &p->child[0], &p->child[1], &p->child[2]); break;
 		/* unary operators */
-		case NEG:     v = unaryOp(e, p->child[0], '-'); break;
-		case '!':     v = unaryOp(e, p->child[0], '!'); break;
+		case NEG:     v = unaryOp(e, &p->child[0], '-'); break;
+		case '!':     v = unaryOp(e, &p->child[0], '!'); break;
 		/* binary operators */
-		case BINOP:   v = binaryOp(e, p->child[0], p->child[1]->op, p->child[2]); break;
+		case BINOP:   v = binaryOp(e, &p->child[0], p->child[1].op, &p->child[2]); break;
 		/* trinary operator */
 		case TERN:    v = ternary(e, p); break;
 		/* compound statements */
-		case ';':     ex(e, p->child[0]); v = ex(e, p->child[1]); break;
+		case ';':     ex(e, &p->child[0]); v = ex(e, &p->child[1]); break;
 		/* should never wind up here */
 		default:      MkvsynthError("unknown operator %d", p->op);
 	}
@@ -333,23 +314,25 @@ void funcDefine(Env *e, Value *name, ASTnode *params, ASTnode *body) {
 	Fn *f = calloc(1, sizeof(Fn));
 	f->type = fnUser;
 	f->name = name->id;
-	f->body = copy(body);
+	f->body = body;
 
 	/* create parameter list */
 	/* TODO: can this be replaced with argify? */
 	f->params = calloc(1, sizeof(argList));
-	int i;
-	if (params) {
+	int i = 0;
+	if (params->value) {
 		/* count number of parameters */
-		f->params->nargs = 1;
 		Var *traverse = params->value->arg;
-		while ((traverse = traverse->next))
+		while (traverse != NULL) {
 			f->params->nargs++;
+			traverse = traverse->next;
+		}
+
 		/* allocate space for parameters */
 		f->params->args = calloc(f->params->nargs, sizeof(Var));
 		/* copy parameters */
-		for (i = 0, traverse = params->value->arg; traverse; traverse = traverse->next, i++)
-			memcpy(&f->params->args[i], traverse, sizeof(Var));
+		for (traverse = params->value->arg; traverse; traverse = traverse->next)
+			memcpy(&f->params->args[i++], traverse, sizeof(Var));
 	}
 
 	/* check argument ordering */
@@ -385,13 +368,13 @@ void* getOptArg(argList *a, char *name, valueType type) {
 
 /* process an if/else statement */
 void ifelse(Env *e, ASTnode *p) {
-	Value cond = ex(e, p->child[0]);
+	Value cond = ex(e, &p->child[0]);
 	if (cond.type != typeBool)
 		MkvsynthError("if expected boolean, got %s", typeNames[cond.type]);
 	if (cond.bool == TRUE)
-		ex(e, p->child[1]);
+		ex(e, &p->child[1]);
 	else if (p->nops == 3)
-		ex(e, p->child[2]);
+		ex(e, &p->child[2]);
 }
 
 /* import a plugin */
@@ -491,13 +474,13 @@ void setDefault(Env *e, Value *name, ASTnode *valNode) {
 
 /* process a ternary expression */
 Value ternary(Env *e, ASTnode *p) {
-	Value cond = ex(e, p->child[0]);
+	Value cond = ex(e, &p->child[0]);
 	if (cond.type != typeBool)
 		MkvsynthError("arg 1 of ?| expected boolean, got %s", typeNames[cond.type]);
 	if (cond.bool == TRUE)
-		return ex(e, p->child[1]);
+		return ex(e, &p->child[1]);
 	else
-		return ex(e, p->child[2]);
+		return ex(e, &p->child[2]);
 }
 
 /* handle negation operators */
@@ -539,7 +522,7 @@ Value userDefFnCall(Env *e, Fn *f, argList *a) {
 	while (nMandParams < f->params->nargs && params[nMandParams].type == typeParam)
 		nMandParams++;
 	if (nMandArgs != nMandParams)
-		MkvsynthError("%s expected %d mandatory argument%s, got %d", f->name, nMandParams, (nMandParams == 1) ? "" : "s", nMandArgs);
+		MkvsynthError("expected %d mandatory argument%s, got %d", nMandParams, (nMandParams == 1) ? "" : "s", nMandArgs);
 	/* check mandatory args for type mismatches */
 	for (i = 0; i < nMandParams; i++) {
 		if (args[i].value.type != params[i].valType)
@@ -567,9 +550,9 @@ Value userDefFnCall(Env *e, Fn *f, argList *a) {
 		setVar(local, params[i].name, &args[i].value);
 	}
 
-	/* execute a copy of the function body in the local environment */
+	/* execute function body in the local environment */
 	if (setjmp(local->returnContext) == 0)
-		ex(local, copy(f->body));
+		ex(local, f->body);
 
 	return local->returnValue;
 }
