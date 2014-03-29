@@ -295,6 +295,9 @@ Value fnctCall(Env *e, Value *name, argList *a) {
 	else
 		res = userDefFnCall(e, f, a);
 
+	free(a->args);
+	free(a);
+
 	/* unset global variable */
 	currentFunction = "";
 
