@@ -123,10 +123,9 @@ Value binaryOp(Env *e, ASTnode *lhsNode, int op, ASTnode *rhsNode) {
 		if (lhs.type != rhs.type) MkvsynthError("type mismatch: cannot concatenate %s with %s", typeNames[lhs.type], typeNames[rhs.type]);
 		if (lhs.type == typeStr) {
 			// allocate space for new string
-			char *newString = malloc(strlen(lhs.str) + strlen(rhs.str) + 1);
-			strcpy(newString, lhs.str);
-			strcat(newString, rhs.str);
-			v.str = newString;
+			v.str = malloc(strlen(lhs.str) + strlen(rhs.str) + 1);
+			strcpy(v.str, lhs.str);
+			strcat(v.str, rhs.str);
 			v.type = typeStr;
 		}
 		else if (lhs.type == typeClip) {
@@ -181,11 +180,12 @@ Value binaryOp(Env *e, ASTnode *lhsNode, int op, ASTnode *rhsNode) {
 /* append LHS to argument list of RHS */
 void chain(ASTnode *val, ASTnode *fnNode) {
 	if (fnNode->op == CHAIN)
-		chain(val, &fnNode->child[0]);
-	else if (fnNode->op == FNCT)
-		fnNode->child[1] = append(val, &fnNode->child[1]);
+		return chain(val, &fnNode->child[0]);
+	ASTnode arg = makeArg(NULL, val);
+	if (fnNode->op == FNCT)
+		fnNode->child[1] = append(&arg, &fnNode->child[1]);
 	else if (fnNode->value != NULL && fnNode->value->type == typeId)
-		*fnNode = makeNode(FNCT, 2, fnNode, val);
+		*fnNode = makeNode(FNCT, 2, fnNode, &arg);
 	else
 		MkvsynthError("expected function name, got %s", typeNames[fnNode->value->type]);
 }
@@ -234,7 +234,6 @@ Value ex(Env *e, ASTnode *p) {
 	if (!p)
 		return v;
 
-	ASTnode arg;
 	switch (p->op) {
 		/* leaf node */
 		case 0:       v = dereference(e, p->value); break;
@@ -244,7 +243,7 @@ Value ex(Env *e, ASTnode *p) {
 		case IF:      ifelse(e, p); break;
 		/* functions */
 		case FNCT:    v = fnctCall(e, p->child[0].value, argify(e, p->child[1].value->arg)); break;
-		case CHAIN:   arg = makeArg(NULL, &p->child[0]); chain(&arg, &p->child[1]); v = ex(e, &p->child[1]); break;
+		case CHAIN:   chain(&p->child[0], &p->child[1]); v = ex(e, &p->child[1]); break;
 		case DEFAULT: setDefault(e, p->child[0].value, &p->child[1]); break;
 		case RETURN:  e->returnValue = p->nops > 0 ? ex(e, &p->child[0]) : v; longjmp(e->returnContext, 1); break;
 		/* plugin imports */
@@ -259,7 +258,7 @@ Value ex(Env *e, ASTnode *p) {
 		/* trinary operator */
 		case TERN:    v = ternary(e, p); break;
 		/* compound statements */
-		case ';':     if (p->nops > 0) { ex(e, &p->child[0]); ex(e, &p->child[1]); } break;
+		case ';':     ex(e, &p->child[0]); ex(e, &p->child[1]); break;
 		/* should never wind up here */
 		default:      MkvsynthError("unknown operator %d", p->op);
 	}

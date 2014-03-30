@@ -54,7 +54,7 @@ return_stmt
 	;
 
 expression_stmt
-	: ';'                                                     { $$ = makeNode(';', 0);                   }
+	: ';'                                                     { $$ = makeLeaf(typeNum, 0); /* no op */   }
 	| expr ';'                                                { $$ = $1;                                 }
 	;
 
@@ -305,11 +305,13 @@ void freeEnv(Env *e) {
 /* create a node in the AST */
 ASTnode makeNode(int op, int nops, ...) {
 	ASTnode p = newNode();
+	p.op = op;
+	p.nops = nops;
+	if (p.nops == 0)
+		return p;
 	/* allocate space for children */
 	if ((p.child = calloc(nops, sizeof(ASTnode))) == NULL)
 		MkvsynthError("out of memory");
-	p.op = op;
-	p.nops = nops;
 	int i;
 	va_list ap;
 	va_start(ap, nops);
