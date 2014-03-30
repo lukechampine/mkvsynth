@@ -391,24 +391,26 @@ void import(Value *importName) {
 	char *home = getenv("HOME");
 
 	/* attempt to load plugin */
-	char *pluginPath = malloc(strlen(home) + 24 + strlen(importName->id));
+	char *pluginPath = malloc(strlen(home) + 25 + strlen(importName->id));
 	strcpy(pluginPath, home);
 	strcat(pluginPath, "/.config/mkvsynth/lib");
 	strcat(pluginPath, importName->id);
 	strcat(pluginPath, ".so");
 	void *pHandle = dlopen(pluginPath, RTLD_NOW);
+	free(pluginPath);
 
 	/* attempt to load script */
-	char *scriptPath = malloc(strlen(home) + 23 + strlen(importName->id));
+	char *scriptPath = malloc(strlen(home) + 24 + strlen(importName->id));
 	strcpy(scriptPath, home);
 	strcat(scriptPath, "/.config/mkvsynth/");
 	strcat(scriptPath, importName->id);
 	strcat(scriptPath, ".mkvs");
 	FILE *sHandle = fopen(scriptPath, "r");
+	free(scriptPath);
 
 	/* only one handle should be valid */
 	if (pHandle == NULL && sHandle == NULL)
-		MkvsynthError("could not load script or plugin \"%s\": file not found", scriptPath);
+		MkvsynthError("could not load script or plugin \"%s\": file not found", importName->id);
 	if (pHandle != NULL && sHandle != NULL)
 		MkvsynthError("both a script and a plugin with name \"%s\" exist: rename or remove one of them");
 
