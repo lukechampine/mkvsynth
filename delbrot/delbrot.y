@@ -50,11 +50,11 @@ default_stmt
 
 return_stmt
 	: RETURN expr ';'                                         { $$ = makeNode(RETURN, 1, &$2);           }
-	| RETURN ';'                                              { $$ = makeNode(RETURN, 1, NULL);          }
+	| RETURN ';'                                              { $$ = makeNode(RETURN, 0);                }
 	;
 
 expression_stmt
-	: ';'                                                     { $$ = makeNode(';', 2, NULL, NULL);       }
+	: ';'                                                     { $$ = makeNode(';', 0);                   }
 	| expr ';'                                                { $$ = $1;                                 }
 	;
 

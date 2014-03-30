@@ -246,7 +246,7 @@ Value ex(Env *e, ASTnode *p) {
 		case FNCT:    v = fnctCall(e, p->child[0].value, argify(e, p->child[1].value->arg)); break;
 		case CHAIN:   arg = makeArg(NULL, &p->child[0]); chain(&arg, &p->child[1]); v = ex(e, &p->child[1]); break;
 		case DEFAULT: setDefault(e, p->child[0].value, &p->child[1]); break;
-		case RETURN:  e->returnValue = ex(e, &p->child[0]); longjmp(e->returnContext, 1); break;
+		case RETURN:  e->returnValue = p->nops > 0 ? ex(e, &p->child[0]) : v; longjmp(e->returnContext, 1); break;
 		/* plugin imports */
 		case IMPORT:  import(p->child[0].value); break;
 		/* assignment */
@@ -259,7 +259,7 @@ Value ex(Env *e, ASTnode *p) {
 		/* trinary operator */
 		case TERN:    v = ternary(e, p); break;
 		/* compound statements */
-		case ';':     ex(e, &p->child[0]); v = ex(e, &p->child[1]); break;
+		case ';':     if (p->nops > 0) { ex(e, &p->child[0]); ex(e, &p->child[1]); } break;
 		/* should never wind up here */
 		default:      MkvsynthError("unknown operator %d", p->op);
 	}
