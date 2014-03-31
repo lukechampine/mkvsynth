@@ -262,7 +262,6 @@ void freeVar(Var *v) {
 	if (v->name)
 		free(v->name);
 	freeValue(&v->value);
-	freeNode(&v->fnArg);
 	if (v->next) {
 		freeVar(v->next);
 		free(v->next);
@@ -299,7 +298,6 @@ void freeEnv(Env *e) {
 	free(e->varTable);
 	freeFn(e->fnTable);
 	free(e->fnTable);
-	free(e);
 }
 
 /* create a node in the AST */

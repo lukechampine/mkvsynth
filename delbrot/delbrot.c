@@ -508,8 +508,10 @@ Value unaryOp(Env *e, ASTnode* valNode, int op) {
 /* process a user-defined function call */
 Value userDefFnCall(Env *e, Fn *f, argList *a) {
 	/* create new environment */
-	Env *local = (Env *) calloc(1, sizeof(Env));
-	local->parent = e;
+	Env local;
+	local.varTable = NULL;
+	local.fnTable = NULL;
+	local.parent = e;
 	
 	/* for convenience */
 	Var *args = a->args;
@@ -518,7 +520,7 @@ Value userDefFnCall(Env *e, Fn *f, argList *a) {
 	/* add function parameters to local variable table */
 	int i;
 	for (i = 0; i < f->params->nargs; i++)
-		putVar(local, params[i].name, params[i].type);
+		putVar(&local, params[i].name, params[i].type);
 
 	/* check argument number */
 	int nMandArgs = 0, nMandParams = 0;
@@ -534,7 +536,7 @@ Value userDefFnCall(Env *e, Fn *f, argList *a) {
 			MkvsynthError("type mismatch: arg %d of %s expected %s, got %s", 
 				i+1, f->name, typeNames[params[i].valType], typeNames[args[i].value.type]);
 		/* all is well; set value of local var */
-		setVar(local, params[i].name, &args[i].value);
+		setVar(&local, params[i].name, &args[i].value);
 	}
 
 	/* check optional arguments */
@@ -552,14 +554,14 @@ Value userDefFnCall(Env *e, Fn *f, argList *a) {
 			MkvsynthError("type mismatch: optional argument \"%s\" of function \"%s\" expected %s, got %s",
 				params[i].name, f->name, typeNames[params[i].valType], typeNames[args[i].value.type]);
 		/* assign value */
-		setVar(local, params[i].name, &args[i].value);
+		setVar(&local, params[i].name, &args[i].value);
 	}
 
 	/* execute function body in the local environment */
-	if (setjmp(local->returnContext) == 0)
-		ex(local, f->body);
+	if (setjmp(local.returnContext) == 0)
+		ex(&local, f->body);
 
-	Value ret = local->returnValue;
-	freeEnv(local);
+	Value ret = local.returnValue;
+	freeEnv(&local);
 	return ret;
 }
