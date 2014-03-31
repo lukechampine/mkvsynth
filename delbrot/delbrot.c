@@ -12,7 +12,7 @@ static argList* argify(Env *, Var *);
 static Value    assign(Env *, Value *, ASTnode *);
 static Value    assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
 static Value    binaryOp(Env *, ASTnode *, int, ASTnode *);
-static void     chain(ASTnode *, ASTnode *);
+static ASTnode* chain(ASTnode *, ASTnode *);
 	   void     checkArgs(argList *, int, ...);
 	   Value    ex(Env *, ASTnode *);
 static Value    fnctCall(Env *, Value *, argList *);
@@ -86,17 +86,13 @@ Value assignOp(Env *e, ASTnode *varNode, ASTnode *opNode, ASTnode *valNode) {
 	if (opNode->op == '=')
 		return assign(e, varNode->value, valNode);
 
-	ASTnode RHS;
+	Value val;
 	if (opNode->op == CHNEQ)
-		RHS = makeNode(CHAIN, 2, varNode, valNode);
+		val = ex(e, chain(varNode, valNode));
 	else
-		RHS = makeNode(BINOP, 3, varNode, opNode, valNode);
+		val = binaryOp(e, varNode, opNode->op, valNode);
 
-	ASTnode eq = makeNode('=', 0);
-	ASTnode a = makeNode(ASSIGN, 3, varNode, &eq, &RHS);
-
-	/* unfold syntactic sugar and reprocess */
-	return ex(e, &a);
+	return setVar(e, varNode->value->id, &val);
 }
 
 /* handle arithmetic / boolean operators */
@@ -178,7 +174,7 @@ Value binaryOp(Env *e, ASTnode *lhsNode, int op, ASTnode *rhsNode) {
 }
 
 /* append LHS to argument list of RHS */
-void chain(ASTnode *val, ASTnode *fnNode) {
+ASTnode* chain(ASTnode *val, ASTnode *fnNode) {
 	if (fnNode->op == CHAIN)
 		return chain(val, &fnNode->child[0]);
 	ASTnode arg = makeArg(NULL, val);
@@ -188,6 +184,7 @@ void chain(ASTnode *val, ASTnode *fnNode) {
 		*fnNode = makeNode(FNCT, 2, fnNode, &arg);
 	else
 		MkvsynthError("expected function name, got %s", typeNames[fnNode->value->type]);
+	return fnNode;
 }
 
 /* ensure that a function call is valid */
@@ -243,7 +240,7 @@ Value ex(Env *e, ASTnode *p) {
 		case IF:      ifelse(e, p); break;
 		/* functions */
 		case FNCT:    v = fnctCall(e, p->child[0].value, argify(e, p->child[1].value->arg)); break;
-		case CHAIN:   chain(&p->child[0], &p->child[1]); v = ex(e, &p->child[1]); break;
+		case CHAIN:   v = ex(e, chain(&p->child[0], &p->child[1])); break;
 		case DEFAULT: setDefault(e, p->child[0].value, &p->child[1]); break;
 		case RETURN:  e->returnValue = p->nops > 0 ? ex(e, &p->child[0]) : v; longjmp(e->returnContext, 1); break;
 		/* plugin imports */
