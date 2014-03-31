@@ -1,5 +1,6 @@
+#line 2 "delbrot/lex.yy.c"
 
-#line 3 "lex.yy.c"
+#line 4 "delbrot/lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -515,18 +516,24 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "delbrot.l"
-#line 5 "delbrot.l"
+#line 1 "delbrot/delbrot.l"
+#line 5 "delbrot/delbrot.l"
     #include <stdlib.h>
     #include <stdio.h>
     #include "delbrot.h"
     #include "y.tab.h"
     int resWord(char *);
     int linenumber = 1;
+    extern FILE *yyin;
+    /* for handling imported scripts */
+    #define MAX_IMPORT_DEPTH 32
+    YY_BUFFER_STATE import_stack[MAX_IMPORT_DEPTH];
+    char *import_names[MAX_IMPORT_DEPTH];
+    int numImports = 0;
 /* don't keep scanning after EOF */
 /* suppress gcc warnings */
 #define YY_NO_INPUT 1
-#line 530 "lex.yy.c"
+#line 537 "delbrot/lex.yy.c"
 
 #define INITIAL 0
 
@@ -711,11 +718,11 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 18 "delbrot.l"
+#line 24 "delbrot/delbrot.l"
 
 
     /* boolean */
-#line 719 "lex.yy.c"
+#line 726 "delbrot/lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -800,7 +807,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 21 "delbrot.l"
+#line 27 "delbrot/delbrot.l"
 {
                         yylval = makeLeaf(typeBool, TRUE);
                         return CONSTANT;
@@ -808,7 +815,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 25 "delbrot.l"
+#line 31 "delbrot/delbrot.l"
 {
                         yylval = makeLeaf(typeBool, FALSE);
                         return CONSTANT;
@@ -817,7 +824,7 @@ YY_RULE_SETUP
 /* type */
 case 3:
 YY_RULE_SETUP
-#line 30 "delbrot.l"
+#line 36 "delbrot/delbrot.l"
 {
                         yylval = makeNode(NUM, 0);
                         return NUM;
@@ -825,7 +832,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 34 "delbrot.l"
+#line 40 "delbrot/delbrot.l"
 {
                         yylval = makeNode(BOOL, 0);
                         return BOOL;
@@ -833,7 +840,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 38 "delbrot.l"
+#line 44 "delbrot/delbrot.l"
 {
                         yylval = makeNode(STRING, 0);
                         return STRING;
@@ -841,7 +848,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 42 "delbrot.l"
+#line 48 "delbrot/delbrot.l"
 {
                         yylval = makeNode(CLIP, 0);
                         return CLIP;
@@ -850,7 +857,7 @@ YY_RULE_SETUP
 /* keyword, function, or variable */
 case 7:
 YY_RULE_SETUP
-#line 47 "delbrot.l"
+#line 53 "delbrot/delbrot.l"
 {
                         /* reserved word */
                         if (resWord(yytext))
@@ -863,7 +870,7 @@ YY_RULE_SETUP
 /* number, with optional decimal */
 case 8:
 YY_RULE_SETUP
-#line 56 "delbrot.l"
+#line 62 "delbrot/delbrot.l"
 {
                         yylval = makeLeaf(typeNum, atof(yytext));
                         return CONSTANT;
@@ -872,7 +879,7 @@ YY_RULE_SETUP
 /* number, without initial 0 */
 case 9:
 YY_RULE_SETUP
-#line 61 "delbrot.l"
+#line 67 "delbrot/delbrot.l"
 {
                         yylval = makeLeaf(typeNum, atof(yytext));
                         return CONSTANT;
@@ -881,7 +888,7 @@ YY_RULE_SETUP
 /* number, hex literal */
 case 10:
 YY_RULE_SETUP
-#line 66 "delbrot.l"
+#line 72 "delbrot/delbrot.l"
 {
                         yylval = makeLeaf(typeNum, strtol(yytext, NULL, 16));
                         return CONSTANT;
@@ -891,7 +898,7 @@ YY_RULE_SETUP
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 71 "delbrot.l"
+#line 77 "delbrot/delbrot.l"
 { //"
                         /* remove enclosing quotation marks */
                         char *str = strdup(yytext + 1);
@@ -903,176 +910,186 @@ YY_RULE_SETUP
 /* arithmetic operator */
 case 12:
 YY_RULE_SETUP
-#line 79 "delbrot.l"
+#line 85 "delbrot/delbrot.l"
 { yylval = makeNode('+', 0);   return '+';   }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 80 "delbrot.l"
+#line 86 "delbrot/delbrot.l"
 { yylval = makeNode('-', 0);   return '-';   }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 81 "delbrot.l"
+#line 87 "delbrot/delbrot.l"
 { yylval = makeNode('*', 0);   return '*';   }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 82 "delbrot.l"
+#line 88 "delbrot/delbrot.l"
 { yylval = makeNode('/', 0);   return '/';   }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 83 "delbrot.l"
+#line 89 "delbrot/delbrot.l"
 { yylval = makeNode('^', 0);   return '^';   }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 84 "delbrot.l"
+#line 90 "delbrot/delbrot.l"
 { yylval = makeNode('%', 0);   return '%';   }
 	YY_BREAK
 /* comparator or boolean operator */
 case 18:
 YY_RULE_SETUP
-#line 86 "delbrot.l"
+#line 92 "delbrot/delbrot.l"
 { yylval = makeNode(EQ, 0);    return EQ;    }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 87 "delbrot.l"
+#line 93 "delbrot/delbrot.l"
 { yylval = makeNode(NE, 0);    return NE;    }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 88 "delbrot.l"
+#line 94 "delbrot/delbrot.l"
 { yylval = makeNode(GT, 0);    return GT;    }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 89 "delbrot.l"
+#line 95 "delbrot/delbrot.l"
 { yylval = makeNode(LT, 0);    return LT;    }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 90 "delbrot.l"
+#line 96 "delbrot/delbrot.l"
 { yylval = makeNode(GE, 0);    return GE;    }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 91 "delbrot.l"
+#line 97 "delbrot/delbrot.l"
 { yylval = makeNode(LE, 0);    return LE;    }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 92 "delbrot.l"
+#line 98 "delbrot/delbrot.l"
 { yylval = makeNode(LOR, 0);   return LOR;   }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 93 "delbrot.l"
+#line 99 "delbrot/delbrot.l"
 { yylval = makeNode(LAND, 0);  return LAND;  }
 	YY_BREAK
 /*assignment operator */
 case 26:
 YY_RULE_SETUP
-#line 95 "delbrot.l"
+#line 101 "delbrot/delbrot.l"
 { yylval = makeNode('=', 0);   return '=';   }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 96 "delbrot.l"
+#line 102 "delbrot/delbrot.l"
 { yylval = makeNode('+', 0);   return ADDEQ; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 97 "delbrot.l"
+#line 103 "delbrot/delbrot.l"
 { yylval = makeNode('-', 0);   return SUBEQ; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 98 "delbrot.l"
+#line 104 "delbrot/delbrot.l"
 { yylval = makeNode('*', 0);   return MULEQ; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 99 "delbrot.l"
+#line 105 "delbrot/delbrot.l"
 { yylval = makeNode('/', 0);   return DIVEQ; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 100 "delbrot.l"
+#line 106 "delbrot/delbrot.l"
 { yylval = makeNode('^', 0);   return POWEQ; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 101 "delbrot.l"
+#line 107 "delbrot/delbrot.l"
 { yylval = makeNode('%', 0);   return MODEQ; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 102 "delbrot.l"
+#line 108 "delbrot/delbrot.l"
 { yylval = makeNode(CHNEQ, 0); return CHNEQ; }
 	YY_BREAK
 /* chaining operator */
 case 34:
 YY_RULE_SETUP
-#line 104 "delbrot.l"
+#line 110 "delbrot/delbrot.l"
 { yylval = makeNode(CHAIN, 0); return CHAIN; }
 	YY_BREAK
 /* concatenation operator */
 case 35:
 YY_RULE_SETUP
-#line 106 "delbrot.l"
+#line 112 "delbrot/delbrot.l"
 { yylval = makeNode(CNCAT, 0); return CNCAT; }
 	YY_BREAK
 /* miscellaneous character */
 case 36:
 YY_RULE_SETUP
-#line 108 "delbrot.l"
+#line 114 "delbrot/delbrot.l"
 return *yytext;
 	YY_BREAK
 /* comment */
 case 37:
 /* rule 37 can match eol */
 YY_RULE_SETUP
-#line 110 "delbrot.l"
+#line 116 "delbrot/delbrot.l"
 ;
 	YY_BREAK
 /* ignore whitespace (2D languages are pig disgusting) */
 case 38:
 YY_RULE_SETUP
-#line 112 "delbrot.l"
+#line 118 "delbrot/delbrot.l"
 ;
 	YY_BREAK
 /* used for error messages */
 case 39:
 /* rule 39 can match eol */
 YY_RULE_SETUP
-#line 114 "delbrot.l"
+#line 120 "delbrot/delbrot.l"
 linenumber++;
 	YY_BREAK
-/* execute queued filters */
+/* if we are inside an imported script, pop the import stack */
+/* otherwise, execute queued filters and exit */
 case YY_STATE_EOF(INITIAL):
-#line 116 "delbrot.l"
+#line 123 "delbrot/delbrot.l"
 {
-                        #ifndef DELBROT
-                        ex(global, makeLeaf(typeId, "go"));
-                        #endif
-                        yyterminate();
+                        if (numImports == 0) {
+                            #ifndef DELBROT
+                            ex(global, makeLeaf(typeId, "go"));
+                            #endif
+                            yyterminate();
+                        }
+                        else {
+                            fclose(YY_CURRENT_BUFFER->yy_input_file);
+                            yy_delete_buffer(YY_CURRENT_BUFFER);
+                            free(import_names[numImports]);
+                            numImports--;
+                            yy_switch_to_buffer(import_stack[numImports]);
+                        }
                     }
 	YY_BREAK
 /* anything else is an error */
 case 40:
 YY_RULE_SETUP
-#line 123 "delbrot.l"
+#line 139 "delbrot/delbrot.l"
 MkvsynthError("unknown character %s", yytext);
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 125 "delbrot.l"
+#line 141 "delbrot/delbrot.l"
 ECHO;
 	YY_BREAK
-#line 1076 "lex.yy.c"
+#line 1093 "delbrot/lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2031,10 +2048,11 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 125 "delbrot.l"
+#line 141 "delbrot/delbrot.l"
 
 
 
+/* check identifier against a list of reserved words */
 int resWord(char *str) {
     if (!strcmp(str, "default"))
         return DEFAULT;
@@ -2049,9 +2067,26 @@ int resWord(char *str) {
     else if (!strcmp(str, "otherwise"))
         return OTHER;
     else if (!strcmp(str, "return"))
-        return RETURN;   
-    /* not a reserved word */
+        return RETURN;
     else
         return 0;
+}
+
+/* push current buffer onto stack and begin scanning f */
+void switchToBuffer(char *filename, FILE *fd) {
+    if (numImports == MAX_IMPORT_DEPTH)
+        MkvsynthError("imports nested too deeply");
+    /* check for circular references */
+    int i;
+    for (i = 1; i < numImports; i++) {
+        if (!strcmp(filename, import_names[i]))
+            MkvsynthError("circular reference detected: %s imports itself");
+    }
+    yyin = fd;
+    YY_BUFFER_STATE scriptBuffer = yy_create_buffer(yyin,YY_BUF_SIZE);
+    import_stack[numImports] = YY_CURRENT_BUFFER;
+    numImports++;
+    import_names[numImports] = strdup(filename);
+    yy_switch_to_buffer(scriptBuffer);
 }
 

@@ -29,10 +29,13 @@ static Value*   ternary(Env *, Value *, Value *, Value *);
 static Value*   unaryOp(Value *, int);
 static Value*   userDefFnCall(Env *, Fn *, argList *);
 
+/* defined in delbrot.l */
+void switchToBuffer(char *, FILE *);
+
 /* global variables */
 char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "void"};
-extern int linenumber;
 char *currentFunction = "";
+extern int linenumber;
 
 /* function definitions */
 /* transform a linked list of nodes into an argList */
@@ -391,28 +394,48 @@ void ifelse(Env *e, ASTnode *p, Value *cond) {
 }
 
 /* import a plugin */
-void import(Value *pluginName) {
-    if (!pluginName)
-        MkvsynthError("expected name of plugin, got operation", pluginName);
-    if (pluginName->type != typeId)
-        MkvsynthError("expected name of plugin, got %s", typeNames[pluginName->type]);
-    /* construct plugin path */
+void import(Value *importName) {
+    if (!importName)
+        MkvsynthError("expected name of script or plugin, got operation", importName);
+    if (importName->type != typeId)
+        MkvsynthError("expected name of script or plugin, got %s", typeNames[importName->type]);
+
     char *home = getenv("HOME");
-    char *pluginPath = malloc(strlen(pluginName->id) + strlen(home) + 24);
+
+    /* attempt to load plugin */
+    char *pluginPath = malloc(strlen(home) + 24 + strlen(importName->id));
     strcpy(pluginPath, home);
     strcat(pluginPath, "/.config/mkvsynth/lib");
-    strcat(pluginPath, pluginName->id);
+    strcat(pluginPath, importName->id);
     strcat(pluginPath, ".so");
-    /* load plugin */
-    void *handle = dlopen(pluginPath, RTLD_NOW);
-    if (!handle)
-        MkvsynthError("could not load plugin %s: %s not found", pluginName->id, pluginPath);
-    /* create and append new plugin entry */
-    Plugin *newPlugin = malloc(sizeof(Plugin));
-    newPlugin->name = pluginName->id;
-    newPlugin->handle = handle;
-    newPlugin->next = pluginList;
-    pluginList = newPlugin;
+    void *pHandle = dlopen(pluginPath, RTLD_NOW);
+
+    /* attempt to load script */
+    char *scriptPath = malloc(strlen(home) + 23 + strlen(importName->id));
+    strcpy(scriptPath, home);
+    strcat(scriptPath, "/.config/mkvsynth/");
+    strcat(scriptPath, importName->id);
+    strcat(scriptPath, ".mkvs");
+    FILE *sHandle = fopen(scriptPath, "r");
+
+    /* only one handle should be valid */
+    if (pHandle == NULL && sHandle == NULL)
+        MkvsynthError("could not load script or plugin \"%s\": file not found", scriptPath);
+    if (pHandle != NULL && sHandle != NULL)
+        MkvsynthError("both a script and a plugin with name \"%s\" exist: rename or remove one of them");
+
+    if (sHandle != NULL) {
+        /* redirect Flex's input buffer to the script file */
+        switchToBuffer(importName->id, sHandle);
+    }
+    else {
+        /* create and append new plugin entry */
+        Plugin *newPlugin = malloc(sizeof(Plugin));
+        newPlugin->name = importName->id;
+        newPlugin->handle = pHandle;
+        newPlugin->next = pluginList;
+        pluginList = newPlugin;
+    }
 }
 
 /* display error and current line number in red and exit */
@@ -451,9 +474,9 @@ void setDefault(Env *e, Value *name, Value *val) {
     if (currentFunction[0] == 0)
         MkvsynthError("can't set defaults outside of function body");
     if (!name)
-        MkvsynthError("expected optional parameter, got operation", name);
+        MkvsynthError("default expected optional parameter, got operation", name);
     if (name->type != typeId)
-        MkvsynthError("expected optional parameter, got %s", typeNames[name->type]);
+        MkvsynthError("default expected optional parameter, got %s", typeNames[name->type]);
 
     Var *v = getVar(e, name->id);
     if (v == NULL)

@@ -33,7 +33,7 @@ The main differences are:
 | `if`, `else` | Conditional statement   | `if (x == 1) print "yes"; else print "no";` |
 | `function`   | Function definition     | `function foo(num x) { ...`                 |
 | `default`    | Specify default value   | `default radius = 2;`                       |
-| `import`     | Import a plugin         | `import libfoo;`                            |
+| `import`     | Import a script/plugin  | `import foo;`                               |
 | `return`     | Function return value   | `return result * 3;`                        |
 | `otherwise`  | Ternary syntactic sugar | `y = x == 1 ? "yes" ¦ otherwise ? "no";`    |
 
@@ -89,9 +89,9 @@ This tiny example showcases everything you need to know about function definitio
 
 **import statements:**
 ```ruby
-import libfoo;
+import foo;
 ```
-Plugins can be imported with `import`. Plugins are shared object (.so) files containing functions written in C. Constructs like `import libfoo as bar` and `import baz from libfoo` will probably be added in the future. Unlike most languages, import statements can be placed anywhere, allowing for things like conditional imports.
+Plugins and scripts can be imported with `import`. Plugins are shared object (.so) files containing functions written in C. Scripts are simply other .mkvs files, which will be inserted in place of the import statement. Unlike most languages, import statements can be placed anywhere, allowing for things like conditional imports. However, it is still best practice to place all import statements at the top of your script.
 
 ### expressions ###
 **function calls:**

@@ -5,11 +5,10 @@
     #include <stdlib.h>
     #include <string.h>
     #include "delbrot.h"
-    /* prototypes to please -Wall */
+    /* declarations */
     void yyerror(char *error, ...);
     int yylex();
-    /* script file */
-    extern FILE *yyin;
+    FILE *yyin;
     /* debug */
     #define YYDEBUG 1
 %}
@@ -322,6 +321,14 @@ Fn* getFn(Env const *e, char const *fnName) {
 
 /* add a plugin function to the global fnTable and return its identifier */
 ASTnode* addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
+    /* create identifier */
+    char *id = malloc(strlen(pluginName->value->id) + strlen(fnName->value->id) + 1);
+    strcat(id, pluginName->value->id);
+    strcat(id, ".");
+    strcat(id, fnName->value->id);
+    /* check if function is already in fnTable */
+    if (getFn(global, id) != NULL)
+        return makeLeaf(typeId, id);
     /* look up plugin */
     Plugin *traverse;
     Value * (*pluginFn) (argList *);
@@ -332,11 +339,6 @@ ASTnode* addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
             pluginFn = dlsym(traverse->handle, fnName->value->id);
             if (dlerror() != NULL)
                 MkvsynthError("function \"%s\" not found in plugin %s", fnName->value->id, pluginName->value->id);
-            /* create identifier */
-            char *id = malloc(strlen(pluginName->value->id) + strlen(fnName->value->id) + 1);
-            strcat(id, pluginName->value->id);
-            strcat(id, ".");
-            strcat(id, fnName->value->id);
             /* add function to fnTable */
             Fn *f = calloc(1, sizeof(Fn));
             f->type = fnCore;
@@ -402,7 +404,7 @@ int main(int argc, char **argv) {
 
     /* read script file, if provided */
     if (argc == 2) {
-        yyin = fopen(argv[1], "r+");
+        yyin = fopen(argv[1], "r");
         if (!yyin) {
             MkvsynthError("could not open file \"%s\" for reading", argv[1]);
             exit(1);
