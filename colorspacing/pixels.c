@@ -2,7 +2,7 @@
 
 #ifdef DEBUG
 void checkColorspace (int colorspace, char *functionName) {
-	if(colorspace < 1 || colorspace > 4) {
+	if(colorspace < 1 || colorspace > 8) {
 		printf("%s() debug error: colorspace is not valid.\n", functionName);
 		exit(0);
 	}
@@ -65,6 +65,10 @@ MkvsynthPixel getPixel (uint8_t *payload, MkvsynthMetaData *metaData, int widthO
 			pixel.hsl24.s                 = payload[offset+1];
 			pixel.hsl24.l                 = payload[offset+2];
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 	}
 
 	return pixel;
@@ -124,6 +128,10 @@ void putPixel (MkvsynthPixel *pixel, uint8_t *payload, MkvsynthMetaData *metaDat
 			payload[offset+1]             = pixel->hsl24.s;
 			payload[offset+2]             = pixel->hsl24.l;
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 	}
 }
 
@@ -173,6 +181,10 @@ void addPixel (MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t color
 			destination->hsl24.h          += source->hsl24.h * strength;
 			destination->hsl24.s          += source->hsl24.s * strength;
 			destination->hsl24.l          += source->hsl24.l * strength;
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 	}
 }
@@ -287,6 +299,10 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 		
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 	}
 
@@ -404,6 +420,10 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 	}
 	return rgbGreen;
 }
@@ -519,6 +539,10 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 	}
 	return rgbBlue;
 }
@@ -604,6 +628,10 @@ void setRed(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 		}
 }
 
@@ -688,6 +716,10 @@ void setGreen(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 		}
 }
 
@@ -771,6 +803,10 @@ void setBlue(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData) {
 		
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 		}
 }
@@ -859,6 +895,10 @@ void adjustRed(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaDat
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 		}
 }
 
@@ -945,6 +985,10 @@ void adjustGreen(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaD
 		
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 		}
 }
@@ -1033,6 +1077,10 @@ void adjustBlue(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaDa
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 		}
 }
 
@@ -1078,6 +1126,10 @@ uint16_t getLuma(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 	}
 	return yuvLuma;
@@ -1127,6 +1179,10 @@ uint16_t getCb(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 	}
 	return yuvCb;
 }
@@ -1174,6 +1230,10 @@ uint16_t getCr(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 	}
 	return yuvCr;
@@ -1262,6 +1322,10 @@ void setLuma(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 		}
 }
 
@@ -1348,6 +1412,10 @@ void setCb(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 		
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 		}
 }
@@ -1436,6 +1504,10 @@ void setCr(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 		
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 		}
 }
@@ -1527,6 +1599,10 @@ void adjustLuma(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaDa
 		
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 	}
 }
@@ -1620,6 +1696,10 @@ void adjustCb(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 	}
 }
 
@@ -1710,6 +1790,10 @@ void adjustCr(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 		
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 	}
 }
@@ -1852,6 +1936,10 @@ uint16_t getHue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		
 		case MKVS_HSL48:
 			hue = pixel->hsl48.h;
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 		
 	}
@@ -1996,6 +2084,10 @@ uint16_t getHSVSaturation(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 		
 	}
 	return hsvs;
@@ -2125,6 +2217,10 @@ uint16_t getValue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		case MKVS_HSL48:
 			MkvsynthError("This colorspace interaction is not yet supported");
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 		
 	}
 	return hsvv;
@@ -2167,6 +2263,10 @@ uint16_t getHSLSaturation(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		case MKVS_HSL48:
 			hsls = pixel->hsl24.s;
 			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
+			break;
 	}
 	return hsls;
 }
@@ -2207,6 +2307,10 @@ uint16_t getLightness(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			
 		case MKVS_HSL48:
 			hsll = pixel->hsl24.l;
+			break;
+			
+		default:
+			MkvsynthError("This colorspace is unrecognized");
 			break;
 	}
 	return hsll;
