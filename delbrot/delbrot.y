@@ -278,7 +278,6 @@ void freeFn(Fn *f) {
 	}
 	else {
 		freeNode(f->body);
-		free(f->body);
 		/* free the argument list */
 		int i;
 		for (i = 0; i < f->params->nargs; i++)
