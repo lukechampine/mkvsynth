@@ -26,7 +26,7 @@ void *gradientVideoGenerate(void *filterParams) {
 	return NULL;
 }
 
-Value *gradientVideoGenerate_AST(argList *a) {
+Value gradientVideoGenerate_AST(argList *a) {
 	checkArgs(a, 0);
 	long long numFrames = (long long)OPTNUM("frames", 1000);
 	long long width = (long long)OPTNUM("width", 200);

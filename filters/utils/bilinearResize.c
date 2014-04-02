@@ -74,7 +74,7 @@ void *bilinearResize(void *filterParams) {
 	return NULL;
 }
 
-Value *bilinearResize_AST(argList *a) {
+Value bilinearResize_AST(argList *a) {
 	struct BilinearResizeParams *params = malloc(sizeof(struct BilinearResizeParams));
 
 	///////////////////////

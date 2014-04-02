@@ -39,7 +39,7 @@ void *x264Encode(void *filterParams) {
 	return NULL;
 }
 
-Value *x264Encode_AST(argList *a) {
+Value x264Encode_AST(argList *a) {
 	struct x264EncodeParams *params = malloc(sizeof(struct x264EncodeParams));
 
 	checkArgs(a, 2, typeClip, typeStr);

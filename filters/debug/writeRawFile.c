@@ -30,7 +30,7 @@ void *writeRawFile(void *filterParams) {
 	return NULL;
 }
 
-Value *writeRawFile_AST(argList *a) {
+Value writeRawFile_AST(argList *a) {
 	struct writeRawFileParams *params = malloc(sizeof(struct writeRawFileParams));
 
 	checkArgs(a, 2, typeClip, typeStr);

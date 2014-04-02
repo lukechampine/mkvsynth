@@ -1,15 +1,7 @@
 #include <stdarg.h>
 #include "../delbrot/delbrot.h"
 
-char *typeNames[] = {"number", "boolean", "string", "clip", "identifier", "operation"};
-
-/* allocate a value */
-Value* newValue() {
-    Value *v;
-    if ((v = malloc(sizeof(Value))) == NULL)
-        MkvsynthError("out of memory");
-    return v;
-}
+char *typeNames[] = {"void", "number", "boolean", "string", "clip", "identifier"};
 
 /* display error and in red and exit */
 void MkvsynthError(char *error, ...) {
@@ -54,8 +46,8 @@ void checkArgs(argList *a, int numArgs, ...) {
     va_start(ap, numArgs);
     for (i = 0; i < numArgs; i++) {
         valueType argType = va_arg(ap, valueType);
-        if (a->args[i].value->type != argType)
-            MkvsynthError("arg %d expected %s, got %s", i+1, typeNames[argType], typeNames[a->args[i].value->type]);
+        if (a->args[i].value.type != argType)
+            MkvsynthError("arg %d expected %s, got %s", i+1, typeNames[argType], typeNames[a->args[i].value.type]);
     }
     va_end(ap);
 }

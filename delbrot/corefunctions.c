@@ -3,14 +3,14 @@
 #include <math.h>
 
 /* function declarations */
-Value* assert_AST(argList *);
-Value* cos_AST(argList *);
-Value* log_AST(argList *);
-Value* print_AST(argList *);
-Value* read_AST(argList *);
-Value* show_AST(argList *);
-Value* sin_AST(argList *);
-Value* sqrt_AST(argList *);
+Value assert_AST(argList *);
+Value cos_AST(argList *);
+Value log_AST(argList *);
+Value print_AST(argList *);
+Value read_AST(argList *);
+Value show_AST(argList *);
+Value sin_AST(argList *);
+Value sqrt_AST(argList *);
 static char* unesc(char *);
 
 /* function table */
@@ -28,7 +28,7 @@ Fn coreFunctions[] = {
 
 /* function definitions */
 /* exit with error message if assertion fails */
-Value* assert_AST(argList *a) {
+Value assert_AST(argList *a) {
 	checkArgs(a, 2, typeBool, typeStr);
 	extern char* currentFunction;
 	currentFunction = "assertion failed";
@@ -38,28 +38,28 @@ Value* assert_AST(argList *a) {
 }
 
 /* cosine */
-Value* cos_AST(argList *a) {
+Value cos_AST(argList *a) {
 	checkArgs(a, 1, typeNum);
 	RETURNNUM(cos(MANDNUM(0)));
 }
 
 /* natural log */
-Value* log_AST(argList *a) {
+Value log_AST(argList *a) {
 	checkArgs(a, 1, typeNum);
 	RETURNNUM(log(MANDNUM(0)));
 }
 
 /* generalized print function; will print any number of args */
-Value* print_AST(argList *a) {
+Value print_AST(argList *a) {
 	if (a->nargs == 0)
 		MkvsynthError("expected at least one argument");
 	int i;
 	for (i = 0; i < a->nargs; i++) {
-		switch (a->args[i].value->type) {
+		switch (a->args[i].value.type) {
 			case typeNum: printf("%.10g ", MANDNUM(i)); break;
 			case typeBool: printf("%s ", MANDBOOL(i) == TRUE ? "True" : "False"); break;
 			case typeStr: printf("%s ", unesc(MANDSTR(i))); break;
-			default: MkvsynthWarning("could not print type %s", typeNames[a->args[i].value->type]);
+			default: MkvsynthWarning("could not print type %s", typeNames[a->args[i].value.type]);
 		}
 	}
 	printf("\n");
@@ -67,35 +67,35 @@ Value* print_AST(argList *a) {
 }
 
 /* convert string to number */
-Value* read_AST(argList *a) {
+Value read_AST(argList *a) {
 	checkArgs(a, 1, typeStr);
 	RETURNNUM(atof(MANDSTR(0)));
 }
 
 /* return string representation of any type */
-Value* show_AST(argList *a) {
+Value show_AST(argList *a) {
 	/* can't use checkArgs here */
 	if (a->nargs != 1)
 		MkvsynthError("expected 1 argument, got %d", a->nargs);
-	Value *v = newValue();
-	switch (a->args[0].value->type) {
-		case typeNum:  v->str = malloc(256); sprintf(v->str, "%.10g", MANDNUM(0)); break;
-		case typeBool: v->str = MANDBOOL(0) == TRUE ? "True" : "False"; break;
-		case typeStr:  v->str = MANDSTR(0); break;
-		default: MkvsynthError("not defined for %ss", typeNames[a->args[0].value->type]);
+	Value v;
+	switch (a->args[0].value.type) {
+		case typeNum:  v.str = malloc(256); sprintf(v.str, "%.10g", MANDNUM(0)); break;
+		case typeBool: v.str = MANDBOOL(0) == TRUE ? "True" : "False"; break;
+		case typeStr:  v.str = MANDSTR(0); break;
+		default: MkvsynthError("not defined for %ss", typeNames[a->args[0].value.type]);
 	}
-	v->type = typeStr;
+	v.type = typeStr;
 	return v;
 }
 
 /* sine */
-Value* sin_AST(argList *a) {
+Value sin_AST(argList *a) {
 	checkArgs(a, 1, typeNum);
 	RETURNNUM(sin(MANDNUM(0)));
 }
 
 /* square root */
-Value* sqrt_AST(argList *a) {
+Value sqrt_AST(argList *a) {
 	checkArgs(a, 1, typeNum);
 	RETURNNUM(sqrt(MANDNUM(0)));
 }
