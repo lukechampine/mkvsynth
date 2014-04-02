@@ -112,7 +112,6 @@ ASTnode makeNode(int, int, ...);
 ASTnode makeLeaf(valueType, ...);
 ASTnode makeArg(ASTnode *, ASTnode *);
 ASTnode makeParam(varType, ASTnode *, ASTnode *);
-ASTnode newNode();
 Value* newValue();
 /* AST destruction */
 void freeNode(ASTnode *);

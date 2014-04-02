@@ -68,7 +68,7 @@ import_stmt
 	;
 
 param_list
-	: /* empty */                                             { $$ = newNode();                          }
+	: /* empty */                                             { $$ = (ASTnode){};                        }
 	| param                                                   { $$ = $1;                                 }
 	| param_list ',' param                                    { $$ = append(&$1, &$3);                   }
 	;
@@ -209,15 +209,6 @@ primary_expr
 
 %% /* end of grammar */
 
-/* initialize a node */
-ASTnode newNode() {
-	ASTnode p;
-	p.op = p.nops = 0;
-	p.value = NULL;
-	p.child = NULL;
-	return p;
-}
-
 /* allocate a value */
 Value* newValue() {
 	Value *v;
@@ -301,7 +292,7 @@ void freeEnv(Env *e) {
 
 /* create a node in the AST */
 ASTnode makeNode(int op, int nops, ...) {
-	ASTnode p = newNode();
+	ASTnode p = {};
 	p.op = op;
 	p.nops = nops;
 	if (p.nops == 0)
@@ -320,7 +311,7 @@ ASTnode makeNode(int op, int nops, ...) {
 
 /* create a leaf node */
 ASTnode makeLeaf(valueType type, ...) {
-	ASTnode p = newNode();
+	ASTnode p = {};
 	/* create payload */
 	p.value = newValue();
 	p.value->type = type;
@@ -338,7 +329,7 @@ ASTnode makeLeaf(valueType type, ...) {
 
 /* create a parameter */
 ASTnode makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
-	ASTnode p = newNode();
+	ASTnode p = {};
 	Var *v = calloc(1, sizeof(Var));
 	v->type = type;
 	v->value.type = typeNull;
@@ -356,8 +347,7 @@ ASTnode makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
 
 /* create an argument */
 ASTnode makeArg(ASTnode *nameNode, ASTnode *valNode) {
-	ASTnode p;
-	p.op = p.nops = 0;
+	ASTnode p = {};
 	p.value = newValue();
 	p.value->type = typeNull;
 	Var *v = calloc(1, sizeof(Var));
@@ -427,7 +417,7 @@ ASTnode addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
 		}
 	}
 	MkvsynthError("plugin \"%s\" not loaded", pluginName->value->id);
-	return newNode();
+	return (ASTnode){};
 }
 
 /* add an entry to the local varTable */
