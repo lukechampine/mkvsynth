@@ -372,8 +372,8 @@ Fn* getFn(Env const *e, char const *fnName) {
 /* add a plugin function to the global fnTable and return its identifier */
 ASTnode addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
 	/* create identifier */
-	char *id = malloc(strlen(pluginName->value.id) + strlen(fnName->value.id) + 1);
-	strcat(id, pluginName->value.id);
+	char *id = malloc(strlen(pluginName->value.id) + strlen(fnName->value.id) + 2);
+	strcpy(id, pluginName->value.id);
 	strcat(id, ".");
 	strcat(id, fnName->value.id);
 	/* check if function is already in fnTable */
@@ -392,7 +392,7 @@ ASTnode addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
 			/* add function to fnTable */
 			Fn *f = calloc(1, sizeof(Fn));
 			f->type = fnCore;
-			f->name = id;
+			f->name = strdup(id);
 			f->fnPtr = pluginFn;
 			putFn(&global, f);
 			return makeLeaf(typeId, id);
