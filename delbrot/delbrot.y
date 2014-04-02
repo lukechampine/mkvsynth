@@ -209,22 +209,11 @@ primary_expr
 
 %% /* end of grammar */
 
-/* allocate a value */
-Value* newValue() {
-	Value *v;
-	if ((v = calloc(1, sizeof(Value))) == NULL)
-		MkvsynthError("out of memory");
-	return v;
-}
-
 /* free an ASTnode and its children */
 void freeNode(ASTnode *p) {
 	if (!p)
 		return;
-	if (p->value) {
-		freeValue(p->value);
-		free(p->value);
-	}
+	freeValue(&p->value);
 	if (p->nops > 0 && p->child) {
 		while (p->nops > 0)
 			freeNode(&p->child[--p->nops]);
@@ -264,12 +253,8 @@ void freeFn(Fn *f) {
 	if (!f)
 		return;
 	free(f->name);
-	if (f->type == fnCore) {
-		free(f->fnPtr);
-	}
-	else {
+	if (f->type == fnUser) {
 		freeNode(f->body);
-		/* free the argument list */
 		int i;
 		for (i = 0; i < f->params->nargs; i++)
 			freeVar(f->params->args);
@@ -313,15 +298,14 @@ ASTnode makeNode(int op, int nops, ...) {
 ASTnode makeLeaf(valueType type, ...) {
 	ASTnode p = {};
 	/* create payload */
-	p.value = newValue();
-	p.value->type = type;
+	p.value.type = type;
 	va_list ap;
 	va_start(ap, type);
 	switch (type) {
-		case typeNum:  p.value->num  = va_arg(ap, double); break;
-		case typeBool: p.value->bool = va_arg(ap, bool_t); break;
-		case typeStr:  p.value->str  = va_arg(ap, char *); break;
-		case typeId:   p.value->id   = va_arg(ap, char *); break;
+		case typeNum:  p.value.num  = va_arg(ap, double); break;
+		case typeBool: p.value.bool = va_arg(ap, bool_t); break;
+		case typeStr:  p.value.str  = va_arg(ap, char *); break;
+		case typeId:   p.value.id   = va_arg(ap, char *); break;
 		default:       MkvsynthError("invalid leaf type");
 	}
 	return p;
@@ -333,28 +317,26 @@ ASTnode makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
 	Var *v = calloc(1, sizeof(Var));
 	v->type = type;
 	v->value.type = typeNull;
-	v->name = nameNode->value->id;
+	v->name = nameNode->value.id;
 	switch (typeNode->op) {
 		case NUM:    v->valType = typeNum;  break;
 		case BOOL:   v->valType = typeBool; break;
 		case STRING: v->valType = typeStr;  break;
 		case CLIP:   v->valType = typeClip; break;
 	}
-	p.value = newValue();
-	p.value->arg = v;
+	p.value.arg = v;
 	return p;
 }
 
 /* create an argument */
 ASTnode makeArg(ASTnode *nameNode, ASTnode *valNode) {
 	ASTnode p = {};
-	p.value = newValue();
-	p.value->type = typeNull;
+	p.value.type = typeNull;
 	Var *v = calloc(1, sizeof(Var));
 	v->type = nameNode ? typeOptArg : typeArg;
-	v->name = nameNode ? nameNode->value->id : NULL;
+	v->name = nameNode ? nameNode->value.id : NULL;
 	v->fnArg = *valNode;
-	p.value->arg = v;
+	p.value.arg = v;
 	return p;
 }
 
@@ -363,8 +345,8 @@ ASTnode append(ASTnode *p, ASTnode *v) {
 	if (!p || !v)
 		MkvsynthError("invalid argument");
 	Var *traverse;
-	for (traverse = p->value->arg; traverse->next; traverse = traverse->next);
-	traverse->next = v->value->arg;
+	for (traverse = p->value.arg; traverse->next; traverse = traverse->next);
+	traverse->next = v->value.arg;
 	return *p;
 }
 
@@ -390,10 +372,10 @@ Fn* getFn(Env const *e, char const *fnName) {
 /* add a plugin function to the global fnTable and return its identifier */
 ASTnode addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
 	/* create identifier */
-	char *id = malloc(strlen(pluginName->value->id) + strlen(fnName->value->id) + 1);
-	strcat(id, pluginName->value->id);
+	char *id = malloc(strlen(pluginName->value.id) + strlen(fnName->value.id) + 1);
+	strcat(id, pluginName->value.id);
 	strcat(id, ".");
-	strcat(id, fnName->value->id);
+	strcat(id, fnName->value.id);
 	/* check if function is already in fnTable */
 	if (getFn(&global, id) != NULL)
 		return makeLeaf(typeId, id);
@@ -401,12 +383,12 @@ ASTnode addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
 	Plugin *traverse;
 	Value (*pluginFn) (argList *);
 	for (traverse = pluginList; traverse != NULL; traverse = traverse->next) {
-		if (strcmp(traverse->name, pluginName->value->id) == 0) {
+		if (strcmp(traverse->name, pluginName->value.id) == 0) {
 			/* look up symbol */
 			dlerror();
-			pluginFn = dlsym(traverse->handle, fnName->value->id);
+			pluginFn = dlsym(traverse->handle, fnName->value.id);
 			if (dlerror() != NULL)
-				MkvsynthError("function \"%s\" not found in plugin %s", fnName->value->id, pluginName->value->id);
+				MkvsynthError("function \"%s\" not found in plugin %s", fnName->value.id, pluginName->value.id);
 			/* add function to fnTable */
 			Fn *f = calloc(1, sizeof(Fn));
 			f->type = fnCore;
@@ -416,7 +398,7 @@ ASTnode addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
 			return makeLeaf(typeId, id);
 		}
 	}
-	MkvsynthError("plugin \"%s\" not loaded", pluginName->value->id);
+	MkvsynthError("plugin \"%s\" not loaded", pluginName->value.id);
 	return (ASTnode){};
 }
 
@@ -447,11 +429,12 @@ Value setVar(Env const *e, char const *varName, Value const *v) {
 		if (strcmp(traverse->name, varName) == 0) {
 			traverse->valType = v->type;
 			traverse->value = *v;
-			return traverse->value;
+			break;
 		}
 	}
-	MkvsynthError("could not set value of undefined variable %s", varName);
-	return *newValue();
+	if (traverse == NULL)
+		MkvsynthError("could not set value of undefined variable %s", varName);
+	return traverse->value;
 }
 
 /* alias for MkvsynthError */

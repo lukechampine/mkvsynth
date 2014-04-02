@@ -61,7 +61,7 @@ struct Env {
 /* a node in the AST */
 struct ASTnode {
     int op;         /* operator -- 0 if leaf node */
-    Value *value;   /* payload -- NULL unless leaf node */
+    Value value;    /* payload */
     int nops;       /* no. of child nodes -- 0 if leaf node */
     ASTnode *child; /* child nodes -- NULL if leaf node */
 };
@@ -112,7 +112,6 @@ ASTnode makeNode(int, int, ...);
 ASTnode makeLeaf(valueType, ...);
 ASTnode makeArg(ASTnode *, ASTnode *);
 ASTnode makeParam(varType, ASTnode *, ASTnode *);
-Value* newValue();
 /* AST destruction */
 void freeNode(ASTnode *);
 void freeFn(Fn *);

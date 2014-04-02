@@ -84,7 +84,7 @@ Value assign(Env *e, Value *name, ASTnode *valNode) {
 Value assignOp(Env *e, ASTnode *varNode, ASTnode *opNode, ASTnode *valNode) {
 	/* special cases */
 	if (opNode->op == '=')
-		return assign(e, varNode->value, valNode);
+		return assign(e, &varNode->value, valNode);
 
 	Value val;
 	if (opNode->op == CHNEQ)
@@ -92,7 +92,7 @@ Value assignOp(Env *e, ASTnode *varNode, ASTnode *opNode, ASTnode *valNode) {
 	else
 		val = binaryOp(e, varNode, opNode->op, valNode);
 
-	return setVar(e, varNode->value->id, &val);
+	return setVar(e, varNode->value.id, &val);
 }
 
 /* handle arithmetic / boolean operators */
@@ -180,10 +180,10 @@ ASTnode* chain(ASTnode *val, ASTnode *fnNode) {
 	ASTnode arg = makeArg(NULL, val);
 	if (fnNode->op == FNCT)
 		fnNode->child[1] = append(&arg, &fnNode->child[1]);
-	else if (fnNode->value != NULL && fnNode->value->type == typeId)
+	else if (fnNode->value.type == typeId)
 		*fnNode = makeNode(FNCT, 2, fnNode, &arg);
 	else
-		MkvsynthError("expected function name, got %s", typeNames[fnNode->value->type]);
+		MkvsynthError("expected function name, got %s", typeNames[fnNode->value.type]);
 	return fnNode;
 }
 
@@ -233,18 +233,18 @@ Value ex(Env *e, ASTnode *p) {
 
 	switch (p->op) {
 		/* leaf node */
-		case 0:       v = dereference(e, p->value); break;
+		case 0:       v = dereference(e, &p->value); break;
 		/* declarations */
-		case FNDEF:   funcDefine(e, p->child[0].value, &p->child[1], &p->child[2]); break;
+		case FNDEF:   funcDefine(e, &p->child[0].value, &p->child[1], &p->child[2]); break;
 		/* blocks */
 		case IF:      ifelse(e, p); break;
 		/* functions */
-		case FNCT:    v = fnctCall(e, p->child[0].value, argify(e, p->child[1].value->arg)); break;
+		case FNCT:    v = fnctCall(e, &p->child[0].value, argify(e, p->child[1].value.arg)); break;
 		case CHAIN:   v = ex(e, chain(&p->child[0], &p->child[1])); break;
-		case DEFAULT: setDefault(e, p->child[0].value, &p->child[1]); break;
+		case DEFAULT: setDefault(e, &p->child[0].value, &p->child[1]); break;
 		case RETURN:  e->returnValue = p->nops > 0 ? ex(e, &p->child[0]) : v; longjmp(e->returnContext, 1); break;
 		/* plugin imports */
-		case IMPORT:  import(p->child[0].value); break;
+		case IMPORT:  import(&p->child[0].value); break;
 		/* assignment */
 		case ASSIGN:  v = assignOp(e, &p->child[0], &p->child[1], &p->child[2]); break;
 		/* unary operators */
@@ -317,9 +317,9 @@ void funcDefine(Env *e, Value *name, ASTnode *params, ASTnode *body) {
 	/* TODO: can this be replaced with argify? */
 	f->params = calloc(1, sizeof(argList));
 	int i = 0;
-	if (params->value) {
+	if (params->value.arg != NULL) {
 		/* count number of parameters */
-		Var *traverse = params->value->arg;
+		Var *traverse = params->value.arg;
 		while (traverse != NULL) {
 			f->params->nargs++;
 			traverse = traverse->next;
@@ -328,7 +328,7 @@ void funcDefine(Env *e, Value *name, ASTnode *params, ASTnode *body) {
 		/* allocate space for parameters */
 		f->params->args = calloc(f->params->nargs, sizeof(Var));
 		/* copy parameters */
-		for (traverse = params->value->arg; traverse; traverse = traverse->next) {
+		for (traverse = params->value.arg; traverse; traverse = traverse->next) {
 			f->params->args[i] = *traverse;
 			f->params->args[i].name = strdup(traverse->name);
 			i++;
