@@ -68,18 +68,18 @@
 /* Line 268 of yacc.c  */
 #line 1 "delbrot/delbrot.y"
 
-    #include <dlfcn.h>
-    #include <stdarg.h>
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <string.h>
-    #include "delbrot.h"
-    /* declarations */
-    void yyerror(char *error, ...);
-    int yylex();
-    FILE *yyin;
-    /* debug */
-    #define YYDEBUG 1
+	#include <dlfcn.h>
+	#include <stdarg.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+	#include "delbrot.h"
+	/* declarations */
+	void yyerror(char *error, ...);
+	int yylex();
+	FILE *yyin;
+	/* debug */
+	#define YYDEBUG 1
 
 
 /* Line 268 of yacc.c  */
@@ -424,7 +424,7 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   238
+#define YYLAST   189
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  59
@@ -433,7 +433,7 @@ union yyalloc
 /* YYNRULES -- Number of rules.  */
 #define YYNRULES  89
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  138
+#define YYNSTATES  137
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -502,11 +502,11 @@ static const yytype_int8 yyrhs[] =
       45,    73,    46,    -1,    27,    73,    46,    -1,    27,    46,
       -1,    46,    -1,    73,    46,    -1,    22,    41,    73,    42,
       71,    -1,    22,    41,    73,    42,    71,    23,    71,    -1,
-      30,    96,    46,    -1,    -1,    69,    -1,    68,    47,    69,
+      30,    73,    46,    -1,    -1,    69,    -1,    68,    47,    69,
       -1,    70,    96,    -1,    45,    70,    96,    -1,     3,    -1,
        4,    -1,     5,    -1,     6,    -1,    61,    -1,    43,    72,
       44,    -1,    61,    -1,    72,    61,    -1,    74,    -1,    76,
-      -1,    96,    75,    74,    -1,    48,    -1,    13,    -1,    14,
+      -1,    76,    75,    74,    -1,    48,    -1,    13,    -1,    14,
       -1,    15,    -1,    16,    -1,    17,    -1,    18,    -1,    19,
       -1,    78,    -1,    78,    49,    76,    50,    77,    -1,    76,
       -1,    29,    49,    76,    -1,    79,    -1,    78,    31,    79,
@@ -613,55 +613,55 @@ static const yytype_uint8 yydefact[] =
        0,    14,     0,     0,     3,     4,     5,     6,     7,     8,
        9,     0,    32,    33,    43,    47,    49,    51,    55,    61,
       65,    70,    72,    74,    76,    78,    84,     0,     0,    13,
-       0,     0,     0,     0,    85,    86,    15,     0,     0,     0,
-      53,    54,     0,    57,    58,    59,    60,     0,    63,    64,
-       0,    67,    68,    69,     0,     0,     0,     0,    77,    80,
-      82,     0,    36,    37,    38,    39,    40,    41,    42,    35,
-       0,     0,    19,    12,     0,    18,    89,    48,    84,     0,
+       0,     0,     0,     0,    85,    86,    15,    36,    37,    38,
+      39,    40,    41,    42,    35,     0,     0,     0,     0,    53,
+      54,     0,    57,    58,    59,    60,     0,    63,    64,     0,
+      67,    68,    69,     0,     0,     0,     0,    77,    80,    82,
+       0,     0,    19,    12,     0,    18,    89,    34,    48,     0,
       50,    52,    56,    62,    66,    71,    73,    75,    81,     0,
-      79,    34,     0,    24,    25,    26,    27,     0,     0,    20,
-       0,     0,     0,    83,     0,    28,    16,     0,     0,     0,
-      22,    11,     0,    45,    44,    30,     0,     0,    23,     0,
-      21,     0,    29,    31,    17,     0,    46,    10
+      79,     0,    24,    25,    26,    27,     0,     0,    20,     0,
+       0,     0,    83,     0,    28,    16,     0,     0,     0,    22,
+      11,     0,    45,    44,    30,     0,     0,    23,     0,    21,
+       0,    29,    31,    17,     0,    46,    10
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1,   115,    15,    16,    17,    18,    19,    20,   108,
-     109,   110,   116,   126,    21,    22,    80,    23,   124,    24,
-      25,    26,    52,    27,    57,    28,    60,    29,    64,    30,
-      31,    32,    33,    34,    68,    69,    35,    88
+      -1,     1,   114,    15,    16,    17,    18,    19,    20,   107,
+     108,   109,   115,   125,    21,    22,    55,    23,   123,    24,
+      25,    26,    61,    27,    66,    28,    69,    29,    73,    30,
+      31,    32,    33,    34,    77,    78,    35,    36
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -48
+#define YYPACT_NINF -56
 static const yytype_int16 yypact[] =
 {
-     -48,    16,   -48,   -48,   -48,    -7,    -6,    12,    -6,    -6,
-      45,   -48,    -6,    -6,   -48,   -48,   -48,   -48,   -48,   -48,
-     -48,   -15,   -48,   -48,   -17,     5,   -10,    13,    30,   -36,
-     -11,    18,   -48,    21,    -6,    -5,   190,    45,     6,   -48,
-      10,    26,    15,    31,   -48,   -48,   -48,    45,    45,    45,
-     -48,   -48,    45,   -48,   -48,   -48,   -48,    45,   -48,   -48,
-      45,   -48,   -48,   -48,    45,    45,    45,    45,    -6,   -48,
-      40,    45,   -48,   -48,   -48,   -48,   -48,   -48,   -48,   -48,
-      45,    33,    24,   -48,    45,   -48,   -48,     5,   -48,    42,
-     -10,    13,    30,   -36,   -11,    18,   -48,   -48,   -48,    -6,
-     -48,   -48,    50,   -48,   -48,   -48,   -48,   101,   -27,   -48,
-      -6,    17,    90,   -48,   144,   -48,    43,    -6,    47,    24,
-     -48,   -48,    46,   -48,   -48,   -48,   111,    50,   -48,   144,
-     -48,    45,   -48,   -48,   -48,   134,   -48,   -48
+     -56,     5,   -56,   -56,   -56,   -37,    28,     9,    28,    68,
+      68,   -56,    28,    28,   -56,   -56,   -56,   -56,   -56,   -56,
+     -56,   -36,   -56,   141,   -25,   -19,    19,     6,   -35,    46,
+     -30,     7,   -56,    14,    28,   -21,   -56,    68,     4,   -56,
+      -6,    13,     3,    12,   -56,   -56,   -56,   -56,   -56,   -56,
+     -56,   -56,   -56,   -56,   -56,    68,    68,    68,    68,   -56,
+     -56,    68,   -56,   -56,   -56,   -56,    68,   -56,   -56,    68,
+     -56,   -56,   -56,    68,    68,    68,    68,    28,   -56,    31,
+      68,    40,    17,   -56,    68,   -56,   -56,   -56,   -19,    30,
+      19,     6,   -35,    46,   -30,     7,   -56,   -56,   -56,    28,
+     -56,    38,   -56,   -56,   -56,   -56,   132,   -17,   -56,    28,
+      39,   112,   -56,   121,   -56,    36,    28,    49,    17,   -56,
+     -56,    44,   -56,   -56,   -56,    61,    38,   -56,   121,   -56,
+      68,   -56,   -56,   -56,    88,   -56,   -56
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -48,   -48,     1,   -48,   -48,   -48,   -48,   -48,   -48,   -48,
-     -25,     4,   -13,   -19,     3,    32,   -48,   -47,   -48,   -48,
-      70,    69,   -48,    71,   -48,    65,   -48,    64,   -48,    68,
-      75,    22,   -48,   -48,   -48,    61,    74,    -1
+     -56,   -56,    -1,   -56,   -56,   -56,   -56,   -56,   -56,   -56,
+     -23,    -3,   -20,   -11,     2,    53,   -56,   -55,   -56,   -56,
+      67,    70,   -56,    64,   -56,    73,   -56,    75,   -56,    69,
+      71,    -2,   -56,   -56,   -56,    84,    72,    -5
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -670,64 +670,54 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -1
 static const yytype_uint8 yytable[] =
 {
-      36,    89,    14,     3,     4,    38,    36,    41,    42,    36,
-      40,    44,    45,    43,    47,   118,     2,    61,    62,    63,
-     119,     3,     4,    50,    51,     3,     4,   103,   104,   105,
-     106,    46,    48,    70,    37,    10,    36,    49,     5,    66,
-      81,    67,     6,     7,     8,    65,     9,    82,    53,    54,
-      55,    56,    71,    10,     3,     4,    83,    10,    39,     3,
-       4,    85,    11,   121,    12,   123,   127,    70,    12,   107,
-      13,    84,     5,    86,    13,   102,     6,     7,     8,    36,
-       9,    58,    59,    36,   136,    99,    10,   111,    96,    97,
-     129,    10,   112,   114,   130,   131,    11,    12,   113,     3,
-       4,    36,    12,    13,   103,   104,   105,   106,    13,   120,
-     135,   117,   101,    36,   134,   125,   128,    87,    90,   122,
-       3,     4,    92,    91,    93,    36,    36,   133,    36,    98,
-     125,    10,    94,     5,    36,     0,   133,     6,     7,     8,
-      95,     9,    12,     3,     4,   100,     0,     0,    13,     0,
-       0,     0,    10,     3,     4,   132,     5,    11,     0,     0,
-       6,     7,     8,    12,     9,     0,     5,     0,     0,    13,
-       6,     7,     8,     0,     9,    10,     0,     0,   137,     0,
-      11,     0,     0,     0,     0,    10,    12,     0,     0,     0,
-      11,     0,    13,     0,     0,     0,    12,     0,     0,     0,
-       0,     0,    13,    72,    73,    74,    75,    76,    77,    78,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,    79
+      14,    38,    89,    41,    37,     2,    56,    44,    45,    40,
+      46,    42,    43,    58,     3,     4,    67,    68,     3,     4,
+     102,   103,   104,   105,    57,   117,    74,     5,    75,    79,
+     118,     6,     7,     8,    76,     9,    80,     3,     4,    81,
+      83,    62,    63,    64,    65,    82,    10,     3,     4,    85,
+      10,    11,    59,    60,    86,    39,   122,    12,    84,   126,
+       5,    12,   106,    13,     6,     7,     8,    13,     9,    10,
+       3,     4,    79,    96,    97,   135,    99,     3,     4,    10,
+     111,   113,   101,     5,    11,   120,   110,     6,     7,     8,
+      12,     9,   128,   130,   112,   129,    13,     3,     4,    70,
+      71,    72,    10,   116,   119,   131,   133,    11,    87,    10,
+       5,   127,   124,    12,     6,     7,     8,   134,     9,    13,
+      12,     3,     4,    88,   132,    91,    13,   124,    90,    10,
+       3,     4,   136,   132,    11,   102,   103,   104,   105,    92,
+      12,   121,    94,     5,    93,    95,    13,     6,     7,     8,
+       0,     9,   100,    10,    47,    48,    49,    50,    51,    52,
+      53,    98,    10,     0,    12,     0,     0,    11,     0,     0,
+      13,     0,     0,    12,     0,     0,     0,     0,     0,    13,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    54
 };
 
 #define yypact_value_is_default(yystate) \
-  ((yystate) == (-48))
+  ((yystate) == (-56))
 
 #define yytable_value_is_error(yytable_value) \
   YYID (0)
 
 static const yytype_int16 yycheck[] =
 {
-       1,    48,     1,     9,    10,     6,     7,     8,     9,    10,
-       7,    12,    13,    10,    31,    42,     0,    53,    54,    55,
-      47,     9,    10,    33,    34,     9,    10,     3,     4,     5,
-       6,    46,    49,    34,    41,    41,    37,    32,    22,    21,
-      37,    20,    26,    27,    28,    56,    30,    41,    35,    36,
-      37,    38,    57,    41,     9,    10,    46,    41,    46,     9,
-      10,    46,    46,    46,    52,   112,    23,    68,    52,    45,
-      58,    45,    22,    42,    58,    42,    26,    27,    28,    80,
-      30,    51,    52,    84,   131,    45,    41,    84,    66,    67,
-      43,    41,    50,    43,   119,    49,    46,    52,    99,     9,
-      10,   102,    52,    58,     3,     4,     5,     6,    58,   110,
-     129,   107,    80,   114,   127,   114,   117,    47,    49,    29,
-       9,    10,    57,    52,    60,   126,   127,   126,   129,    68,
-     129,    41,    64,    22,   135,    -1,   135,    26,    27,    28,
-      65,    30,    52,     9,    10,    71,    -1,    -1,    58,    -1,
-      -1,    -1,    41,     9,    10,    44,    22,    46,    -1,    -1,
-      26,    27,    28,    52,    30,    -1,    22,    -1,    -1,    58,
-      26,    27,    28,    -1,    30,    41,    -1,    -1,    44,    -1,
-      46,    -1,    -1,    -1,    -1,    41,    52,    -1,    -1,    -1,
-      46,    -1,    58,    -1,    -1,    -1,    52,    -1,    -1,    -1,
-      -1,    -1,    58,    13,    14,    15,    16,    17,    18,    19,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    48
+       1,     6,    57,     8,    41,     0,    31,    12,    13,     7,
+      46,     9,    10,    32,     9,    10,    51,    52,     9,    10,
+       3,     4,     5,     6,    49,    42,    56,    22,    21,    34,
+      47,    26,    27,    28,    20,    30,    57,     9,    10,    37,
+      46,    35,    36,    37,    38,    41,    41,     9,    10,    46,
+      41,    46,    33,    34,    42,    46,   111,    52,    45,    23,
+      22,    52,    45,    58,    26,    27,    28,    58,    30,    41,
+       9,    10,    77,    75,    76,   130,    45,     9,    10,    41,
+      50,    43,    42,    22,    46,    46,    84,    26,    27,    28,
+      52,    30,    43,    49,    99,   118,    58,     9,    10,    53,
+      54,    55,    41,   106,   109,    44,   126,    46,    55,    41,
+      22,   116,   113,    52,    26,    27,    28,   128,    30,    58,
+      52,     9,    10,    56,   125,    61,    58,   128,    58,    41,
+       9,    10,    44,   134,    46,     3,     4,     5,     6,    66,
+      52,    29,    73,    22,    69,    74,    58,    26,    27,    28,
+      -1,    30,    80,    41,    13,    14,    15,    16,    17,    18,
+      19,    77,    41,    -1,    52,    -1,    -1,    46,    -1,    -1,
+      58,    -1,    -1,    52,    -1,    -1,    -1,    -1,    -1,    58,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    48
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -738,16 +728,16 @@ static const yytype_uint8 yystos[] =
       41,    46,    52,    58,    61,    62,    63,    64,    65,    66,
       67,    73,    74,    76,    78,    79,    80,    82,    84,    86,
       88,    89,    90,    91,    92,    95,    96,    41,    96,    46,
-      73,    96,    96,    73,    96,    96,    46,    31,    49,    32,
-      33,    34,    81,    35,    36,    37,    38,    83,    51,    52,
-      85,    53,    54,    55,    87,    56,    21,    20,    93,    94,
-      96,    57,    13,    14,    15,    16,    17,    18,    19,    48,
-      75,    73,    41,    46,    45,    46,    42,    79,    96,    76,
+      73,    96,    73,    73,    96,    96,    46,    13,    14,    15,
+      16,    17,    18,    19,    48,    75,    31,    49,    32,    33,
+      34,    81,    35,    36,    37,    38,    83,    51,    52,    85,
+      53,    54,    55,    87,    56,    21,    20,    93,    94,    96,
+      57,    73,    41,    46,    45,    46,    42,    74,    79,    76,
       80,    82,    84,    86,    88,    89,    90,    90,    94,    45,
-      95,    74,    42,     3,     4,     5,     6,    45,    68,    69,
-      70,    73,    50,    96,    43,    61,    71,    70,    42,    47,
-      96,    46,    29,    76,    77,    61,    72,    23,    96,    43,
-      69,    49,    44,    61,    71,    72,    76,    44
+      95,    42,     3,     4,     5,     6,    45,    68,    69,    70,
+      73,    50,    96,    43,    61,    71,    70,    42,    47,    96,
+      46,    29,    76,    77,    61,    72,    23,    96,    43,    69,
+      49,    44,    61,    71,    72,    76,    44
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1585,265 +1575,265 @@ yyreduce:
 
 /* Line 1806 of yacc.c  */
 #line 31 "delbrot/delbrot.y"
-    { ex(global, (yyvsp[(2) - (2)]));                        }
+    { ex(&global, &(yyvsp[(2) - (2)]));                        }
     break;
 
   case 10:
 
 /* Line 1806 of yacc.c  */
 #line 44 "delbrot/delbrot.y"
-    { (yyval) = makeNode(FNDEF, 3, (yyvsp[(2) - (8)]), (yyvsp[(4) - (8)]), (yyvsp[(7) - (8)]));   }
+    { (yyval) = makeNode(FNDEF, 3, &(yyvsp[(2) - (8)]), &(yyvsp[(4) - (8)]), &(yyvsp[(7) - (8)]));  }
     break;
 
   case 11:
 
 /* Line 1806 of yacc.c  */
 #line 48 "delbrot/delbrot.y"
-    { (yyval) = makeNode(DEFAULT, 2, (yyvsp[(2) - (5)]), (yyvsp[(4) - (5)]));     }
+    { (yyval) = makeNode(DEFAULT, 2, &(yyvsp[(2) - (5)]), &(yyvsp[(4) - (5)]));     }
     break;
 
   case 12:
 
 /* Line 1806 of yacc.c  */
 #line 52 "delbrot/delbrot.y"
-    { (yyval) = makeNode(RETURN, 1, (yyvsp[(2) - (3)]));          }
+    { (yyval) = makeNode(RETURN, 1, &(yyvsp[(2) - (3)]));           }
     break;
 
   case 13:
 
 /* Line 1806 of yacc.c  */
 #line 53 "delbrot/delbrot.y"
-    { (yyval) = makeNode(RETURN, 1, NULL);        }
+    { (yyval) = makeNode(RETURN, 0);                }
     break;
 
   case 14:
 
 /* Line 1806 of yacc.c  */
 #line 57 "delbrot/delbrot.y"
-    { (yyval) = makeNode(';', 2, NULL, NULL);     }
+    { (yyval) = makeLeaf(typeNum, 0); /* no op */   }
     break;
 
   case 15:
 
 /* Line 1806 of yacc.c  */
 #line 58 "delbrot/delbrot.y"
-    { (yyval) = (yyvsp[(1) - (2)]);                               }
+    { (yyval) = (yyvsp[(1) - (2)]);                                 }
     break;
 
   case 16:
 
 /* Line 1806 of yacc.c  */
 #line 62 "delbrot/delbrot.y"
-    { (yyval) = makeNode(IF, 2, (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));          }
+    { (yyval) = makeNode(IF, 2, &(yyvsp[(3) - (5)]), &(yyvsp[(5) - (5)]));          }
     break;
 
   case 17:
 
 /* Line 1806 of yacc.c  */
 #line 63 "delbrot/delbrot.y"
-    { (yyval) = makeNode(IF, 3, (yyvsp[(3) - (7)]), (yyvsp[(5) - (7)]), (yyvsp[(7) - (7)]));      }
+    { (yyval) = makeNode(IF, 3, &(yyvsp[(3) - (7)]), &(yyvsp[(5) - (7)]), &(yyvsp[(7) - (7)]));     }
     break;
 
   case 18:
 
 /* Line 1806 of yacc.c  */
 #line 67 "delbrot/delbrot.y"
-    { (yyval) = makeNode(IMPORT, 1, (yyvsp[(2) - (3)]));          }
+    { (yyval) = makeNode(IMPORT, 1, &(yyvsp[(2) - (3)]));           }
     break;
 
   case 19:
 
 /* Line 1806 of yacc.c  */
 #line 71 "delbrot/delbrot.y"
-    { (yyval) = NULL;                             }
+    { (yyval) = (ASTnode){};                        }
     break;
 
   case 20:
 
 /* Line 1806 of yacc.c  */
 #line 72 "delbrot/delbrot.y"
-    { (yyval) = (yyvsp[(1) - (1)]);                               }
+    { (yyval) = (yyvsp[(1) - (1)]);                                 }
     break;
 
   case 21:
 
 /* Line 1806 of yacc.c  */
 #line 73 "delbrot/delbrot.y"
-    { (yyval) = append((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));                   }
+    { (yyval) = append(&(yyvsp[(1) - (3)]), &(yyvsp[(3) - (3)]));                   }
     break;
 
   case 22:
 
 /* Line 1806 of yacc.c  */
 #line 77 "delbrot/delbrot.y"
-    { (yyval) = makeParam(typeParam, (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));     }
+    { (yyval) = makeParam(typeParam, &(yyvsp[(1) - (2)]), &(yyvsp[(2) - (2)]));     }
     break;
 
   case 23:
 
 /* Line 1806 of yacc.c  */
 #line 78 "delbrot/delbrot.y"
-    { (yyval) = makeParam(typeOptParam, (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));  }
+    { (yyval) = makeParam(typeOptParam, &(yyvsp[(2) - (3)]), &(yyvsp[(3) - (3)]));  }
     break;
 
   case 29:
 
 /* Line 1806 of yacc.c  */
 #line 87 "delbrot/delbrot.y"
-    { (yyval) = (yyvsp[(2) - (3)]);                               }
+    { (yyval) = (yyvsp[(2) - (3)]);                                 }
     break;
 
   case 31:
 
 /* Line 1806 of yacc.c  */
 #line 92 "delbrot/delbrot.y"
-    { (yyval) = makeNode(';', 2, (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));         }
+    { (yyval) = makeNode(';', 2, &(yyvsp[(1) - (2)]), &(yyvsp[(2) - (2)]));         }
     break;
 
   case 34:
 
 /* Line 1806 of yacc.c  */
 #line 101 "delbrot/delbrot.y"
-    { (yyval) = makeNode(ASSIGN, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));  }
+    { (yyval) = makeNode(ASSIGN, 3, &(yyvsp[(1) - (3)]), &(yyvsp[(2) - (3)]), &(yyvsp[(3) - (3)])); }
     break;
 
   case 44:
 
 /* Line 1806 of yacc.c  */
 #line 110 "delbrot/delbrot.y"
-    { (yyval) = makeNode(TERN, 3, (yyvsp[(1) - (5)]), (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));    }
+    { (yyval) = makeNode(TERN, 3, &(yyvsp[(1) - (5)]), &(yyvsp[(3) - (5)]), &(yyvsp[(5) - (5)]));   }
     break;
 
   case 46:
 
 /* Line 1806 of yacc.c  */
 #line 115 "delbrot/delbrot.y"
-    { (yyval) = (yyvsp[(3) - (3)]);                               }
+    { (yyval) = (yyvsp[(3) - (3)]);                                 }
     break;
 
   case 48:
 
 /* Line 1806 of yacc.c  */
 #line 120 "delbrot/delbrot.y"
-    { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
+    { (yyval) = makeNode(BINOP, 3, &(yyvsp[(1) - (3)]), &(yyvsp[(2) - (3)]), &(yyvsp[(3) - (3)]));  }
     break;
 
   case 50:
 
 /* Line 1806 of yacc.c  */
 #line 125 "delbrot/delbrot.y"
-    { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
+    { (yyval) = makeNode(BINOP, 3, &(yyvsp[(1) - (3)]), &(yyvsp[(2) - (3)]), &(yyvsp[(3) - (3)]));  }
     break;
 
   case 52:
 
 /* Line 1806 of yacc.c  */
 #line 130 "delbrot/delbrot.y"
-    { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
+    { (yyval) = makeNode(BINOP, 3, &(yyvsp[(1) - (3)]), &(yyvsp[(2) - (3)]), &(yyvsp[(3) - (3)]));  }
     break;
 
   case 56:
 
 /* Line 1806 of yacc.c  */
 #line 139 "delbrot/delbrot.y"
-    { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
+    { (yyval) = makeNode(BINOP, 3, &(yyvsp[(1) - (3)]), &(yyvsp[(2) - (3)]), &(yyvsp[(3) - (3)]));  }
     break;
 
   case 62:
 
 /* Line 1806 of yacc.c  */
 #line 148 "delbrot/delbrot.y"
-    { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
+    { (yyval) = makeNode(BINOP, 3, &(yyvsp[(1) - (3)]), &(yyvsp[(2) - (3)]), &(yyvsp[(3) - (3)]));  }
     break;
 
   case 66:
 
 /* Line 1806 of yacc.c  */
 #line 157 "delbrot/delbrot.y"
-    { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
+    { (yyval) = makeNode(BINOP, 3, &(yyvsp[(1) - (3)]), &(yyvsp[(2) - (3)]), &(yyvsp[(3) - (3)]));  }
     break;
 
   case 71:
 
 /* Line 1806 of yacc.c  */
 #line 166 "delbrot/delbrot.y"
-    { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
+    { (yyval) = makeNode(BINOP, 3, &(yyvsp[(1) - (3)]), &(yyvsp[(2) - (3)]), &(yyvsp[(3) - (3)]));  }
     break;
 
   case 73:
 
 /* Line 1806 of yacc.c  */
 #line 171 "delbrot/delbrot.y"
-    { (yyval) = makeNode(BINOP, 3, (yyvsp[(1) - (3)]), (yyvsp[(2) - (3)]), (yyvsp[(3) - (3)]));   }
+    { (yyval) = makeNode(BINOP, 3, &(yyvsp[(1) - (3)]), &(yyvsp[(2) - (3)]), &(yyvsp[(3) - (3)]));  }
     break;
 
   case 75:
 
 /* Line 1806 of yacc.c  */
 #line 175 "delbrot/delbrot.y"
-    { (yyval) = makeNode(CHAIN, 2, (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));       }
+    { (yyval) = makeNode(CHAIN, 2, &(yyvsp[(1) - (3)]), &(yyvsp[(3) - (3)]));       }
     break;
 
   case 77:
 
 /* Line 1806 of yacc.c  */
 #line 180 "delbrot/delbrot.y"
-    { (yyval) = makeNode(FNCT, 2, (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));        }
+    { (yyval) = makeNode(FNCT, 2, &(yyvsp[(1) - (2)]), &(yyvsp[(2) - (2)]));        }
     break;
 
   case 79:
 
 /* Line 1806 of yacc.c  */
 #line 185 "delbrot/delbrot.y"
-    { (yyval) = addPluginFn((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));              }
+    { (yyval) = addPluginFn(&(yyvsp[(1) - (3)]), &(yyvsp[(3) - (3)]));              }
     break;
 
   case 81:
 
 /* Line 1806 of yacc.c  */
 #line 190 "delbrot/delbrot.y"
-    { (yyval) = append((yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));                   }
+    { (yyval) = append(&(yyvsp[(1) - (2)]), &(yyvsp[(2) - (2)]));                   }
     break;
 
   case 82:
 
 /* Line 1806 of yacc.c  */
 #line 194 "delbrot/delbrot.y"
-    { (yyval) = makeArg(NULL, (yyvsp[(1) - (1)]));                }
+    { (yyval) = makeArg(NULL, &(yyvsp[(1) - (1)]));                 }
     break;
 
   case 83:
 
 /* Line 1806 of yacc.c  */
 #line 195 "delbrot/delbrot.y"
-    { (yyval) = makeArg((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));                  }
+    { (yyval) = makeArg(&(yyvsp[(1) - (3)]), &(yyvsp[(3) - (3)]));                  }
     break;
 
   case 85:
 
 /* Line 1806 of yacc.c  */
 #line 200 "delbrot/delbrot.y"
-    { (yyval) = makeNode(NEG, 1, (yyvsp[(2) - (2)]));             }
+    { (yyval) = makeNode(NEG, 1, &(yyvsp[(2) - (2)]));              }
     break;
 
   case 86:
 
 /* Line 1806 of yacc.c  */
 #line 201 "delbrot/delbrot.y"
-    { (yyval) = makeNode('!', 1, (yyvsp[(2) - (2)]));             }
+    { (yyval) = makeNode('!', 1, &(yyvsp[(2) - (2)]));              }
     break;
 
   case 89:
 
 /* Line 1806 of yacc.c  */
 #line 207 "delbrot/delbrot.y"
-    { (yyval) = (yyvsp[(2) - (3)]);                               }
+    { (yyval) = (yyvsp[(2) - (3)]);                                 }
     break;
 
 
 
 /* Line 1806 of yacc.c  */
-#line 1847 "delbrot/y.tab.c"
+#line 1837 "delbrot/y.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2077,222 +2067,287 @@ yyreturn:
 #line 210 "delbrot/delbrot.y"
  /* end of grammar */
 
-/* allocate a node */
-ASTnode* newNode() {
-    ASTnode *p;
-    if ((p = calloc(1, sizeof(ASTnode))) == NULL)
-        MkvsynthError("out of memory");
-    return p;
-}
-
 /* allocate a value */
 Value* newValue() {
-    Value *v;
-    if ((v = calloc(1, sizeof(Value))) == NULL)
-        MkvsynthError("out of memory");
-    return v;
+	Value *v;
+	if ((v = calloc(1, sizeof(Value))) == NULL)
+		MkvsynthError("out of memory");
+	return v;
+}
+
+/* free an ASTnode and its children */
+void freeNode(ASTnode *p) {
+	if (!p)
+		return;
+	if (p->value) {
+		freeValue(p->value);
+		free(p->value);
+	}
+	if (p->nops > 0 && p->child) {
+		while (p->nops > 0)
+			freeNode(&p->child[--p->nops]);
+		free(p->child);
+	}
+}
+
+/* free a value */
+void freeValue(Value *v) {
+	if (!v)
+		return;
+	if (v->type == typeStr)
+		free(v->str);
+	if (v->type == typeId)
+		free(v->id);
+	if (v->type == typeNull) {
+		freeVar(v->arg);
+		free(v->arg);
+	}
+}
+
+/* free a linked list of variables */
+void freeVar(Var *v) {
+	if (!v)
+		return;
+	if (v->name)
+		free(v->name);
+	freeValue(&v->value);
+	if (v->next) {
+		freeVar(v->next);
+		free(v->next);
+	}
+}
+
+/* free a linked list of functions */
+void freeFn(Fn *f) {
+	if (!f)
+		return;
+	free(f->name);
+	if (f->type == fnCore) {
+		free(f->fnPtr);
+	}
+	else {
+		freeNode(f->body);
+		/* free the argument list */
+		int i;
+		for (i = 0; i < f->params->nargs; i++)
+			freeVar(f->params->args);
+		free(f->params->args);
+		free(f->params);
+	}
+	if (f->next) {
+		freeFn(f->next);
+		free(f->next);
+	}
+}
+
+/* free an environment */
+void freeEnv(Env *e) {
+	freeVar(e->varTable);
+	free(e->varTable);
+	freeFn(e->fnTable);
+	free(e->fnTable);
 }
 
 /* create a node in the AST */
-ASTnode* makeNode(int op, int nops, ...) {
-    ASTnode *p = newNode();
-    /* allocate space for children */
-    if ((p->child = malloc(nops * sizeof(ASTnode *))) == NULL)
-        MkvsynthError("out of memory");
-    p->op = op;
-    p->nops = nops;
-    int i;
-    va_list ap;
-    va_start(ap, nops);
-    for (i = 0; i < nops; i++)
-        p->child[i] = va_arg(ap, ASTnode *);
-    va_end(ap);
-    return p;
+ASTnode makeNode(int op, int nops, ...) {
+	ASTnode p = {};
+	p.op = op;
+	p.nops = nops;
+	if (p.nops == 0)
+		return p;
+	/* allocate space for children */
+	if ((p.child = calloc(nops, sizeof(ASTnode))) == NULL)
+		MkvsynthError("out of memory");
+	int i;
+	va_list ap;
+	va_start(ap, nops);
+	for (i = 0; i < nops; i++)
+		p.child[i] = *va_arg(ap, ASTnode *);
+	va_end(ap);
+	return p;
 }
 
 /* create a leaf node */
-ASTnode* makeLeaf(valueType type, ...) {
-    ASTnode *p = newNode();
-    /* create payload */
-    p->value = newValue();
-    p->value->type = type;
-    va_list ap;
-    va_start(ap, type);
-    switch (type) {
-        case typeNum:  p->value->num  = va_arg(ap, double); break;
-        case typeBool: p->value->bool = va_arg(ap, bool_t); break;
-        case typeStr:  p->value->str  = va_arg(ap, char *); break;
-        case typeId:   p->value->id   = va_arg(ap, char *); break;
-        default: MkvsynthError("invalid leaf type");
-    }
-    return p;
+ASTnode makeLeaf(valueType type, ...) {
+	ASTnode p = {};
+	/* create payload */
+	p.value = newValue();
+	p.value->type = type;
+	va_list ap;
+	va_start(ap, type);
+	switch (type) {
+		case typeNum:  p.value->num  = va_arg(ap, double); break;
+		case typeBool: p.value->bool = va_arg(ap, bool_t); break;
+		case typeStr:  p.value->str  = va_arg(ap, char *); break;
+		case typeId:   p.value->id   = va_arg(ap, char *); break;
+		default:       MkvsynthError("invalid leaf type");
+	}
+	return p;
 }
 
 /* create a parameter */
-ASTnode* makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
-    ASTnode *p = newNode();
-    p->value = newValue();
-    Var *v = calloc(1, sizeof(Var));
-    v->type = type;
-    v->name = nameNode->value->id;
-    switch (typeNode->op) {
-        case NUM:    v->valType = typeNum;  break;
-        case BOOL:   v->valType = typeBool; break;
-        case STRING: v->valType = typeStr;  break;
-        case CLIP:   v->valType = typeClip; break;
-    }
-    p->value->arg = v;
-    return p;
+ASTnode makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
+	ASTnode p = {};
+	Var *v = calloc(1, sizeof(Var));
+	v->type = type;
+	v->value.type = typeNull;
+	v->name = nameNode->value->id;
+	switch (typeNode->op) {
+		case NUM:    v->valType = typeNum;  break;
+		case BOOL:   v->valType = typeBool; break;
+		case STRING: v->valType = typeStr;  break;
+		case CLIP:   v->valType = typeClip; break;
+	}
+	p.value = newValue();
+	p.value->arg = v;
+	return p;
 }
 
 /* create an argument */
-ASTnode* makeArg(ASTnode *nameNode, ASTnode *valNode) {
-    ASTnode *p = newNode();
-    p->op = p->nops = 0;
-    p->value = newValue();
-    Var *v = calloc(1, sizeof(Var));
-    v->type = nameNode ? typeOptArg : typeArg;
-    v->name = nameNode ? nameNode->value->id : NULL;
-    v->value = (Value*) valNode;
-    p->value->arg = v;
-    return p;
+ASTnode makeArg(ASTnode *nameNode, ASTnode *valNode) {
+	ASTnode p = {};
+	p.value = newValue();
+	p.value->type = typeNull;
+	Var *v = calloc(1, sizeof(Var));
+	v->type = nameNode ? typeOptArg : typeArg;
+	v->name = nameNode ? nameNode->value->id : NULL;
+	v->fnArg = *valNode;
+	p.value->arg = v;
+	return p;
 }
 
 /* link two parameters/optargs together */
-ASTnode* append(ASTnode *p, ASTnode *v) {
-    if (!p || !v)
-        MkvsynthError("invalid argument");
-    Var *traverse;
-    for (traverse = p->value->arg; traverse->next; traverse = traverse->next);
-    traverse->next = v->value->arg;
-    return p;
+ASTnode append(ASTnode *p, ASTnode *v) {
+	if (!p || !v)
+		MkvsynthError("invalid argument");
+	Var *traverse;
+	for (traverse = p->value->arg; traverse->next; traverse = traverse->next);
+	traverse->next = v->value->arg;
+	return *p;
 }
 
 /* add a core function to the function table */
 void putFn(Env *e, Fn *f) {
-    f->next = e->fnTable;
-    e->fnTable = f;
+	f->next = e->fnTable;
+	e->fnTable = f;
 }
 
 /* look up a function */
 Fn* getFn(Env const *e, char const *fnName) {
-    if (!e)
-        return NULL;
-    Fn *traverse;
-    for (traverse = e->fnTable; traverse != NULL; traverse = traverse->next) {
-        if (strcmp(traverse->name, fnName) == 0)
-            return traverse;
-    }
-    /* check parent environment */
-    return getFn(e->parent, fnName);
+	if (!e)
+		return NULL;
+	Fn *traverse;
+	for (traverse = e->fnTable; traverse != NULL; traverse = traverse->next) {
+		if (strcmp(traverse->name, fnName) == 0)
+			return traverse;
+	}
+	/* check parent environment */
+	return getFn(e->parent, fnName);
 }
 
 /* add a plugin function to the global fnTable and return its identifier */
-ASTnode* addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
-    /* create identifier */
-    char *id = malloc(strlen(pluginName->value->id) + strlen(fnName->value->id) + 1);
-    strcat(id, pluginName->value->id);
-    strcat(id, ".");
-    strcat(id, fnName->value->id);
-    /* check if function is already in fnTable */
-    if (getFn(global, id) != NULL)
-        return makeLeaf(typeId, id);
-    /* look up plugin */
-    Plugin *traverse;
-    Value * (*pluginFn) (argList *);
-    for (traverse = pluginList; traverse != NULL; traverse = traverse->next) {
-        if (strcmp(traverse->name, pluginName->value->id) == 0) {
-            /* look up symbol */
-            dlerror();
-            pluginFn = dlsym(traverse->handle, fnName->value->id);
-            if (dlerror() != NULL)
-                MkvsynthError("function \"%s\" not found in plugin %s", fnName->value->id, pluginName->value->id);
-            /* add function to fnTable */
-            Fn *f = calloc(1, sizeof(Fn));
-            f->type = fnCore;
-            f->name = id;
-            f->fnPtr = pluginFn;
-            putFn(global, f);
-            return makeLeaf(typeId, id);
-        }
-    }
-    MkvsynthError("plugin \"%s\" not loaded", pluginName->value->id);
-    return NULL;
+ASTnode addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
+	/* create identifier */
+	char *id = malloc(strlen(pluginName->value->id) + strlen(fnName->value->id) + 1);
+	strcat(id, pluginName->value->id);
+	strcat(id, ".");
+	strcat(id, fnName->value->id);
+	/* check if function is already in fnTable */
+	if (getFn(&global, id) != NULL)
+		return makeLeaf(typeId, id);
+	/* look up plugin */
+	Plugin *traverse;
+	Value (*pluginFn) (argList *);
+	for (traverse = pluginList; traverse != NULL; traverse = traverse->next) {
+		if (strcmp(traverse->name, pluginName->value->id) == 0) {
+			/* look up symbol */
+			dlerror();
+			pluginFn = dlsym(traverse->handle, fnName->value->id);
+			if (dlerror() != NULL)
+				MkvsynthError("function \"%s\" not found in plugin %s", fnName->value->id, pluginName->value->id);
+			/* add function to fnTable */
+			Fn *f = calloc(1, sizeof(Fn));
+			f->type = fnCore;
+			f->name = id;
+			f->fnPtr = pluginFn;
+			putFn(&global, f);
+			return makeLeaf(typeId, id);
+		}
+	}
+	MkvsynthError("plugin \"%s\" not loaded", pluginName->value->id);
+	return (ASTnode){};
 }
 
 /* add an entry to the local varTable */
 void putVar(Env *e, char const *varName, varType type) {
-    /* create entry */
-    Var *v = calloc(1, sizeof(Var));
-    v->type = type;
-    v->name = strdup(varName);
-    /* add to variable table */
-    v->next = e->varTable;
-    e->varTable = v;
+	/* create entry */
+	Var *v = calloc(1, sizeof(Var));
+	v->type = type;
+	v->name = strdup(varName);
+	/* add to variable table */
+	v->next = e->varTable;
+	e->varTable = v;
 }
 
 /* look up a variable in the varTable */
 Var* getVar(Env const *e, char const *varName) {
-    Var *traverse;
-    for (traverse = e->varTable; traverse != NULL; traverse = traverse->next) {
-        if (strcmp(traverse->name, varName) == 0)
-            return traverse;
-    }
-    return NULL;
+	Var *traverse;
+	for (traverse = e->varTable; traverse != NULL; traverse = traverse->next) {
+		if (strcmp(traverse->name, varName) == 0)
+			return traverse;
+	}
+	return NULL;
 }
 
-Value* setVar(Env const *e, char const *varName, Value const *v) {
-    Var *traverse;
-    for (traverse = e->varTable; traverse != NULL; traverse = traverse->next) {
-        if (strcmp(traverse->name, varName) == 0) {
-            traverse->valType = v->type;
-            traverse->value = newValue();
-            return memcpy(traverse->value, v, sizeof(Value));
-        }
-    }
-    MkvsynthError("could not set value of undefined variable %s", varName);
-    return NULL;
+Value setVar(Env const *e, char const *varName, Value const *v) {
+	Var *traverse;
+	for (traverse = e->varTable; traverse != NULL; traverse = traverse->next) {
+		if (strcmp(traverse->name, varName) == 0) {
+			traverse->valType = v->type;
+			traverse->value = *v;
+			return traverse->value;
+		}
+	}
+	MkvsynthError("could not set value of undefined variable %s", varName);
+	return *newValue();
 }
 
 /* alias for MkvsynthError */
 void yyerror(char *error, ...) {
-    va_list arglist;
-    va_start(arglist, error);
-    MkvsynthError(error, arglist);
-    va_end(arglist);
+	va_list arglist;
+	va_start(arglist, error);
+	MkvsynthError(error, arglist);
+	va_end(arglist);
 }
 
 int main(int argc, char **argv) {
-    /* help message */
-    if ((argc != 1 && argc != 2)
-    || (argc > 1 && (!strcmp(argv[1],"-h") || !strcmp(argv[1],"--help")))) {
-        printf("Usage: mkvsynth [FILE]\nInterprets an mkvsynth script.\n\nIf FILE is omitted, STDIN will be used instead.\n\nReport bugs on github.com/mkvsynth/mkvsynth.\n");
-        exit(0);
-    }
+	/* help message */
+	if ((argc != 1 && argc != 2)
+	|| (argc > 1 && (!strcmp(argv[1],"-h") || !strcmp(argv[1],"--help")))) {
+		printf("Usage: mkvsynth [FILE]\nInterprets an mkvsynth script.\n\nIf FILE is omitted, STDIN will be used instead.\n\nReport bugs on github.com/mkvsynth/mkvsynth.\n");
+		exit(0);
+	}
 
-    /* read script file, if provided */
-    if (argc == 2) {
-        yyin = fopen(argv[1], "r");
-        if (!yyin) {
-            MkvsynthError("could not open file \"%s\" for reading", argv[1]);
-            exit(1);
-        }
-    }
+	/* read script file, if provided */
+	if (argc == 2) {
+		yyin = fopen(argv[1], "r");
+		if (!yyin) {
+			MkvsynthError("could not open file \"%s\" for reading", argv[1]);
+			exit(1);
+		}
+	}
 
-    /* create global environment */
-    global = calloc(1, sizeof(Env));
+	if (setjmp(global.returnContext) != 0)
+		return 0;
 
-    if (setjmp(global->returnContext) != 0)
-        return 0;
+	/* initialize function table */
+	int i;
+	for(i = 0; coreFunctions[i].name != 0; i++)
+		putFn(&global, &coreFunctions[i]);
+	for(i = 0; internalFilters[i].name != 0; i++)
+		putFn(&global, &internalFilters[i]);
 
-    /* initialize function table */
-    int i;
-    for(i = 0; coreFunctions[i].name != 0; i++)
-        putFn(global, &coreFunctions[i]);
-    for(i = 0; internalFilters[i].name != 0; i++)
-        putFn(global, &internalFilters[i]);
-
-    /* main parse loop */
-    return yyparse();
+	/* main parse loop */
+	return yyparse();
 }
 

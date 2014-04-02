@@ -518,18 +518,18 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "delbrot/delbrot.l"
 #line 5 "delbrot/delbrot.l"
-    #include <stdlib.h>
-    #include <stdio.h>
-    #include "delbrot.h"
-    #include "y.tab.h"
-    int resWord(char *);
-    int linenumber = 1;
-    extern FILE *yyin;
-    /* for handling imported scripts */
-    #define MAX_IMPORT_DEPTH 32
-    YY_BUFFER_STATE import_stack[MAX_IMPORT_DEPTH];
-    char *import_names[MAX_IMPORT_DEPTH];
-    int numImports = 0;
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include "delbrot.h"
+	#include "y.tab.h"
+	int resWord(char *);
+	int linenumber = 1;
+	extern FILE *yyin;
+	/* for handling imported scripts */
+	#define MAX_IMPORT_DEPTH 32
+	YY_BUFFER_STATE import_stack[MAX_IMPORT_DEPTH];
+	char *import_names[MAX_IMPORT_DEPTH];
+	int numImports = 0;
 /* don't keep scanning after EOF */
 /* suppress gcc warnings */
 #define YY_NO_INPUT 1
@@ -721,7 +721,7 @@ YY_DECL
 #line 24 "delbrot/delbrot.l"
 
 
-    /* boolean */
+	/* boolean */
 #line 726 "delbrot/lex.yy.c"
 
 	if ( !(yy_init) )
@@ -809,90 +809,90 @@ case 1:
 YY_RULE_SETUP
 #line 27 "delbrot/delbrot.l"
 {
-                        yylval = makeLeaf(typeBool, TRUE);
-                        return CONSTANT;
-                    }
+						yylval = makeLeaf(typeBool, TRUE);
+						return CONSTANT;
+					}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
 #line 31 "delbrot/delbrot.l"
 {
-                        yylval = makeLeaf(typeBool, FALSE);
-                        return CONSTANT;
-                    }
+						yylval = makeLeaf(typeBool, FALSE);
+						return CONSTANT;
+					}
 	YY_BREAK
 /* type */
 case 3:
 YY_RULE_SETUP
 #line 36 "delbrot/delbrot.l"
 {
-                        yylval = makeNode(NUM, 0);
-                        return NUM;
-                    }
+						yylval = makeNode(NUM, 0);
+						return NUM;
+					}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
 #line 40 "delbrot/delbrot.l"
 {
-                        yylval = makeNode(BOOL, 0);
-                        return BOOL;
-                    }
+						yylval = makeNode(BOOL, 0);
+						return BOOL;
+					}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
 #line 44 "delbrot/delbrot.l"
 {
-                        yylval = makeNode(STRING, 0);
-                        return STRING;
-                    }
+						yylval = makeNode(STRING, 0);
+						return STRING;
+					}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 48 "delbrot/delbrot.l"
 {
-                        yylval = makeNode(CLIP, 0);
-                        return CLIP;
-                    }
+						yylval = makeNode(CLIP, 0);
+						return CLIP;
+					}
 	YY_BREAK
 /* keyword, function, or variable */
 case 7:
 YY_RULE_SETUP
 #line 53 "delbrot/delbrot.l"
 {
-                        /* reserved word */
-                        if (resWord(yytext))
-                            return resWord(yytext);
-                        /* variable or function */
-                        yylval = makeLeaf(typeId, strdup(yytext));
-                        return IDENTIFIER;
-                    }
+						/* reserved word */
+						if (resWord(yytext))
+							return resWord(yytext);
+						/* variable or function */
+						yylval = makeLeaf(typeId, strdup(yytext));
+						return IDENTIFIER;
+					}
 	YY_BREAK
 /* number, with optional decimal */
 case 8:
 YY_RULE_SETUP
 #line 62 "delbrot/delbrot.l"
 {
-                        yylval = makeLeaf(typeNum, atof(yytext));
-                        return CONSTANT;
-                    }
+						yylval = makeLeaf(typeNum, atof(yytext));
+						return CONSTANT;
+					}
 	YY_BREAK
 /* number, without initial 0 */
 case 9:
 YY_RULE_SETUP
 #line 67 "delbrot/delbrot.l"
 {
-                        yylval = makeLeaf(typeNum, atof(yytext));
-                        return CONSTANT;
-                    }
+						yylval = makeLeaf(typeNum, atof(yytext));
+						return CONSTANT;
+					}
 	YY_BREAK
 /* number, hex literal */
 case 10:
 YY_RULE_SETUP
 #line 72 "delbrot/delbrot.l"
 {
-                        yylval = makeLeaf(typeNum, strtol(yytext, NULL, 16));
-                        return CONSTANT;
-                    }
+						yylval = makeLeaf(typeNum, strtol(yytext, NULL, 16));
+						return CONSTANT;
+					}
 	YY_BREAK
 /* string literal */
 case 11:
@@ -900,12 +900,12 @@ case 11:
 YY_RULE_SETUP
 #line 77 "delbrot/delbrot.l"
 { //"
-                        /* remove enclosing quotation marks */
-                        char *str = strdup(yytext + 1);
-                        str[strlen(str) - 1] = 0;
-                        yylval = makeLeaf(typeStr, str);
-                        return CONSTANT;
-                    }
+						/* remove enclosing quotation marks */
+						char *str = strdup(yytext + 1);
+						str[strlen(str) - 1] = 0;
+						yylval = makeLeaf(typeStr, str);
+						return CONSTANT;
+					}
 	YY_BREAK
 /* arithmetic operator */
 case 12:
@@ -1063,33 +1063,34 @@ linenumber++;
 case YY_STATE_EOF(INITIAL):
 #line 123 "delbrot/delbrot.l"
 {
-                        if (numImports == 0) {
-                            #ifndef DELBROT
-                            ex(global, makeLeaf(typeId, "go"));
-                            #endif
-                            yyterminate();
-                        }
-                        else {
-                            fclose(YY_CURRENT_BUFFER->yy_input_file);
-                            yy_delete_buffer(YY_CURRENT_BUFFER);
-                            free(import_names[numImports]);
-                            numImports--;
-                            yy_switch_to_buffer(import_stack[numImports]);
-                        }
-                    }
+						if (numImports == 0) {
+							#ifndef DELBROT
+							ASTnode go = makeLeaf(typeId, "go");
+							ex(&global, &go);
+							#endif
+							yyterminate();
+						}
+						else {
+							fclose(YY_CURRENT_BUFFER->yy_input_file);
+							yy_delete_buffer(YY_CURRENT_BUFFER);
+							free(import_names[numImports]);
+							numImports--;
+							yy_switch_to_buffer(import_stack[numImports]);
+						}
+					}
 	YY_BREAK
 /* anything else is an error */
 case 40:
 YY_RULE_SETUP
-#line 139 "delbrot/delbrot.l"
+#line 140 "delbrot/delbrot.l"
 MkvsynthError("unknown character %s", yytext);
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 141 "delbrot/delbrot.l"
+#line 142 "delbrot/delbrot.l"
 ECHO;
 	YY_BREAK
-#line 1093 "delbrot/lex.yy.c"
+#line 1094 "delbrot/lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2048,45 +2049,45 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 141 "delbrot/delbrot.l"
+#line 142 "delbrot/delbrot.l"
 
 
 
 /* check identifier against a list of reserved words */
 int resWord(char *str) {
-    if (!strcmp(str, "default"))
-        return DEFAULT;
-    else if (!strcmp(str, "else"))
-        return ELSE;
-    else if (!strcmp(str, "function"))
-        return FNDEF;
-    else if (!strcmp(str, "if"))
-        return IF;
-    else if (!strcmp(str, "import"))
-        return IMPORT;
-    else if (!strcmp(str, "otherwise"))
-        return OTHER;
-    else if (!strcmp(str, "return"))
-        return RETURN;
-    else
-        return 0;
+	if (!strcmp(str, "default"))
+		return DEFAULT;
+	else if (!strcmp(str, "else"))
+		return ELSE;
+	else if (!strcmp(str, "function"))
+		return FNDEF;
+	else if (!strcmp(str, "if"))
+		return IF;
+	else if (!strcmp(str, "import"))
+		return IMPORT;
+	else if (!strcmp(str, "otherwise"))
+		return OTHER;
+	else if (!strcmp(str, "return"))
+		return RETURN;
+	else
+		return 0;
 }
 
 /* push current buffer onto stack and begin scanning f */
 void switchToBuffer(char *filename, FILE *fd) {
-    if (numImports == MAX_IMPORT_DEPTH)
-        MkvsynthError("imports nested too deeply");
-    /* check for circular references */
-    int i;
-    for (i = 1; i < numImports; i++) {
-        if (!strcmp(filename, import_names[i]))
-            MkvsynthError("circular reference detected: %s imports itself");
-    }
-    yyin = fd;
-    YY_BUFFER_STATE scriptBuffer = yy_create_buffer(yyin,YY_BUF_SIZE);
-    import_stack[numImports] = YY_CURRENT_BUFFER;
-    numImports++;
-    import_names[numImports] = strdup(filename);
-    yy_switch_to_buffer(scriptBuffer);
+	if (numImports == MAX_IMPORT_DEPTH)
+		MkvsynthError("imports nested too deeply");
+	/* check for circular references */
+	int i;
+	for (i = 1; i < numImports; i++) {
+		if (!strcmp(filename, import_names[i]))
+			MkvsynthError("circular reference detected: %s imports itself");
+	}
+	yyin = fd;
+	YY_BUFFER_STATE scriptBuffer = yy_create_buffer(yyin,YY_BUF_SIZE);
+	import_stack[numImports] = YY_CURRENT_BUFFER;
+	numImports++;
+	import_names[numImports] = strdup(filename);
+	yy_switch_to_buffer(scriptBuffer);
 }
 
