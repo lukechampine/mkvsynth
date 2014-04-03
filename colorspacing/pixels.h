@@ -44,3 +44,5 @@ void setLightness                         (MkvsynthPixel *pixel, double value, M
 void setHSLSaturation                     (MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData);
 
 void addPixel                             (MkvsynthPixel *destination, MkvsynthPixel *source, uint16_t colorspace, double strength);
+
+void minmax                               (double d1, double d2, double d3, double *min, double *max, int *x, int *y);

@@ -256,8 +256,7 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			hx = hc * tempx;
 			if((hdeg < 60) || (hdeg >= 300 && hdeg < 360)){
 				result = hc + hm;
-			}else if(hdeg >= 120 && hdeg < 240)
-			{
+			}else if(hdeg >= 120 && hdeg < 240){
 				result = hm;
 			}else{
 				result = hx + hm;
@@ -283,8 +282,7 @@ uint16_t getRed (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			hx = hc * tempx;
 			if((hdeg < 60) || (hdeg >= 300 && hdeg < 360)){
 				result = hc + hm;
-			}else if(hdeg >= 120 && hdeg < 240)
-			{
+			}else if(hdeg >= 120 && hdeg < 240){
 				result = hm;
 			}else{
 				result = hx + hm;
@@ -376,8 +374,7 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			hx = hc * tempx;
 			if(hdeg >= 60 && hdeg < 180){
 				result = hc + hm;
-			}else if(hdeg >= 240)
-			{
+			}else if(hdeg >= 240){
 				result = hm;
 			}else{
 				result = hx + hm;
@@ -403,8 +400,7 @@ uint16_t getGreen (MkvsynthPixel *pixel, MkvsynthMetaData *metaData) {
 			hx = hc * tempx;
 			if(hdeg >= 60 && hdeg < 180){
 				result = hc + hm;
-			}else if(hdeg >= 240)
-			{
+			}else if(hdeg >= 240){
 				result = hm;
 			}else{
 				result = hx + hm;
@@ -495,8 +491,7 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			hx = hc * tempx;
 			if(hdeg >= 180 && hdeg < 300){
 				result = hc + hm;
-			}else if(hdeg < 120)
-			{
+			}else if(hdeg < 120){
 				result = hm;
 			}else{
 				result = hx + hm;
@@ -522,8 +517,7 @@ uint16_t getBlue (MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			hx = hc * tempx;
 			if(hdeg >= 180 && hdeg < 300){
 				result = hc + hm;
-			}else if(hdeg < 120)
-			{
+			}else if(hdeg < 120){
 				result = hm;
 			}else{
 				result = hx + hm;
@@ -1253,8 +1247,7 @@ void setLuma(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
 			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
 			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 65535){
 				value = 65535;
@@ -1272,8 +1265,7 @@ void setLuma(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
 			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
 			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 255){
 				value = 255;
@@ -1288,8 +1280,7 @@ void setLuma(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			break;
 		
 		case MKVS_YUV444_48:
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 65535){
 				value = 65535;
@@ -1298,8 +1289,7 @@ void setLuma(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			break;
 		
 		case MKVS_YUV444_24:
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 255){
 				value = 255;
@@ -1344,8 +1334,7 @@ void setCb(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
 			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
 			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 65535){
 				value = 65535;
@@ -1363,8 +1352,7 @@ void setCb(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
 			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
 			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 255){
 				value = 255;
@@ -1379,8 +1367,7 @@ void setCb(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			break;
 		
 		case MKVS_YUV444_48:
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 65535){
 				value = 65535;
@@ -1389,8 +1376,7 @@ void setCb(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			break;
 		
 		case MKVS_YUV444_24:
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 255){
 				value = 255;
@@ -1436,8 +1422,7 @@ void setCr(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
 			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
 			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 65535){
 				value = 65535;
@@ -1455,8 +1440,7 @@ void setCr(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
 			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
 			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 255){
 				value = 255;
@@ -1471,8 +1455,7 @@ void setCr(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			break;
 		
 		case MKVS_YUV444_48:
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 65535){
 				value = 65535;
@@ -1481,8 +1464,7 @@ void setCr(MkvsynthPixel *pixel, double value, MkvsynthMetaData *metaData){
 			break;
 		
 		case MKVS_YUV444_24:
-			if(value <= 0)
-			{
+			if(value <= 0){
 				value = 0;
 			}else if(value >= 255){
 				value = 255;
@@ -1527,8 +1509,7 @@ void adjustLuma(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaDa
 			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
 			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
 			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
-			if(yval + (uint16_t) intensity <= 0)
-			{
+			if(yval + (uint16_t) intensity <= 0){
 				yval = 0;
 			}else if(yval + (uint16_t) intensity >= 65535){
 				yval = 65535;
@@ -1547,8 +1528,7 @@ void adjustLuma(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaDa
 			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
 			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
 			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
-			if(yval + (uint8_t) intensity <= 0)
-			{
+			if(yval + (uint8_t) intensity <= 0){
 				yval = 0;
 			}else if(yval + (uint8_t) intensity >= 255){
 				yval = 255;
@@ -1564,8 +1544,7 @@ void adjustLuma(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaDa
 			break;
 		
 		case MKVS_YUV444_48:
-			if(pixel->yuv444_48.y + (uint16_t) intensity <= 0)
-			{
+			if(pixel->yuv444_48.y + (uint16_t) intensity <= 0){
 				yval = 0;
 			}else if(pixel->yuv444_48.y + (uint16_t) intensity >= 65535){
 				yval = 65535;
@@ -1575,8 +1554,7 @@ void adjustLuma(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaDa
 			break;
 		
 		case MKVS_YUV444_24:
-			if(pixel->yuv444_24.y + (uint8_t) intensity <= 0)
-			{
+			if(pixel->yuv444_24.y + (uint8_t) intensity <= 0){
 				yval = 0;
 			}else if(pixel->yuv444_24.y + (uint8_t) intensity >= 255){
 				yval = 255;
@@ -1623,8 +1601,7 @@ void adjustCb(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
 			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
 			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
-			if(uval + (uint16_t) intensity <= 0)
-			{
+			if(uval + (uint16_t) intensity <= 0){
 				uval = 0;
 			}else if(uval + (uint16_t) intensity >= 65535){
 				uval = 65535;
@@ -1643,8 +1620,7 @@ void adjustCb(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
 			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
 			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
-			if(uval + (uint8_t) intensity <= 0)
-			{
+			if(uval + (uint8_t) intensity <= 0){
 				uval = 0;
 			}else if(uval + (uint8_t) intensity >= 255){
 				uval = 255;
@@ -1660,8 +1636,7 @@ void adjustCb(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 			break;
 		
 		case MKVS_YUV444_48:
-			if(pixel->yuv444_48.u + (uint16_t) intensity <= 0)
-			{
+			if(pixel->yuv444_48.u + (uint16_t) intensity <= 0){
 				uval = 0;
 			}else if(pixel->yuv444_48.u + (uint16_t) intensity >= 65535){
 				uval = 65535;
@@ -1671,8 +1646,7 @@ void adjustCb(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 			break;
 		
 		case MKVS_YUV444_24:
-			if(pixel->yuv444_24.u + (uint8_t) intensity <= 0)
-			{
+			if(pixel->yuv444_24.u + (uint8_t) intensity <= 0){
 				uval = 0;
 			}else if(pixel->yuv444_24.u + (uint8_t) intensity >= 255){
 				uval = 255;
@@ -1718,8 +1692,7 @@ void adjustCr(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 			yval = (float)pixel->rgb48.r * .299 + (float)pixel->rgb48.g * .587 + (float)pixel->rgb48.b * .114;
 			uval = 32768 + .5 * (float)pixel->rgb48.b - .169 * (float)pixel->rgb48.r - .331 * (float)pixel->rgb48.g;
 			vval = 32768 + .5 * (float)pixel->rgb48.r - .419 * (float)pixel->rgb48.g - .081 * (float)pixel->rgb48.b;
-			if(vval + (uint16_t) intensity <= 0)
-			{
+			if(vval + (uint16_t) intensity <= 0){
 				vval = 0;
 			}else if(vval + (uint16_t) intensity >= 65535){
 				vval = 65535;
@@ -1738,8 +1711,7 @@ void adjustCr(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 			yval = (float)pixel->rgb24.r * .299 + (float)pixel->rgb24.g * .587 + (float)pixel->rgb24.b * .114;
 			uval = 128 + .5 * (float)pixel->rgb24.b - .169 * (float)pixel->rgb24.r - .331 * (float)pixel->rgb24.g;
 			vval = 128 + .5 * (float)pixel->rgb24.r - .419 * (float)pixel->rgb24.g - .081 * (float)pixel->rgb24.b;
-			if(vval + (uint8_t) intensity <= 0)
-			{
+			if(vval + (uint8_t) intensity <= 0){
 				vval = 0;
 			}else if(vval + (uint8_t) intensity >= 255){
 				vval = 255;
@@ -1755,8 +1727,7 @@ void adjustCr(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 			break;
 		
 		case MKVS_YUV444_48:
-			if(pixel->yuv444_48.v + (uint16_t) intensity <= 0)
-			{
+			if(pixel->yuv444_48.v + (uint16_t) intensity <= 0){
 				vval = 0;
 			}else if(pixel->yuv444_48.v + (uint16_t) intensity >= 65535){
 				vval = 65535;
@@ -1766,8 +1737,7 @@ void adjustCr(MkvsynthPixel *pixel, double intensity, MkvsynthMetaData *metaData
 			break;
 		
 		case MKVS_YUV444_24:
-			if(pixel->yuv444_24.v + (uint8_t) intensity <= 0)
-			{
+			if(pixel->yuv444_24.v + (uint8_t) intensity <= 0){
 				vval = 0;
 			}else if(pixel->yuv444_24.v + (uint8_t) intensity >= 255){
 				vval = 255;
@@ -1805,50 +1775,21 @@ uint16_t getHue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 	double bp = 0;
 	double gp = 0; //these variable represent the portion of the red, green, or blue value that is present in the color
 	double cmin, cmax, delta, dhue, fhue; //dhue represents the hue out of one, fhue is the float form of hue
-	int x;
+	int x,y;
 	switch(metaData->colorspace){
 		case MKVS_RGB24:
 		rp = (double)pixel->rgb24.r / 256.0;
 		gp = (double)pixel->rgb24.g / 256.0;
 		bp = (double)pixel->rgb24.b / 256.0;
-		x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
-		//This is a maximum and minimum function
-		if(rp < gp){
-			if(bp > gp){
-				cmin = rp;
-				x = 3;
-				cmax = bp;
-			}else if(bp < rp){
-				cmin = bp;
-				x = 2;
-				cmax = gp;
-			}else{
-				cmin = rp;
-				x = 2;
-				cmax = gp;
-			}
-		}else{
-			if(bp > rp){
-				cmin = gp;
-				x = 3;
-				cmax = bp;
-			}else if(bp < gp){
-				cmin = bp;
-				x = 1;
-				cmax = rp;
-			}else{
-				cmin = gp;
-				x = 1;
-				cmax = rp;
-			}
-		}
+		x = -1;
+		y = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
+		minmax(rp, gp, bp, &cmin, &cmax, &x, &y);
 		delta = cmax - cmin;
 		if(cmax == 0){
 			hue = 0;
 		}else if(x == 1){
 			dhue = (gp - bp) / delta;
-			if(dhue < 0)
-			{
+			if(dhue < 0){
 				dhue += 6;
 			}
 		}else if(x == 2){
@@ -1864,37 +1805,9 @@ uint16_t getHue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			rp = (double)pixel->rgb48.r / 65536.0;
 			gp = (double)pixel->rgb48.g / 65536.0;
 			bp = (double)pixel->rgb48.b / 65536.0;
-			x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
-			//This is a maximum and minimum function
-			if(rp < gp){
-				if(bp > gp){
-					cmin = rp;
-					x = 3;
-					cmax = bp;
-				}else if(bp < rp){
-					cmin = bp;
-					x = 2;
-					cmax = gp;
-				}else{
-					cmin = rp;
-					x = 2;
-					cmax = gp;
-				}
-			}else{
-				if(bp > rp){
-					cmin = gp;
-					x = 3;
-					cmax = bp;
-				}else if(bp < gp){
-					cmin = bp;
-					x = 1;
-					cmax = rp;
-				}else{
-					cmin = gp;
-					x = 1;
-					cmax = rp;
-				}
-			}
+			x = -1;
+			y = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
+			minmax(rp, gp, bp, &cmin, &cmax, &x, &y);
 			delta = cmax - cmin;
 			if(cmax == 0){
 				hue = 0;
@@ -1962,44 +1875,9 @@ uint16_t getHSVSaturation(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			bp = (double)pixel->rgb24.b / 256.0;
 			x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
 			y = -1;
-			//This is a maximum and minimum function
-			if(rp < gp){
-				if(bp > gp){
-					y = 1;
-					cmin = rp;
-					x = 3;
-					cmax = bp;
-				}else if(bp < rp){
-					y = 3;
-					cmin = bp;
-					x = 2;
-				}else{
-					y = 1;
-					cmin = rp;
-					x = 2;
-					cmax = gp;
-				}
-			}else{
-				if(bp > rp){
-					y = 2;
-					cmin = gp;
-					x = 3;
-					cmax = bp;
-				}else if(bp < gp){
-					y = 3;
-					cmin = bp;
-					x = 1;
-					cmax = rp;
-				}else{
-					y = 2;
-					cmin = gp;
-					x = 1;
-					cmax = rp;
-				}
-			}
+			minmax(rp, gp, bp, &cmin, &cmax, &x, &y);
 			delta = cmax - cmin;
-			if(cmax == 0)
-			{
+			if(cmax == 0){
 				hsvs = 0;
 			}else{
 				ds = delta / cmax;
@@ -2014,44 +1892,9 @@ uint16_t getHSVSaturation(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 			bp = (double)pixel->rgb48.b / 65536.0;
 			x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
 			y = -1;
-			//This is a maximum and minimum function
-			if(rp < gp){
-				if(bp > gp){
-					y = 1;
-					cmin = rp;
-					x = 3;
-					cmax = bp;
-				}else if(bp < rp){
-					y = 3;
-					cmin = bp;
-					x = 2;
-				}else{
-					y = 1;
-					cmin = rp;
-					x = 2;
-					cmax = gp;
-				}
-			}else{
-				if(bp > rp){
-					y = 2;
-					cmin = gp;
-					x = 3;
-					cmax = bp;
-				}else if(bp < gp){
-					y = 3;
-					cmin = bp;
-					x = 1;
-					cmax = rp;
-				}else{
-					y = 2;
-					cmin = gp;
-					x = 1;
-					cmax = rp;
-				}
-			}
+			minmax(rp, gp, bp, &cmin, &cmax, &x, &y);
 			delta = cmax - cmin;
-			if(cmax == 0)
-			{
+			if(cmax == 0){
 				hsvs = 0;
 			}else{
 				ds = delta / cmax;
@@ -2109,42 +1952,7 @@ uint16_t getValue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		bp = (double)pixel->rgb24.b / 256.0;
 		x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
 		y = -1;
-		//This is a maximum and minimum function
-		if(rp < gp){
-			if(bp > gp){
-				y = 1;
-				cmin = rp;
-				x = 3;
-				cmax = bp;
-			}else if(bp < rp){
-				y = 3;
-				cmin = bp;
-				x = 2;
-				cmax = gp;
-			}else{
-				y = 1;
-				cmin = rp;
-				x = 2;
-				cmax = gp;
-			}
-		}else{
-			if(bp > rp){
-				y = 2;
-				cmin = gp;
-				x = 3;
-				cmax = bp;
-			}else if(bp < gp){
-				y = 3;
-				cmin = bp;
-				x = 1;
-				cmax = rp;
-			}else{
-				y = 2;
-				cmin = gp;
-				x = 1;
-				cmax = rp;
-			}
-		}
+		minmax(rp, gp, bp, &cmin, &cmax, &x, &y);
 		hsvv = cmax * 65535.0;
 		break;
 		
@@ -2154,42 +1962,7 @@ uint16_t getValue(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 		bp = (double)pixel->rgb48.b / 65536.0;
 		x = -1; //x and y represent which variable (r,g,b) is the maximum and minimum, respectively
 		y = -1;
-		//This is a maximum and minimum function
-		if(rp < gp){
-			if(bp > gp){
-				y = 1;
-				cmin = rp;
-				x = 3;
-				cmax = bp;
-			}else if(bp < rp){
-				y = 3;
-				cmin = bp;
-				x = 2;
-				cmax = gp;
-			}else{
-				y = 1;
-				cmin = rp;
-				x = 2;
-				cmax = gp;
-			}
-		}else{
-			if(bp > rp){
-				y = 2;
-				cmin = gp;
-				x = 3;
-				cmax = bp;
-			}else if(bp < gp){
-				y = 3;
-				cmin = bp;
-				x = 1;
-				cmax = rp;
-			}else{
-				y = 2;
-				cmin = gp;
-				x = 1;
-				cmax = rp;
-			}
-		}
+		minmax(rp, gp, bp, &cmin, &cmax, &x, &y);
 		hsvv = cmax * 65535.0;
 		break;
 		
@@ -2317,7 +2090,42 @@ uint16_t getLightness(MkvsynthPixel *pixel, MkvsynthMetaData *metaData){
 }
 
 
-
-
+void minmax(double d1, double d2, double d3, double *cmin, double *cmax, int *x, int *y){
+	if(d1 < d2){
+		if(d3 > d2){
+			*y = 1;
+			*cmin = d1;
+			*x = 3;
+			*cmax = d3;
+		}else if(d3 < d1){
+			*y = 3;
+			*cmin = d3;
+			*x = 2;
+			*cmax = d2;
+		}else{
+			*y = 1;
+			*cmin = d1;
+			*x = 2;
+			*cmax = d2;
+		}
+	}else{
+		if(d3 > d1){
+			*y = 2;
+			*cmin = d2;
+			*x = 3;
+			*cmax = d3;
+		}else if(d3 < d2){
+			*y = 3;
+			*cmin = d3;
+			*x = 1;
+			*cmax = d1;
+		}else{
+			*y = 2;
+			*cmin = d2;
+			*x = 1;
+			*cmax = d1;
+		}
+	}
+}
 
 
