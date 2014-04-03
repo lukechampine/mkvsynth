@@ -176,7 +176,7 @@ Value binaryOp(Env *e, ASTnode *lhsNode, int op, ASTnode *rhsNode) {
 /* append LHS to argument list of RHS */
 ASTnode* chain(ASTnode *val, ASTnode *fnNode) {
 	if (fnNode->op == CHAIN)
-		return chain(val, &fnNode->child[0]);
+		return chain(val, &fnNode->child[0]), fnNode;
 	ASTnode arg = makeArg(NULL, val);
 	if (fnNode->op == FNCT)
 		fnNode->child[1] = append(&arg, &fnNode->child[1]);
