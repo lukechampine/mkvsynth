@@ -8,7 +8,7 @@ The first crucial step is to include the `delbrot.h` header file. This file cont
 ```c
 #include "../delbrot/delbrot.h"
 #include "../delbrot/y.tab.h"
-Value* factorial(argList *a) {
+Value factorial(argList *a) {
     /* check that mandatory arguments are valid */
     checkArgs(a, 1, typeNum);
     ...
