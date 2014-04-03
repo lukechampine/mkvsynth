@@ -313,7 +313,7 @@ void funcDefine(Env *e, Value *name, ASTnode *params, ASTnode *body) {
 	/* create new function table entry */
 	Fn *f = calloc(1, sizeof(Fn));
 	f->type = fnUser;
-	f->name = name->id;
+	f->name = strdup(name->id);
 	f->parent = e;
 	f->body = body;
 

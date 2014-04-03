@@ -2106,8 +2106,8 @@ void freeVar(Var *v) {
 void freeFn(Fn *f) {
 	if (!f)
 		return;
-	free(f->name);
 	if (f->type == fnUser) {
+		free(f->name);
 		freeNode(f->body);
 		int i;
 		for (i = 0; i < f->params->nargs; i++)
