@@ -89,6 +89,7 @@ struct Fn {
     /* if core */
     Value (*fnPtr) (argList *);
     /* if user */
+    Env *parent;
     argList *params;
     ASTnode *body;
     Fn *next; /* for function tables */

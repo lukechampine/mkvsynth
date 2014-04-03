@@ -311,6 +311,7 @@ void funcDefine(Env *e, Value *name, ASTnode *params, ASTnode *body) {
 	Fn *f = calloc(1, sizeof(Fn));
 	f->type = fnUser;
 	f->name = name->id;
+	f->parent = e;
 	f->body = body;
 
 	/* create parameter list */
@@ -508,7 +509,7 @@ Value userDefFnCall(Env *e, Fn *f, argList *a) {
 	Env local;
 	local.varTable = NULL;
 	local.fnTable = NULL;
-	local.parent = e;
+	local.parent = f->parent;
 	
 	/* for convenience */
 	Var *args = a->args;
