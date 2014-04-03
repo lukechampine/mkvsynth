@@ -25,11 +25,11 @@ D    [0-9]
 
 	/* boolean */
 "True"              {
-						yylval = makeLeaf(typeBool, TRUE);
+						yylval = makeLeaf(typeBool, 1);
 						return CONSTANT;
 					}
 "False"             {
-						yylval = makeLeaf(typeBool, FALSE);
+						yylval = makeLeaf(typeBool, 0);
 						return CONSTANT;
 					}
 	/* type */

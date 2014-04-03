@@ -32,7 +32,7 @@ Value assert_AST(argList *a) {
 	checkArgs(a, 2, typeBool, typeStr);
 	extern char* currentFunction;
 	currentFunction = "assertion failed";
-	if (MANDBOOL(0) == FALSE)
+	if (!MANDBOOL(0))
 		MkvsynthError(MANDSTR(1));
 	RETURNNULL();
 }
@@ -57,7 +57,7 @@ Value print_AST(argList *a) {
 	for (i = 0; i < a->nargs; i++) {
 		switch (a->args[i].value.type) {
 			case typeNum: printf("%.10g ", MANDNUM(i)); break;
-			case typeBool: printf("%s ", MANDBOOL(i) == TRUE ? "True" : "False"); break;
+			case typeBool: printf("%s ", MANDBOOL(i) ? "True" : "False"); break;
 			case typeStr: printf("%s ", unesc(MANDSTR(i))); break;
 			default: MkvsynthWarning("could not print type %s", typeNames[a->args[i].value.type]);
 		}
@@ -80,7 +80,7 @@ Value show_AST(argList *a) {
 	Value v;
 	switch (a->args[0].value.type) {
 		case typeNum:  v.str = malloc(256); sprintf(v.str, "%.10g", MANDNUM(0)); break;
-		case typeBool: v.str = MANDBOOL(0) == TRUE ? "True" : "False"; break;
+		case typeBool: v.str = MANDBOOL(0) ? "True" : "False"; break;
 		case typeStr:  v.str = MANDSTR(0); break;
 		default: MkvsynthError("not defined for %ss", typeNames[a->args[0].value.type]);
 	}

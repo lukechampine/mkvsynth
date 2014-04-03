@@ -809,7 +809,7 @@ case 1:
 YY_RULE_SETUP
 #line 27 "delbrot/delbrot.l"
 {
-						yylval = makeLeaf(typeBool, TRUE);
+						yylval = makeLeaf(typeBool, 1);
 						return CONSTANT;
 					}
 	YY_BREAK
@@ -817,7 +817,7 @@ case 2:
 YY_RULE_SETUP
 #line 31 "delbrot/delbrot.l"
 {
-						yylval = makeLeaf(typeBool, FALSE);
+						yylval = makeLeaf(typeBool, 0);
 						return CONSTANT;
 					}
 	YY_BREAK

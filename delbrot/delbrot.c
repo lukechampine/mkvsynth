@@ -140,28 +140,28 @@ Value binaryOp(Env *e, ASTnode *lhsNode, int op, ASTnode *rhsNode) {
 		opStrs[GE] = ">="; opStrs[LE] = "<="; opStrs[LOR] = "||"; opStrs[LAND] = "&&";
 		if (lhs.type == typeNum) {
 			switch(op) {
-				case EQ: v.bool = lhs.num == rhs.num ? TRUE : FALSE; break;
-				case NE: v.bool = lhs.num != rhs.num ? TRUE : FALSE; break;
-				case GT: v.bool = lhs.num  > rhs.num ? TRUE : FALSE; break;
-				case LT: v.bool = lhs.num  < rhs.num ? TRUE : FALSE; break;
-				case GE: v.bool = lhs.num >= rhs.num ? TRUE : FALSE; break;
-				case LE: v.bool = lhs.num <= rhs.num ? TRUE : FALSE; break;
+				case EQ: v.bool = lhs.num == rhs.num; break;
+				case NE: v.bool = lhs.num != rhs.num; break;
+				case GT: v.bool = lhs.num  > rhs.num; break;
+				case LT: v.bool = lhs.num  < rhs.num; break;
+				case GE: v.bool = lhs.num >= rhs.num; break;
+				case LE: v.bool = lhs.num <= rhs.num; break;
 				default: MkvsynthError("type mismatch: operator %s is not defined for numbers", opStrs[op]);
 			}
 		}
 		else if (lhs.type == typeBool) {
 			switch(op) {
-				case EQ:   v.bool = (lhs.bool == TRUE) == (rhs.bool == TRUE) ? TRUE : FALSE; break;
-				case NE:   v.bool = (lhs.bool == TRUE) != (rhs.bool == TRUE) ? TRUE : FALSE; break;
-				case LOR:  v.bool = (lhs.bool == TRUE) || (rhs.bool == TRUE) ? TRUE : FALSE; break;
-				case LAND: v.bool = (lhs.bool == TRUE) && (rhs.bool == TRUE) ? TRUE : FALSE; break;
+				case EQ:   v.bool = lhs.bool == rhs.bool; break;
+				case NE:   v.bool = lhs.bool != rhs.bool; break;
+				case LOR:  v.bool = lhs.bool || rhs.bool; break;
+				case LAND: v.bool = lhs.bool && rhs.bool; break;
 				default:   MkvsynthError("type mismatch: operator %s is not defined for booleans", opStrs[op]);
 			}
 		}
 		else if (lhs.type == typeStr) {
 			switch(op) {
-				case EQ: v.bool = strcmp(lhs.str, rhs.str) == 0 ? TRUE : FALSE; break;
-				case NE: v.bool = strcmp(lhs.str, rhs.str) != 0 ? TRUE : FALSE; break;
+				case EQ: v.bool = strcmp(lhs.str, rhs.str) == 0; break;
+				case NE: v.bool = strcmp(lhs.str, rhs.str) != 0; break;
 				default: MkvsynthError("type mismatch: operator %s is not defined for strings", opStrs[op]);
 			}
 		}
@@ -259,6 +259,9 @@ Value ex(Env *e, ASTnode *p) {
 		/* should never wind up here */
 		default:      MkvsynthError("unknown operator %d", p->op);
 	}
+
+	if (e == &global && p->child != NULL && p->op != FNDEF)
+		free(p->child);
 
 	return v;
 }
@@ -372,7 +375,7 @@ void ifelse(Env *e, ASTnode *p) {
 	Value cond = ex(e, &p->child[0]);
 	if (cond.type != typeBool)
 		MkvsynthError("if expected boolean, got %s", typeNames[cond.type]);
-	if (cond.bool == TRUE)
+	if (cond.bool)
 		ex(e, &p->child[1]);
 	else if (p->nops == 3)
 		ex(e, &p->child[2]);
@@ -480,7 +483,7 @@ Value ternary(Env *e, ASTnode *p) {
 	Value cond = ex(e, &p->child[0]);
 	if (cond.type != typeBool)
 		MkvsynthError("arg 1 of ?| expected boolean, got %s", typeNames[cond.type]);
-	if (cond.bool == TRUE)
+	if (cond.bool)
 		return ex(e, &p->child[1]);
 	else
 		return ex(e, &p->child[2]);
@@ -498,7 +501,7 @@ Value unaryOp(Env *e, ASTnode* valNode, int op) {
 	else if (op == '!') {
 		if (v.type != typeBool)
 			MkvsynthError("%c expected boolean, got %s", op, typeNames[v.type]);
-		v.bool = v.bool == TRUE ? FALSE : TRUE;
+		v.bool = !v.bool;
 	}
 	return v;
 }

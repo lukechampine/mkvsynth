@@ -3,7 +3,7 @@ Plugins are collections of functions that are written in C and loaded at runtime
 
 As an example, let's walk through the creation of a plugin, "fact", that implements just a single function, `factorial`. First, we'll navigate to `mkvsynth/plugins/`, which contains `plugins.c` and `makeplugin`. We'll create a new file here called `fact.c` and start coding.
 
-The first crucial step is to include the `delbrot.h` header file. This file contains the definition of `ASTnode` and all its associated functions/macros. `y.tab.h` should also be included if your function deals with booleans, because it contains the `TRUE` and `FALSE` macros. The function signature must look exactly like they do below, or the plugin macros will break:
+The first crucial step is to include the `delbrot.h` header file. This file contains the definition of `ASTnode` and all its associated functions/macros. The function signature must look exactly like they do below, or the plugin macros will break:
 
 ```c
 #include "../delbrot/delbrot.h"
@@ -22,7 +22,7 @@ Now we can extract the function arguments from `a`:
     /* get mandatory arguments */
     int n = (int) MANDNUM(0);
     /* get optional arguments, if we had any */
-    /* bool_t factFlag = OPTBOOL("flag", TRUE); */
+    /* bool_t factFlag = OPTBOOL("flag", 1); */
     ...
 ```
 
