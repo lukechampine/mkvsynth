@@ -6,14 +6,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define MKVS_RGB48     1
-#define MKVS_RGB24     2
-#define MKVS_YUV444_48 3
-#define MKVS_YUV444_24 4
-#define MKVS_HSV24    5
-#define MKVS_HSV48    6
-#define MKVS_HSL24    7
-#define MKVS_HSL48    8
+typedef enum {NULL_COLOR, MKVS_RGB48, MKVS_RGB24, MKVS_YUV444_48, MKVS_YUV444_24, MKVS_HSV48, MKVS_HSV24, MKVS_HSL48, MKVS_HSL24} c_space;
+
 
 typedef struct MkvsynthMetaData MkvsynthMetaData;
 typedef struct MkvsynthSemaphoreList MkvsynthSemaphoreList;
@@ -44,7 +38,7 @@ typedef struct MkvsynthInput MkvsynthInput;
  * *** I am not sure that these are all the needed variables               *** *
  ******************************************************************************/
 struct MkvsynthMetaData {
-	short colorspace;
+	c_space colorspace;
 	int width;
 	int height;
 	int fpsNumerator;
