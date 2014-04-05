@@ -61,8 +61,8 @@ struct Env {
 /* a node in the AST */
 struct ASTnode {
     int op;         /* operator -- 0 if leaf node */
-    Value value;    /* payload */
     int nops;       /* no. of child nodes -- 0 if leaf node */
+    Value value;    /* payload */
     ASTnode *child; /* child nodes -- NULL if leaf node */
 };
 
