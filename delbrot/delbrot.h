@@ -104,15 +104,15 @@ typedef struct Plugin {
 
 /* function declarations */
 /* error handling */
-void MkvsynthError(char *, ...);
-void MkvsynthMessage(char *, ...);
-void MkvsynthWarning(char *, ...);
+void MkvsynthError(char const *, ...);
+void MkvsynthMessage(char const *, ...);
+void MkvsynthWarning(char const *, ...);
 /* AST creation */
-ASTnode append(ASTnode *, ASTnode *);
-ASTnode makeNode(int, int, ...);
+ASTnode append(ASTnode const *, ASTnode const *);
+ASTnode makeNode(const int, const int, ...);
 ASTnode makeLeaf(valueType, ...);
-ASTnode makeArg(ASTnode *, ASTnode *);
-ASTnode makeParam(varType, ASTnode *, ASTnode *);
+ASTnode makeArg(ASTnode const *, ASTnode const *);
+ASTnode makeParam(varType, ASTnode const *, ASTnode const *);
 /* AST destruction */
 void freeNode(ASTnode *);
 void freeFn(Fn *);
@@ -120,7 +120,7 @@ void freeValue(Value *);
 void freeVar(Var *);
 void freeEnv(Env *);
 /* variable/function access */
-ASTnode addPluginFn(ASTnode *, ASTnode *);
+ASTnode addPluginFn(ASTnode const *, ASTnode const *);
 Fn* getFn(Env const *, char const *);
 Var* getVar(Env const *, char const *);
 void putFn(Env *, Fn *);
@@ -128,8 +128,8 @@ void putVar(Env *, char const *, varType type);
 Value setVar(Env const *, char const *, Value const *);
 /* AST evaluation */
 Value ex(Env *, ASTnode *);
-void checkArgs(argList *, int, ...);
-void* getOptArg(argList *, char *, valueType);
+void checkArgs(argList const *, int, ...);
+void* getOptArg(argList const *, char const *, valueType);
 
 /* global variables */
 Env global; /* the global execution environment */

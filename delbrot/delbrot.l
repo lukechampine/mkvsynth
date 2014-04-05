@@ -6,7 +6,7 @@ D    [0-9]
 	#include <stdio.h>
 	#include "delbrot.h"
 	#include "y.tab.h"
-	int resWord(char *);
+	int resWord(char const *);
 	int linenumber = 1;
 	extern FILE *yyin;
 	/* for handling imported scripts */
@@ -142,7 +142,7 @@ D    [0-9]
 %%
 
 /* check identifier against a list of reserved words */
-int resWord(char *str) {
+int resWord(char const *str) {
 	if (!strcmp(str, "default"))
 		return DEFAULT;
 	else if (!strcmp(str, "else"))
@@ -162,7 +162,7 @@ int resWord(char *str) {
 }
 
 /* push current buffer onto stack and begin scanning f */
-void switchToBuffer(char *filename, FILE *fd) {
+void switchToBuffer(char const *filename, FILE *fd) {
 	if (numImports == MAX_IMPORT_DEPTH)
 		MkvsynthError("imports nested too deeply");
 	/* check for circular references */

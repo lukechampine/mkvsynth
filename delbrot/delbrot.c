@@ -9,24 +9,25 @@
 
 /* function declarations */
 static argList* argify(Env *, Var *);
-static Value    assign(Env *, Value *, ASTnode *);
+static Value    assign(Env *, Value const *, ASTnode *);
 static Value    assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
 static Value    binaryOp(Env *, ASTnode *, int, ASTnode *);
-static ASTnode* chain(ASTnode *, ASTnode *);
-	   void     checkArgs(argList *, int, ...);
+static ASTnode* chain(ASTnode const *, ASTnode *);
+	   void     checkArgs(argList const *, int, ...);
+static Value    dereference(Env const *, Value const *);
 	   Value    ex(Env *, ASTnode *);
-static Value    fnctCall(Env *, Value *, argList *);
-static void     funcDefine(Env *, Value *, ASTnode *, ASTnode *);
-	   void*    getOptArg(argList *, char *, valueType);
+static Value    fnctCall(Env const *, Value const *, argList *);
+static void     funcDefine(Env *, Value const *, ASTnode *, ASTnode const *);
+	   void*    getOptArg(argList const *, char const *, valueType);
 static void     ifelse(Env *, ASTnode *);
-static void     import(Value *);
-	   void     MkvsynthError(char *error, ...);
-	   void     MkvsynthMessage(char *error, ...);
-	   void     MkvsynthWarning(char *error, ...);
-static void     setDefault(Env *, Value *, ASTnode *);
+static void     import(Value const *);
+	   void     MkvsynthError(char const *error, ...);
+	   void     MkvsynthMessage(char const *error, ...);
+	   void     MkvsynthWarning(char const *error, ...);
+static void     setDefault(Env *, Value const *, ASTnode *);
 static Value    ternary(Env *, ASTnode *);
 static Value    unaryOp(Env *, ASTnode *, int);
-static Value    userDefFnCall(Env *, Fn *, argList *);
+static Value    userDefFnCall(Env const *, Fn const *, argList *);
 
 /* defined in delbrot.l */
 void switchToBuffer(char *, FILE *);
@@ -65,7 +66,7 @@ argList* argify(Env *e, Var *p) {
 }
 
 /* create or modify a variable */
-Value assign(Env *e, Value *name, ASTnode *valNode) {
+Value assign(Env *e, Value const *name, ASTnode *valNode) {
 	Value v = ex(e, valNode);
 	if (!name)
 		MkvsynthError("invalid assignment: can't assign to operation", name);
@@ -174,7 +175,7 @@ Value binaryOp(Env *e, ASTnode *lhsNode, int op, ASTnode *rhsNode) {
 }
 
 /* append LHS to argument list of RHS */
-ASTnode* chain(ASTnode *val, ASTnode *fnNode) {
+ASTnode* chain(ASTnode const *val, ASTnode *fnNode) {
 	if (fnNode->op == CHAIN)
 		return chain(val, &fnNode->child[0]), fnNode;
 	ASTnode arg = makeArg(NULL, val);
@@ -188,7 +189,7 @@ ASTnode* chain(ASTnode *val, ASTnode *fnNode) {
 }
 
 /* ensure that a function call is valid */
-void checkArgs(argList *a, int numArgs, ...) {
+void checkArgs(argList const *a, int numArgs, ...) {
 	/* check number of arguments */
 	int i = 0;
 	while (i < a->nargs && a->args[i].type == typeArg)
@@ -207,7 +208,7 @@ void checkArgs(argList *a, int numArgs, ...) {
 }
 
 /* dereference an identifier */
-Value dereference(Env *e, Value *val) {
+Value dereference(Env const *e, Value const *val) {
 	if (val == NULL)
 		MkvsynthError("unexpected NULL value");
 	if (val->type != typeId)
@@ -216,7 +217,8 @@ Value dereference(Env *e, Value *val) {
 	if ((v = getVar(e, val->id)) != NULL)
 		return v->value;
 	if ((f = getFn(e, val->id)) != NULL) {
-		return fnctCall(e, val, argify(e, NULL));
+		argList *a = calloc(1, sizeof(argList));
+		return fnctCall(e, val, a);
 	}
 	MkvsynthError("reference to undefined variable or function \"%s\"", val->id);
 	return *val;
@@ -267,7 +269,7 @@ Value ex(Env *e, ASTnode *p) {
 }
 
 /* handle function calls */
-Value fnctCall(Env *e, Value *name, argList *a) {
+Value fnctCall(Env const *e, Value const *name, argList *a) {
 	if (!name)
 		MkvsynthError("expected function name, got operation", name);
 	if (name->type != typeId)
@@ -302,7 +304,7 @@ Value fnctCall(Env *e, Value *name, argList *a) {
 }
 
 /* process a function definition */
-void funcDefine(Env *e, Value *name, ASTnode *params, ASTnode *body) {
+void funcDefine(Env *e, Value const *name, ASTnode *params, ASTnode const *body) {
 	if (!name)
 		MkvsynthError("expected name of function, got operation", name);
 	if (name->type != typeId)
@@ -350,7 +352,7 @@ void funcDefine(Env *e, Value *name, ASTnode *params, ASTnode *body) {
 }
 
 /* get optional arguments in a function call */
-void* getOptArg(argList *a, char *name, valueType type) {
+void* getOptArg(argList const *a, char const *name, valueType type) {
 	int i;
 	for (i = 0; i < a->nargs; i++) {
 		if (a->args[i].type == typeArg)
@@ -382,7 +384,7 @@ void ifelse(Env *e, ASTnode *p) {
 }
 
 /* import a plugin */
-void import(Value *importName) {
+void import(Value const *importName) {
 	if (!importName)
 		MkvsynthError("expected name of script or plugin, got operation", importName);
 	if (importName->type != typeId)
@@ -429,7 +431,7 @@ void import(Value *importName) {
 }
 
 /* display error and current line number in red and exit */
-void MkvsynthError(char *error, ...) {
+void MkvsynthError(char const *error, ...) {
 	fprintf(stderr, "\x1B[31mdelbrot:%d error: %s%s", linenumber, currentFunction, currentFunction[0] ? ": " : "");
 	va_list arglist;
 	va_start(arglist, error);
@@ -440,7 +442,7 @@ void MkvsynthError(char *error, ...) {
 }
 
 /* display message in blue */
-void MkvsynthMessage(char *message, ...) {
+void MkvsynthMessage(char const *message, ...) {
 	fprintf(stderr, "\x1B[36m");
 	va_list arglist;
 	va_start(arglist, message);
@@ -450,7 +452,7 @@ void MkvsynthMessage(char *message, ...) {
 }
 
 /* display warning and current line number in yellow */
-void MkvsynthWarning(char *warning, ...) {
+void MkvsynthWarning(char const *warning, ...) {
 	fprintf(stderr, "\x1B[33mdelbrot:%d warning: %s%s", linenumber, currentFunction, currentFunction[0] ? ": " : "");
 	va_list arglist;
 	va_start(arglist, warning);
@@ -460,7 +462,7 @@ void MkvsynthWarning(char *warning, ...) {
 }
 
 /* process a default statement */
-void setDefault(Env *e, Value *name, ASTnode *valNode) {
+void setDefault(Env *e, Value const *name, ASTnode *valNode) {
 	if (currentFunction[0] == 0)
 		MkvsynthError("can't set defaults outside of function body");
 	if (!name)
@@ -507,7 +509,7 @@ Value unaryOp(Env *e, ASTnode* valNode, int op) {
 }
 
 /* process a user-defined function call */
-Value userDefFnCall(Env *e, Fn *f, argList *a) {
+Value userDefFnCall(Env const *e, Fn const *f, argList *a) {
 	/* create new environment */
 	Env local;
 	local.varTable = NULL;

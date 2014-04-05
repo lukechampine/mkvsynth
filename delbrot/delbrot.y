@@ -276,7 +276,7 @@ void freeEnv(Env *e) {
 }
 
 /* create a node in the AST */
-ASTnode makeNode(int op, int nops, ...) {
+ASTnode makeNode(const int op, const int nops, ...) {
 	ASTnode p = {};
 	p.op = op;
 	p.nops = nops;
@@ -312,7 +312,7 @@ ASTnode makeLeaf(valueType type, ...) {
 }
 
 /* create a parameter */
-ASTnode makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
+ASTnode makeParam(varType type, ASTnode const *typeNode, ASTnode const *nameNode) {
 	ASTnode p = {};
 	Var *v = calloc(1, sizeof(Var));
 	v->type = type;
@@ -329,7 +329,7 @@ ASTnode makeParam(varType type, ASTnode *typeNode, ASTnode *nameNode) {
 }
 
 /* create an argument */
-ASTnode makeArg(ASTnode *nameNode, ASTnode *valNode) {
+ASTnode makeArg(ASTnode const *nameNode, ASTnode const *valNode) {
 	ASTnode p = {};
 	p.value.type = typeNull;
 	Var *v = calloc(1, sizeof(Var));
@@ -341,7 +341,7 @@ ASTnode makeArg(ASTnode *nameNode, ASTnode *valNode) {
 }
 
 /* link two parameters/optargs together */
-ASTnode append(ASTnode *p, ASTnode *v) {
+ASTnode append(ASTnode const *p, ASTnode const *v) {
 	if (!p || !v)
 		MkvsynthError("invalid argument");
 	Var *traverse;
@@ -370,7 +370,7 @@ Fn* getFn(Env const *e, char const *fnName) {
 }
 
 /* add a plugin function to the global fnTable and return its identifier */
-ASTnode addPluginFn(ASTnode *pluginName, ASTnode *fnName) {
+ASTnode addPluginFn(ASTnode const *pluginName, ASTnode const *fnName) {
 	/* create identifier */
 	char *id = malloc(strlen(pluginName->value.id) + strlen(fnName->value.id) + 2);
 	strcpy(id, pluginName->value.id);
