@@ -376,6 +376,8 @@ ASTnode addPluginFn(ASTnode const *pluginName, ASTnode const *fnName) {
 			pluginFn = dlsym(traverse->handle, fnName->value.id);
 			if (dlerror() != NULL)
 				MkvsynthError("function \"%s\" not found in plugin %s", fnName->value.id, pluginName->value.id);
+			free(pluginName->value.id);
+			free(fnName->value.id);
 			/* add function to fnTable */
 			Fn *f = calloc(1, sizeof(Fn));
 			f->type = fnCore;
