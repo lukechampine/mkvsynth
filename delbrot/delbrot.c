@@ -8,7 +8,7 @@
 /* function declarations */
 static argList* argify(Env *, Var *);
 static Value    assign(Env *, Value const *, ASTnode *);
-static Value    assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
+static Value    assignOp(Env *, Value *, ASTnode *, ASTnode *);
 static Value    binaryOp(Env *, ASTnode *, int, ASTnode *);
 static ASTnode* chain(ASTnode const *, ASTnode *);
 	   void     checkArgs(argList const *, int, ...);
@@ -70,32 +70,34 @@ argList* argify(Env *e, Var *p) {
 /* create or modify a variable */
 Value assign(Env *e, Value const *name, ASTnode *valNode) {
 	Value v = ex(e, valNode);
-	if (!name)
-		MkvsynthError("invalid assignment: can't assign to operation", name);
 	if (name->type != typeId)
 		MkvsynthError("invalid assignment: can't assign to constant type %s", typeNames[name->type]);
 	if (v.type > typeClip)
 		MkvsynthError("invalid assignment: can't assign type %s to variable", typeNames[v.type]);
 	/* new variable */
 	if (getVar(e, name->id) == NULL)
-		putVar(e, name->id, typeVar);
+		putVar(e, strdup(name->id), typeVar);
 	return setVar(e, name->id, &v);
 }
 
 
 /* handle assignment operators */
-Value assignOp(Env *e, ASTnode *varNode, ASTnode *opNode, ASTnode *valNode) {
+Value assignOp(Env *e, Value *var, ASTnode *opNode, ASTnode *valNode) {
 	/* special cases */
 	if (opNode->op == '=')
-		return assign(e, &varNode->value, valNode);
+		return assign(e, var, valNode);
 
+	ASTnode varNode = {};
+	varNode.value = getVar(e, var->id)->value;
 	Value val;
 	if (opNode->op == CHNEQ)
-		val = ex(e, chain(varNode, valNode));
-	else
-		val = binaryOp(e, varNode, opNode->op, valNode);
+		val = ex(e, chain(&varNode, valNode));
+	else {
+		ASTnode binOp = makeNode(BINOP, 3, &varNode, opNode, valNode);
+		val = ex(e, &binOp);
+	}
 
-	return setVar(e, varNode->value.id, &val);
+	return setVar(e, var->id, &val);
 }
 
 /* handle arithmetic / boolean operators */
@@ -250,7 +252,7 @@ Value ex(Env *e, ASTnode *p) {
 		/* plugin imports */
 		case IMPORT:  import(&p->child[0].value); break;
 		/* assignment */
-		case ASSIGN:  v = assignOp(e, &p->child[0], &p->child[1], &p->child[2]); break;
+		case ASSIGN:  v = assignOp(e, &p->child[0].value, &p->child[1], &p->child[2]); break;
 		/* unary operators */
 		case NEG:     v = unaryOp(e, &p->child[0], '-'); break;
 		case '!':     v = unaryOp(e, &p->child[0], '!'); break;
