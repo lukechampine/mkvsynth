@@ -2,8 +2,6 @@ L    [a-zA-Z_]
 D    [0-9]
 
 %{
-	#include <stdlib.h>
-	#include <stdio.h>
 	#include "delbrot.h"
 	#include "y.tab.h"
 	int resWord(char const *);
