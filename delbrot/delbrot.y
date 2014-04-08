@@ -416,6 +416,8 @@ Value setVar(Env const *e, char const *varName, Value const *v) {
 	Var *traverse;
 	for (traverse = e->varTable; traverse != NULL; traverse = traverse->next) {
 		if (strcmp(traverse->name, varName) == 0) {
+			if (traverse->valType == typeStr)
+				free(traverse->value.str);
 			traverse->valType = v->type;
 			traverse->value = *v;
 			break;
