@@ -315,6 +315,12 @@ Value fnctCall(Env const *e, Value const *name, argList *a) {
 	else
 		res = userDefFnCall(e, f, a);
 
+	/* free arguments */
+	for (i = 0; i < a->nargs; i++) {
+		if (a->args[i].name != NULL)
+			free(a->args[i].name);
+		freeValue(&a->args[i].value);
+	}
 	free(a->args);
 	free(a);
 
