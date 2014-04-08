@@ -401,10 +401,15 @@ void ifelse(Env *e, ASTnode *p) {
 	Value cond = ex(e, &p->child[0]);
 	if (cond.type != typeBool)
 		MkvsynthError("if expected boolean, got %s", typeNames[cond.type]);
-	if (cond.bool)
+	if (cond.bool) {
 		ex(e, &p->child[1]);
-	else if (p->nops == 3)
+		if (p->nops == 3)
+			freeNode(&p->child[2]);
+	}
+	else if (p->nops == 3) {
 		ex(e, &p->child[2]);
+		freeNode(&p->child[1]);
+	}
 }
 
 /* import a plugin */
