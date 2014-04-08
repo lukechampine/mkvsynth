@@ -219,15 +219,19 @@ Value dereference(Env const *e, Value const *val) {
 		MkvsynthError("unexpected NULL value");
 	if (val->type != typeId)
 		return *val;
-	Var *v; Fn *f;
+
+	Value ret; Var *v; Fn *f;
 	if ((v = getVar(e, val->id)) != NULL)
-		return v->value;
-	if ((f = getFn(e, val->id)) != NULL) {
-		argList *a = calloc(1, sizeof(argList));
-		return fnctCall(e, val, a);
-	}
-	MkvsynthError("reference to undefined variable or function \"%s\"", val->id);
-	return *val;
+		ret = v->value;
+	else if ((f = getFn(e, val->id)) != NULL)
+		ret = fnctCall(e, val, calloc(1, sizeof(argList)));
+	else
+		MkvsynthError("reference to undefined variable or function \"%s\"", val->id);
+
+	if (e == &global)
+		free(val->id);
+
+	return ret;
 }
 
 /* execute an ASTnode, producing a constant value */
