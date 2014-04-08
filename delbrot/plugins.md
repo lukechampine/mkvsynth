@@ -26,7 +26,7 @@ Now we can extract the function arguments from `a`:
     ...
 ```
 
-Mandatory arguments are accessed using `MANDNUM(n)`, `MANDSTR(n)`, etc., and optional arguments are accessed using `OPTNUM(argName, defaultValue)`. Don't try to access more arguments than you asked for in `checkArgs()`, or you'll get an ugly out-of-bounds error. Keep in mind that these are just macros; you can access the elements of `a` directly if you wish.
+Mandatory arguments are accessed using `MANDNUM(n)`, `MANDSTR(n)`, etc., and optional arguments are accessed using `OPTNUM(argName, defaultValue)`. Don't try to access more arguments than you asked for in `checkArgs()`, or you'll get an ugly out-of-bounds error. Keep in mind that these are just macros; you can access the elements of `a` directly if you wish. **Filter writers:** delbrot frees any string arguments after you return from your function. For simple plugins this generally isn't a problem, but if you're writing a video filter, you'll have to make a copy of the string you get from `MANDSTR(n)` if you plan on placing it in your filter parameter struct. 
  
 Next, we'll define the actual function logic. In this case, it's pretty straightforward:
 
@@ -46,7 +46,7 @@ And finally, we'll define the function's return value:
 }
 ```
 
-The `RETURN*(arg)` macros place allocate a `Value *v`, give it the proper type and supplied value, and call `return v`. Again, this can be written by hand if you so choose. We're done!
+The `RETURN*(arg)` macros create a `Value v`, give it the proper type and value, and call `return v`. Again, this can be written by hand if you so choose. We're done!
 
 ## compiling and loading plugins ##
 
