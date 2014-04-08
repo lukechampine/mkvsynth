@@ -3,6 +3,7 @@
 
 #include "../../jarvis/jarvis.h"
 #include <stdio.h>
+#include <string.h>
 
 struct x264EncodeParams {
 	char *filename;
@@ -44,8 +45,8 @@ Value x264Encode_AST(argList *a) {
 
 	checkArgs(a, 2, typeClip, typeStr);
 	MkvsynthOutput *output = MANDCLIP(0);
-	params->filename = MANDSTR(1);
-	params->x264params = OPTSTR("params", "");
+	params->filename = strdup(MANDSTR(1));
+	params->x264params = strdup(OPTSTR("params", ""));
 	params->input = createInputBuffer(output);
 
 	if(isMetaDataValid(params->input->metaData) != 1)
