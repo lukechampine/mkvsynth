@@ -401,11 +401,11 @@ ASTnode addPluginFn(ASTnode const *pluginName, ASTnode const *fnName) {
 }
 
 /* add an entry to the local varTable */
-void putVar(Env *e, char const *varName, varType type) {
+void putVar(Env *e, char *varName, varType type) {
 	/* create entry */
 	Var *v = calloc(1, sizeof(Var));
 	v->type = type;
-	v->name = strdup(varName);
+	v->name = varName;
 	/* add to variable table */
 	v->next = e->varTable;
 	e->varTable = v;

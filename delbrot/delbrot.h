@@ -124,7 +124,7 @@ ASTnode addPluginFn(ASTnode const *, ASTnode const *);
 Fn* getFn(Env const *, char const *);
 Var* getVar(Env const *, char const *);
 void putFn(Env *, Fn *);
-void putVar(Env *, char const *, varType type);
+void putVar(Env *, char *, varType type);
 Value setVar(Env const *, char const *, Value const *);
 /* AST evaluation */
 Value ex(Env *, ASTnode *);
