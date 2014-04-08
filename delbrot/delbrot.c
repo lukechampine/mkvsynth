@@ -51,14 +51,18 @@ argList* argify(Env *e, Var *p) {
 	/* allocate space */
 	a->args = calloc(a->nargs, sizeof(Var));
 
-	/* place arguments in args array */
+	/* move arguments to args array */
 	int i;
-	for (i = 0, traverse = p; traverse; traverse = traverse->next, i++)
+	for (i = 0, traverse = p; traverse; traverse = a->args[i].next, i++)
 		a->args[i] = *traverse;
+	if (e == &global)
+		freeVar(p);
 
 	/* evaluate arguments */
-	for (i = 0; i < a->nargs; i++)
+	for (i = 0; i < a->nargs; i++) {
 		a->args[i].value = ex(e, &a->args[i].fnArg);
+		a->args[i].valType = a->args[i].value.type;
+	}
 
 	return a;
 }
