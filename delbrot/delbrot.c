@@ -10,7 +10,7 @@ static argList* argify(Env *, Var *);
 static Value    assign(Env *, Value const *, ASTnode *);
 static Value    assignOp(Env *, Value *, ASTnode *, ASTnode *);
 static Value    binaryOp(Env *, ASTnode *, int, ASTnode *);
-static ASTnode* chain(ASTnode const *, ASTnode *);
+static ASTnode* chain(ASTnode *, ASTnode *);
 	   void     checkArgs(argList const *, int, ...);
 static Value    dereference(Env const *, Value const *);
 	   Value    ex(Env *, ASTnode *);
@@ -179,7 +179,7 @@ Value binaryOp(Env *e, ASTnode *lhsNode, int op, ASTnode *rhsNode) {
 }
 
 /* append LHS to argument list of RHS */
-ASTnode* chain(ASTnode const *val, ASTnode *fnNode) {
+ASTnode* chain(ASTnode *val, ASTnode *fnNode) {
 	if (fnNode->op == CHAIN)
 		return chain(val, &fnNode->child[0]), fnNode;
 	ASTnode arg = makeArg(NULL, val);
@@ -189,6 +189,8 @@ ASTnode* chain(ASTnode const *val, ASTnode *fnNode) {
 		*fnNode = makeNode(FNCT, 2, fnNode, &arg);
 	else
 		MkvsynthError("expected function name, got %s", typeNames[fnNode->value.type]);
+	/* clear the old value of val so it doesn't get freed twice */
+	val->value = (Value){};
 	return fnNode;
 }
 
