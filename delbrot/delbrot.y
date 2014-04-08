@@ -207,14 +207,15 @@ primary_expr
 
 %% /* end of grammar */
 
-/* free an ASTnode and its children */
+/* free an ASTnode's value and children */
 void freeNode(ASTnode *p) {
 	if (!p)
 		return;
 	freeValue(&p->value);
 	if (p->nops > 0 && p->child) {
-		while (p->nops > 0)
-			freeNode(&p->child[--p->nops]);
+		int i;
+		for (i = 0; i < p->nops; i++)
+			freeNode(&p->child[i]);
 		free(p->child);
 	}
 }
@@ -227,23 +228,15 @@ void freeValue(Value *v) {
 		free(v->str);
 	if (v->type == typeId)
 		free(v->id);
-	if (v->type == typeNull) {
-		freeVar(v->arg);
-		free(v->arg);
-	}
 }
 
 /* free a linked list of variables */
 void freeVar(Var *v) {
 	if (!v)
 		return;
-	if (v->name)
-		free(v->name);
-	freeValue(&v->value);
-	if (v->next) {
+	if (v->next)
 		freeVar(v->next);
-		free(v->next);
-	}
+	free(v);
 }
 
 /* free a linked list of functions */
@@ -252,10 +245,7 @@ void freeFn(Fn *f) {
 		return;
 	if (f->type == fnUser) {
 		free(f->name);
-		freeNode(f->body);
-		int i;
-		for (i = 0; i < f->params->nargs; i++)
-			freeVar(f->params->args);
+		free(f->body);
 		free(f->params->args);
 		free(f->params);
 	}
@@ -263,14 +253,13 @@ void freeFn(Fn *f) {
 		freeFn(f->next);
 		free(f->next);
 	}
+	free(f);
 }
 
 /* free an environment */
 void freeEnv(Env *e) {
 	freeVar(e->varTable);
-	free(e->varTable);
 	freeFn(e->fnTable);
-	free(e->fnTable);
 }
 
 /* create a node in the AST */
