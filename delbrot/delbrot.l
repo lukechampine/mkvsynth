@@ -121,7 +121,7 @@ D    [0-9]
 <<EOF>>             {
 						if (numImports == 0) {
 							#ifndef DELBROT
-							ASTnode go = makeLeaf(typeId, "go");
+							ASTnode go = makeLeaf(typeId, strdup("go"));
 							ex(&global, &go);
 							#endif
 							yyterminate();
