@@ -452,7 +452,7 @@ void import(Value const *importName) {
 	else {
 		/* create and append new plugin entry */
 		Plugin *newPlugin = malloc(sizeof(Plugin));
-		newPlugin->name = importName->id;
+		newPlugin->name = strdup(importName->id);
 		newPlugin->handle = pHandle;
 		newPlugin->next = pluginList;
 		pluginList = newPlugin;
