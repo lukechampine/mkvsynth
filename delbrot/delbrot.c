@@ -344,28 +344,25 @@ void funcDefine(Env *e, Value const *name, ASTnode *params, ASTnode const *body)
 	f->type = fnUser;
 	f->name = strdup(name->id);
 	f->parent = e;
-	f->body = body;
+	f->body = malloc(sizeof(ASTnode));
+	memcpy(f->body, body, sizeof(ASTnode));
 
 	/* create parameter list */
-	/* TODO: can this be replaced with argify? */
 	f->params = calloc(1, sizeof(argList));
 	int i = 0;
 	if (params->value.arg != NULL) {
 		/* count number of parameters */
 		Var *traverse = params->value.arg;
-		while (traverse != NULL) {
-			f->params->nargs++;
-			traverse = traverse->next;
-		}
+		while (++f->params->nargs && (traverse = traverse->next) != NULL);
 
 		/* allocate space for parameters */
 		f->params->args = calloc(f->params->nargs, sizeof(Var));
 		/* copy parameters */
-		for (traverse = params->value.arg; traverse; traverse = traverse->next) {
+		for (traverse = params->value.arg; traverse; traverse = traverse->next, i++)
 			f->params->args[i] = *traverse;
-			f->params->args[i].name = strdup(traverse->name);
-			i++;
-		}
+		/* free parameter linked list */
+		if (e == &global)
+			freeVar(params->value.arg);
 	}
 
 	/* check argument ordering */
