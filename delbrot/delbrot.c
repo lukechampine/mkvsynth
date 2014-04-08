@@ -260,8 +260,19 @@ Value ex(Env *e, ASTnode *p) {
 		default:      MkvsynthError("unknown operator %d", p->op);
 	}
 
-	if (e == &global && p->child != NULL && p->op != FNDEF)
+	if (e == &global && p->child != NULL) {
+		int i;
+		for (i = 0; i < p->nops; i++) {
+			if (v.type == typeStr && p->child[i].value.type == typeStr
+				&& v.str == p->child[i].value.str)
+				v.str = strdup(v.str);
+			freeValue(&p->child[i].value);
+		}
 		free(p->child);
+	}
+
+	if (e == &global)
+		p->value = v;
 
 	return v;
 }
