@@ -26,7 +26,7 @@
 /* enums */
 typedef enum { fnCore, fnUser } fnType; /* Fn types */
 typedef enum { typeVar, typeArg, typeOptArg, typeParam, typeOptParam } varType; /* Var types */
-typedef enum { typeNull, typeNum, typeBool, typeStr, typeClip, typeId } valueType; /* Value types */
+typedef enum { typeNull, typeNum, typeBool, typeStr, typeClip, typeId, typeFnArg } valueType; /* Value types */
 
 /* forward definitions */
 typedef struct Env Env;

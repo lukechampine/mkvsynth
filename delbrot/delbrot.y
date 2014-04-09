@@ -303,7 +303,7 @@ ASTnode makeParam(varType type, ASTnode const *typeNode, ASTnode const *nameNode
 	ASTnode p = {};
 	Var *v = calloc(1, sizeof(Var));
 	v->type = type;
-	v->value.type = typeNull;
+	v->value.type = typeFnArg;
 	v->name = nameNode->value.id;
 	switch (typeNode->op) {
 		case NUM:    v->valType = typeNum;  break;
@@ -318,7 +318,7 @@ ASTnode makeParam(varType type, ASTnode const *typeNode, ASTnode const *nameNode
 /* create an argument */
 ASTnode makeArg(ASTnode const *nameNode, ASTnode const *valNode) {
 	ASTnode p = {};
-	p.value.type = typeNull;
+	p.value.type = typeFnArg;
 	Var *v = calloc(1, sizeof(Var));
 	v->type = nameNode ? typeOptArg : typeArg;
 	v->name = nameNode ? nameNode->value.id : NULL;
