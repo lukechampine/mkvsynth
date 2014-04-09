@@ -207,11 +207,26 @@ primary_expr
 
 %% /* end of grammar */
 
+void freeArgs(Var *v) {
+	if (!v)
+		return;
+	freeNode(&v->fnArg);
+	if (v->next)
+		freeVar(v->next);
+	free(v);
+}
+
 /* free an ASTnode's value and children */
+/* this is only called by if/else and ternary */
 void freeNode(ASTnode *p) {
 	if (!p)
 		return;
-	freeValue(&p->value);
+
+	if (p->value.type == typeFnArg)
+		freeArgs(p->value.arg);
+	else
+		freeValue(&p->value);
+
 	if (p->nops > 0 && p->child) {
 		int i;
 		for (i = 0; i < p->nops; i++)
@@ -228,6 +243,8 @@ void freeValue(Value *v) {
 		free(v->str);
 	if (v->type == typeId)
 		free(v->id);
+	if (v->type == typeFnArg)
+		freeVar(v->arg);
 }
 
 /* free a linked list of variables */

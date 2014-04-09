@@ -55,8 +55,6 @@ argList* argify(Env *e, Var *p) {
 	int i;
 	for (i = 0, traverse = p; traverse; traverse = a->args[i].next, i++)
 		a->args[i] = *traverse;
-	if (e == &global)
-		freeVar(p);
 
 	/* evaluate arguments */
 	for (i = 0; i < a->nargs; i++) {
@@ -402,13 +400,14 @@ void ifelse(Env *e, ASTnode *p) {
 	if (cond.type != typeBool)
 		MkvsynthError("if expected boolean, got %s", typeNames[cond.type]);
 	if (cond.bool) {
-		ex(e, &p->child[1]);
-		if (p->nops == 3)
+		if (e == &global && p->nops == 3 && p->child[2].op != 0)
 			freeNode(&p->child[2]);
+		ex(e, &p->child[1]);
 	}
 	else if (p->nops == 3) {
+		if (e == &global && p->child[1].op != 0)
+			freeNode(&p->child[1]);
 		ex(e, &p->child[2]);
-		freeNode(&p->child[1]);
 	}
 }
 
@@ -514,10 +513,16 @@ Value ternary(Env *e, ASTnode *p) {
 	Value cond = ex(e, &p->child[0]);
 	if (cond.type != typeBool)
 		MkvsynthError("arg 1 of ?| expected boolean, got %s", typeNames[cond.type]);
-	if (cond.bool)
+	if (cond.bool) {
+		if (e == &global && p->child[2].op != 0)
+			freeNode(&p->child[2]);
 		return ex(e, &p->child[1]);
-	else
+	}
+	else {
+		if (e == &global && p->child[1].op != 0)
+			freeNode(&p->child[1]);
 		return ex(e, &p->child[2]);
+	}
 }
 
 /* handle negation operators */
