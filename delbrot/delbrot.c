@@ -317,7 +317,8 @@ Value fnctCall(Env const *e, Value const *name, argList *a) {
 	for (i = 0; i < a->nargs; i++) {
 		if (a->args[i].name != NULL)
 			free(a->args[i].name);
-		freeValue(&a->args[i].value);
+		if (e == &global)
+			freeValue(&a->args[i].value);
 	}
 	free(a->args);
 	free(a);
