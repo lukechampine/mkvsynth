@@ -26,7 +26,7 @@
 /* enums */
 typedef enum { fnCore, fnUser } fnType; /* Fn types */
 typedef enum { typeVar, typeArg, typeOptArg, typeParam, typeOptParam } varType; /* Var types */
-typedef enum { typeNull, typeNum, typeBool, typeStr, typeClip, typeId } valueType; /* Value types */
+typedef enum { typeNull, typeNum, typeBool, typeStr, typeClip, typeId, typeFnArg } valueType; /* Value types */
 
 /* forward definitions */
 typedef struct Env Env;
@@ -124,7 +124,7 @@ ASTnode addPluginFn(ASTnode const *, ASTnode const *);
 Fn* getFn(Env const *, char const *);
 Var* getVar(Env const *, char const *);
 void putFn(Env *, Fn *);
-void putVar(Env *, char const *, varType type);
+void putVar(Env *, char *, varType type);
 Value setVar(Env const *, char const *, Value const *);
 /* AST evaluation */
 Value ex(Env *, ASTnode *);

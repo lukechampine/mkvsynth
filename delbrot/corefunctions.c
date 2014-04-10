@@ -1,6 +1,7 @@
 #include "delbrot.h"
 #include "y.tab.h"
 #include <math.h>
+#include <string.h>
 
 /* function declarations */
 Value assert_AST(argList *);
@@ -78,10 +79,10 @@ Value show_AST(argList *a) {
 	if (a->nargs != 1)
 		MkvsynthError("expected 1 argument, got %d", a->nargs);
 	Value v;
-	switch (a->args[0].value.type) {
+	switch (a->args[0].valType) {
 		case typeNum:  v.str = malloc(256); sprintf(v.str, "%.10g", MANDNUM(0)); break;
 		case typeBool: v.str = MANDBOOL(0) ? "True" : "False"; break;
-		case typeStr:  v.str = MANDSTR(0); break;
+		case typeStr:  v.str = strdup(MANDSTR(0)); break;
 		default: MkvsynthError("not defined for %ss", typeNames[a->args[0].value.type]);
 	}
 	v.type = typeStr;

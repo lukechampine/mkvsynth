@@ -26,7 +26,7 @@
 
 program
 	: /* empty program */
-	| program stmt                                            { ex(&global, &$2);                        }
+	| program stmt                                            { Value v = ex(&global, &$2); freeValue(&v); }
 	;
 
 stmt
@@ -39,41 +39,41 @@ stmt
 	;
 
 function_declaration
-	: FNDEF primary_expr '(' param_list ')' '{' stmt_list '}' { $$ = makeNode(FNDEF, 3, &$2, &$4, &$7);  }
+	: FNDEF primary_expr '(' param_list ')' '{' stmt_list '}' { $$ = makeNode(FNDEF, 3, &$2, &$4, &$7);    }
 	;
 
 default_stmt
-	: DEFAULT primary_expr ':' expr ';'                       { $$ = makeNode(DEFAULT, 2, &$2, &$4);     }
+	: DEFAULT primary_expr ':' expr ';'                       { $$ = makeNode(DEFAULT, 2, &$2, &$4);       }
 	;
 
 return_stmt
-	: RETURN expr ';'                                         { $$ = makeNode(RETURN, 1, &$2);           }
-	| RETURN ';'                                              { $$ = makeNode(RETURN, 0);                }
+	: RETURN expr ';'                                         { $$ = makeNode(RETURN, 1, &$2);             }
+	| RETURN ';'                                              { $$ = makeNode(RETURN, 0);                  }
 	;
 
 expression_stmt
-	: ';'                                                     { $$ = makeLeaf(typeNum, 0); /* no op */   }
-	| expr ';'                                                { $$ = $1;                                 }
+	: ';'                                                     { $$ = makeLeaf(typeNum, 0); /* no op */     }
+	| expr ';'                                                { $$ = $1;                                   }
 	;
 
 selection_stmt
-	: IF '(' expr ')' block %prec IFX                         { $$ = makeNode(IF, 2, &$3, &$5);          }
-	| IF '(' expr ')' block ELSE block                        { $$ = makeNode(IF, 3, &$3, &$5, &$7);     }
+	: IF '(' expr ')' block %prec IFX                         { $$ = makeNode(IF, 2, &$3, &$5);            }
+	| IF '(' expr ')' block ELSE block                        { $$ = makeNode(IF, 3, &$3, &$5, &$7);       }
 	;
 
 import_stmt
-	: IMPORT expr ';'                                         { $$ = makeNode(IMPORT, 1, &$2);           }
+	: IMPORT expr ';'                                         { $$ = makeNode(IMPORT, 1, &$2);             }
 	;
 
 param_list
-	: /* empty */                                             { $$ = (ASTnode){};                        }
-	| param                                                   { $$ = $1;                                 }
-	| param_list ',' param                                    { $$ = append(&$1, &$3);                   }
+	: /* empty */                                             { $$ = (ASTnode){};                          }
+	| param                                                   { $$ = $1;                                   }
+	| param_list ',' param                                    { $$ = append(&$1, &$3);                     }
 	;
 
 param
-	: type primary_expr                                       { $$ = makeParam(typeParam, &$1, &$2);     }
-	| ':' type primary_expr                                   { $$ = makeParam(typeOptParam, &$2, &$3);  }
+	: type primary_expr                                       { $$ = makeParam(typeParam, &$1, &$2);       }
+	| ':' type primary_expr                                   { $$ = makeParam(typeOptParam, &$2, &$3);    }
 	;
 
 type
@@ -82,12 +82,12 @@ type
 
 block
 	: stmt
-	| '{' stmt_list '}'                                       { $$ = $2;                                 }
+	| '{' stmt_list '}'                                       { $$ = $2;                                   }
 	;
 
 stmt_list
 	: stmt
-	| stmt_list stmt                                          { $$ = makeNode(';', 2, &$1, &$2);         }
+	| stmt_list stmt                                          { $$ = makeNode(';', 2, &$1, &$2);           }
 	;
 
 expr
@@ -96,7 +96,7 @@ expr
 
 assignment_expr
 	: ternary_expr
-	| ternary_expr assignment_operator assignment_expr        { $$ = makeNode(ASSIGN, 3, &$1, &$2, &$3); }
+	| ternary_expr assignment_operator assignment_expr        { $$ = makeNode(ASSIGN, 3, &$1, &$2, &$3);   }
 	;
 
 assignment_operator
@@ -105,27 +105,27 @@ assignment_operator
 
 ternary_expr
 	: boolean_or_expr
-	| boolean_or_expr '?' ternary_expr '|' ternary_end        { $$ = makeNode(TERN, 3, &$1, &$3, &$5);   }
+	| boolean_or_expr '?' ternary_expr '|' ternary_end        { $$ = makeNode(TERN, 3, &$1, &$3, &$5);     }
 	;
 
 ternary_end
 	: ternary_expr
-	| OTHER '?' ternary_expr                                  { $$ = $3;                                 }
+	| OTHER '?' ternary_expr                                  { $$ = $3;                                   }
 	;
 
 boolean_or_expr
 	: boolean_and_expr
-	| boolean_or_expr LOR boolean_and_expr                    { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);  }
+	| boolean_or_expr LOR boolean_and_expr                    { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);    }
 	;
 
 boolean_and_expr
 	: boolean_eq_expr
-	| boolean_and_expr LAND boolean_eq_expr                   { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);  }
+	| boolean_and_expr LAND boolean_eq_expr                   { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);    }
 	;
 
 boolean_eq_expr
 	: boolean_rel_expr
-	| boolean_eq_expr eq_operator boolean_rel_expr            { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);  }
+	| boolean_eq_expr eq_operator boolean_rel_expr            { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);    }
 	;
 
 eq_operator
@@ -134,7 +134,7 @@ eq_operator
 
 boolean_rel_expr
 	: arithmetic_add_expr
-	| boolean_rel_expr rel_operator arithmetic_add_expr       { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);  }
+	| boolean_rel_expr rel_operator arithmetic_add_expr       { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);    }
 	;
 
 rel_operator
@@ -143,7 +143,7 @@ rel_operator
 
 arithmetic_add_expr
 	: arithmetic_mul_expr
-	| arithmetic_add_expr add_operator arithmetic_mul_expr    { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);  }
+	| arithmetic_add_expr add_operator arithmetic_mul_expr    { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);    }
 	;
 
 add_operator
@@ -152,7 +152,7 @@ add_operator
 
 arithmetic_mul_expr
 	: arithmetic_exp_expr
-	| arithmetic_mul_expr mul_operator arithmetic_exp_expr    { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);  }
+	| arithmetic_mul_expr mul_operator arithmetic_exp_expr    { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);    }
 	;
 
 mul_operator
@@ -161,60 +161,76 @@ mul_operator
 
 arithmetic_exp_expr
 	: concat_expr
-	| arithmetic_exp_expr '^' concat_expr                     { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);  }
+	| arithmetic_exp_expr '^' concat_expr                     { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);    }
 	;
 
 concat_expr
 	: chain_expr
-	| concat_expr CNCAT chain_expr                            { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);  }
+	| concat_expr CNCAT chain_expr                            { $$ = makeNode(BINOP, 3, &$1, &$2, &$3);    }
 
 chain_expr
 	: function_expr
-	| function_expr CHAIN chain_expr                          { $$ = makeNode(CHAIN, 2, &$1, &$3);       }
+	| function_expr CHAIN chain_expr                          { $$ = makeNode(CHAIN, 2, &$1, &$3);         }
 	;
 
 function_expr
 	: fn_name_expr
-	| fn_name_expr arg_list                                   { $$ = makeNode(FNCT, 2, &$1, &$2);        }
+	| fn_name_expr arg_list                                   { $$ = makeNode(FNCT, 2, &$1, &$2);          }
 	;
 
 fn_name_expr
 	: unary_expr
-	| unary_expr '.' unary_expr                               { $$ = addPluginFn(&$1, &$3);              }
+	| unary_expr '.' unary_expr                               { $$ = addPluginFn(&$1, &$3);                }
 	;
 
 arg_list
 	: function_arg
-	| arg_list function_arg                                   { $$ = append(&$1, &$2);                   }
+	| arg_list function_arg                                   { $$ = append(&$1, &$2);                     }
 	;
 
 function_arg
-	: primary_expr                                            { $$ = makeArg(NULL, &$1);                 }
-	| primary_expr ':' primary_expr                           { $$ = makeArg(&$1, &$3);                  }
+	: primary_expr                                            { $$ = makeArg(NULL, &$1);                   }
+	| primary_expr ':' primary_expr                           { $$ = makeArg(&$1, &$3);                    }
 	;
 
 unary_expr
 	: primary_expr
-	| '-' primary_expr                                        { $$ = makeNode(NEG, 1, &$2);              }
-	| '!' primary_expr                                        { $$ = makeNode('!', 1, &$2);              }
+	| '-' primary_expr                                        { $$ = makeNode(NEG, 1, &$2);                }
+	| '!' primary_expr                                        { $$ = makeNode('!', 1, &$2);                }
 	;
 
 primary_expr
 	: IDENTIFIER
 	| CONSTANT
-	| '(' expr ')'                                            { $$ = $2;                                 }
+	| '(' expr ')'                                            { $$ = $2;                                   }
 	;
 
 %% /* end of grammar */
 
-/* free an ASTnode and its children */
+void freeArgs(Var *v) {
+	if (!v)
+		return;
+	freeNode(&v->fnArg);
+	if (v->next)
+		freeVar(v->next);
+	free(v);
+}
+
+/* free an ASTnode's value and children */
+/* this is only called by if/else and ternary */
 void freeNode(ASTnode *p) {
 	if (!p)
 		return;
-	freeValue(&p->value);
+
+	if (p->value.type == typeFnArg)
+		freeArgs(p->value.arg);
+	else
+		freeValue(&p->value);
+
 	if (p->nops > 0 && p->child) {
-		while (p->nops > 0)
-			freeNode(&p->child[--p->nops]);
+		int i;
+		for (i = 0; i < p->nops; i++)
+			freeNode(&p->child[i]);
 		free(p->child);
 	}
 }
@@ -227,23 +243,17 @@ void freeValue(Value *v) {
 		free(v->str);
 	if (v->type == typeId)
 		free(v->id);
-	if (v->type == typeNull) {
+	if (v->type == typeFnArg)
 		freeVar(v->arg);
-		free(v->arg);
-	}
 }
 
 /* free a linked list of variables */
 void freeVar(Var *v) {
 	if (!v)
 		return;
-	if (v->name)
-		free(v->name);
-	freeValue(&v->value);
-	if (v->next) {
+	if (v->next)
 		freeVar(v->next);
-		free(v->next);
-	}
+	free(v);
 }
 
 /* free a linked list of functions */
@@ -252,10 +262,7 @@ void freeFn(Fn *f) {
 		return;
 	if (f->type == fnUser) {
 		free(f->name);
-		freeNode(f->body);
-		int i;
-		for (i = 0; i < f->params->nargs; i++)
-			freeVar(f->params->args);
+		free(f->body);
 		free(f->params->args);
 		free(f->params);
 	}
@@ -263,14 +270,13 @@ void freeFn(Fn *f) {
 		freeFn(f->next);
 		free(f->next);
 	}
+	free(f);
 }
 
 /* free an environment */
 void freeEnv(Env *e) {
 	freeVar(e->varTable);
-	free(e->varTable);
 	freeFn(e->fnTable);
-	free(e->fnTable);
 }
 
 /* create a node in the AST */
@@ -314,7 +320,7 @@ ASTnode makeParam(varType type, ASTnode const *typeNode, ASTnode const *nameNode
 	ASTnode p = {};
 	Var *v = calloc(1, sizeof(Var));
 	v->type = type;
-	v->value.type = typeNull;
+	v->value.type = typeFnArg;
 	v->name = nameNode->value.id;
 	switch (typeNode->op) {
 		case NUM:    v->valType = typeNum;  break;
@@ -329,7 +335,7 @@ ASTnode makeParam(varType type, ASTnode const *typeNode, ASTnode const *nameNode
 /* create an argument */
 ASTnode makeArg(ASTnode const *nameNode, ASTnode const *valNode) {
 	ASTnode p = {};
-	p.value.type = typeNull;
+	p.value.type = typeFnArg;
 	Var *v = calloc(1, sizeof(Var));
 	v->type = nameNode ? typeOptArg : typeArg;
 	v->name = nameNode ? nameNode->value.id : NULL;
@@ -387,6 +393,8 @@ ASTnode addPluginFn(ASTnode const *pluginName, ASTnode const *fnName) {
 			pluginFn = dlsym(traverse->handle, fnName->value.id);
 			if (dlerror() != NULL)
 				MkvsynthError("function \"%s\" not found in plugin %s", fnName->value.id, pluginName->value.id);
+			free(pluginName->value.id);
+			free(fnName->value.id);
 			/* add function to fnTable */
 			Fn *f = calloc(1, sizeof(Fn));
 			f->type = fnCore;
@@ -401,11 +409,11 @@ ASTnode addPluginFn(ASTnode const *pluginName, ASTnode const *fnName) {
 }
 
 /* add an entry to the local varTable */
-void putVar(Env *e, char const *varName, varType type) {
+void putVar(Env *e, char *varName, varType type) {
 	/* create entry */
 	Var *v = calloc(1, sizeof(Var));
 	v->type = type;
-	v->name = strdup(varName);
+	v->name = varName;
 	/* add to variable table */
 	v->next = e->varTable;
 	e->varTable = v;
@@ -425,6 +433,8 @@ Value setVar(Env const *e, char const *varName, Value const *v) {
 	Var *traverse;
 	for (traverse = e->varTable; traverse != NULL; traverse = traverse->next) {
 		if (strcmp(traverse->name, varName) == 0) {
+			if (traverse->valType == typeStr)
+				free(traverse->value.str);
 			traverse->valType = v->type;
 			traverse->value = *v;
 			break;

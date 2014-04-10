@@ -8,9 +8,9 @@
 /* function declarations */
 static argList* argify(Env *, Var *);
 static Value    assign(Env *, Value const *, ASTnode *);
-static Value    assignOp(Env *, ASTnode *, ASTnode *, ASTnode *);
+static Value    assignOp(Env *, Value *, ASTnode *, ASTnode *);
 static Value    binaryOp(Env *, ASTnode *, int, ASTnode *);
-static ASTnode* chain(ASTnode const *, ASTnode *);
+static ASTnode* chain(ASTnode *, ASTnode *);
 	   void     checkArgs(argList const *, int, ...);
 static Value    dereference(Env const *, Value const *);
 	   Value    ex(Env *, ASTnode *);
@@ -51,14 +51,16 @@ argList* argify(Env *e, Var *p) {
 	/* allocate space */
 	a->args = calloc(a->nargs, sizeof(Var));
 
-	/* place arguments in args array */
+	/* move arguments to args array */
 	int i;
-	for (i = 0, traverse = p; traverse; traverse = traverse->next, i++)
+	for (i = 0, traverse = p; traverse; traverse = a->args[i].next, i++)
 		a->args[i] = *traverse;
 
 	/* evaluate arguments */
-	for (i = 0; i < a->nargs; i++)
+	for (i = 0; i < a->nargs; i++) {
 		a->args[i].value = ex(e, &a->args[i].fnArg);
+		a->args[i].valType = a->args[i].value.type;
+	}
 
 	return a;
 }
@@ -66,32 +68,34 @@ argList* argify(Env *e, Var *p) {
 /* create or modify a variable */
 Value assign(Env *e, Value const *name, ASTnode *valNode) {
 	Value v = ex(e, valNode);
-	if (!name)
-		MkvsynthError("invalid assignment: can't assign to operation", name);
 	if (name->type != typeId)
 		MkvsynthError("invalid assignment: can't assign to constant type %s", typeNames[name->type]);
 	if (v.type > typeClip)
 		MkvsynthError("invalid assignment: can't assign type %s to variable", typeNames[v.type]);
 	/* new variable */
 	if (getVar(e, name->id) == NULL)
-		putVar(e, name->id, typeVar);
+		putVar(e, strdup(name->id), typeVar);
 	return setVar(e, name->id, &v);
 }
 
 
 /* handle assignment operators */
-Value assignOp(Env *e, ASTnode *varNode, ASTnode *opNode, ASTnode *valNode) {
+Value assignOp(Env *e, Value *var, ASTnode *opNode, ASTnode *valNode) {
 	/* special cases */
 	if (opNode->op == '=')
-		return assign(e, &varNode->value, valNode);
+		return assign(e, var, valNode);
 
+	ASTnode varNode = {};
+	varNode.value = getVar(e, var->id)->value;
 	Value val;
 	if (opNode->op == CHNEQ)
-		val = ex(e, chain(varNode, valNode));
-	else
-		val = binaryOp(e, varNode, opNode->op, valNode);
+		val = ex(e, chain(&varNode, valNode));
+	else {
+		ASTnode binOp = makeNode(BINOP, 3, &varNode, opNode, valNode);
+		val = ex(e, &binOp);
+	}
 
-	return setVar(e, varNode->value.id, &val);
+	return setVar(e, var->id, &val);
 }
 
 /* handle arithmetic / boolean operators */
@@ -173,7 +177,7 @@ Value binaryOp(Env *e, ASTnode *lhsNode, int op, ASTnode *rhsNode) {
 }
 
 /* append LHS to argument list of RHS */
-ASTnode* chain(ASTnode const *val, ASTnode *fnNode) {
+ASTnode* chain(ASTnode *val, ASTnode *fnNode) {
 	if (fnNode->op == CHAIN)
 		return chain(val, &fnNode->child[0]), fnNode;
 	ASTnode arg = makeArg(NULL, val);
@@ -183,6 +187,8 @@ ASTnode* chain(ASTnode const *val, ASTnode *fnNode) {
 		*fnNode = makeNode(FNCT, 2, fnNode, &arg);
 	else
 		MkvsynthError("expected function name, got %s", typeNames[fnNode->value.type]);
+	/* clear the old value of val so it doesn't get freed twice */
+	val->value = (Value){};
 	return fnNode;
 }
 
@@ -211,15 +217,19 @@ Value dereference(Env const *e, Value const *val) {
 		MkvsynthError("unexpected NULL value");
 	if (val->type != typeId)
 		return *val;
-	Var *v; Fn *f;
+
+	Value ret; Var *v; Fn *f;
 	if ((v = getVar(e, val->id)) != NULL)
-		return v->value;
-	if ((f = getFn(e, val->id)) != NULL) {
-		argList *a = calloc(1, sizeof(argList));
-		return fnctCall(e, val, a);
-	}
-	MkvsynthError("reference to undefined variable or function \"%s\"", val->id);
-	return *val;
+		ret = v->value;
+	else if ((f = getFn(e, val->id)) != NULL)
+		ret = fnctCall(e, val, calloc(1, sizeof(argList)));
+	else
+		MkvsynthError("reference to undefined variable or function \"%s\"", val->id);
+
+	if (e == &global)
+		free(val->id);
+
+	return ret;
 }
 
 /* execute an ASTnode, producing a constant value */
@@ -246,7 +256,7 @@ Value ex(Env *e, ASTnode *p) {
 		/* plugin imports */
 		case IMPORT:  import(&p->child[0].value); break;
 		/* assignment */
-		case ASSIGN:  v = assignOp(e, &p->child[0], &p->child[1], &p->child[2]); break;
+		case ASSIGN:  v = assignOp(e, &p->child[0].value, &p->child[1], &p->child[2]); break;
 		/* unary operators */
 		case NEG:     v = unaryOp(e, &p->child[0], '-'); break;
 		case '!':     v = unaryOp(e, &p->child[0], '!'); break;
@@ -260,8 +270,19 @@ Value ex(Env *e, ASTnode *p) {
 		default:      MkvsynthError("unknown operator %d", p->op);
 	}
 
-	if (e == &global && p->child != NULL && p->op != FNDEF)
+	if (e == &global && p->child != NULL) {
+		int i;
+		for (i = 0; i < p->nops; i++) {
+			if (v.type == typeStr && p->child[i].value.type == typeStr
+				&& v.str == p->child[i].value.str)
+				v.str = strdup(v.str);
+			freeValue(&p->child[i].value);
+		}
 		free(p->child);
+	}
+
+	if (e == &global)
+		p->value = v;
 
 	return v;
 }
@@ -292,6 +313,13 @@ Value fnctCall(Env const *e, Value const *name, argList *a) {
 	else
 		res = userDefFnCall(e, f, a);
 
+	/* free arguments */
+	for (i = 0; i < a->nargs; i++) {
+		if (a->args[i].name != NULL)
+			free(a->args[i].name);
+		if (e == &global)
+			freeValue(&a->args[i].value);
+	}
 	free(a->args);
 	free(a);
 
@@ -315,28 +343,25 @@ void funcDefine(Env *e, Value const *name, ASTnode *params, ASTnode const *body)
 	f->type = fnUser;
 	f->name = strdup(name->id);
 	f->parent = e;
-	f->body = body;
+	f->body = malloc(sizeof(ASTnode));
+	memcpy(f->body, body, sizeof(ASTnode));
 
 	/* create parameter list */
-	/* TODO: can this be replaced with argify? */
 	f->params = calloc(1, sizeof(argList));
 	int i = 0;
 	if (params->value.arg != NULL) {
 		/* count number of parameters */
 		Var *traverse = params->value.arg;
-		while (traverse != NULL) {
-			f->params->nargs++;
-			traverse = traverse->next;
-		}
+		while (++f->params->nargs && (traverse = traverse->next) != NULL);
 
 		/* allocate space for parameters */
 		f->params->args = calloc(f->params->nargs, sizeof(Var));
 		/* copy parameters */
-		for (traverse = params->value.arg; traverse; traverse = traverse->next) {
+		for (traverse = params->value.arg; traverse; traverse = traverse->next, i++)
 			f->params->args[i] = *traverse;
-			f->params->args[i].name = strdup(traverse->name);
-			i++;
-		}
+		/* free parameter linked list */
+		if (e == &global)
+			freeVar(params->value.arg);
 	}
 
 	/* check argument ordering */
@@ -375,10 +400,16 @@ void ifelse(Env *e, ASTnode *p) {
 	Value cond = ex(e, &p->child[0]);
 	if (cond.type != typeBool)
 		MkvsynthError("if expected boolean, got %s", typeNames[cond.type]);
-	if (cond.bool)
+	if (cond.bool) {
+		if (e == &global && p->nops == 3 && p->child[2].op != 0)
+			freeNode(&p->child[2]);
 		ex(e, &p->child[1]);
-	else if (p->nops == 3)
+	}
+	else if (p->nops == 3) {
+		if (e == &global && p->child[1].op != 0)
+			freeNode(&p->child[1]);
 		ex(e, &p->child[2]);
+	}
 }
 
 /* import a plugin */
@@ -421,7 +452,7 @@ void import(Value const *importName) {
 	else {
 		/* create and append new plugin entry */
 		Plugin *newPlugin = malloc(sizeof(Plugin));
-		newPlugin->name = importName->id;
+		newPlugin->name = strdup(importName->id);
 		newPlugin->handle = pHandle;
 		newPlugin->next = pluginList;
 		pluginList = newPlugin;
@@ -483,10 +514,16 @@ Value ternary(Env *e, ASTnode *p) {
 	Value cond = ex(e, &p->child[0]);
 	if (cond.type != typeBool)
 		MkvsynthError("arg 1 of ?| expected boolean, got %s", typeNames[cond.type]);
-	if (cond.bool)
+	if (cond.bool) {
+		if (e == &global && p->child[2].op != 0)
+			freeNode(&p->child[2]);
 		return ex(e, &p->child[1]);
-	else
+	}
+	else {
+		if (e == &global && p->child[1].op != 0)
+			freeNode(&p->child[1]);
 		return ex(e, &p->child[2]);
+	}
 }
 
 /* handle negation operators */
